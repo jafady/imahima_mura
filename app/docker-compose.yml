@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    container_name: imahima_web_dev
+    command: npm run serve
+    build:
+      context: ./imahima
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./imahima:/usr/src/app/
+    ports:
+      - '8080:8080'

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+    django:
+        container_name: imahima_server_dev
+        # appディレクトリの中から`Dockerfile`を探す
+        build: ./
+        # サービス起動後に入力されるコマンドを設定
+        command: python manage.py runserver 0.0.0.0:8000
+        # データを永続化させる場合の設定。`host:container`でパスを記載
+        volumes:
+            - ./imahima_mura:/usr/src/server/
+        # 開放するポートを指定。`host:container`でポートを記載
+        ports:
+            - 8000:8000
+        # 環境変数を指定
+        environment:
+            # 1ならデバックモード
+            - DEBUG=1
+            # setting.pyに記載されているSECRET_KEYを記入
+            - SECRET_KEY='django-insecure-(^-^)/++developkeydayoo(^-^)/++developkeydayoo(^-^)/++developkeydayoo'
+            - DATABASE_ENGINE=django.db.backends.postgresql
+            - DATABASE_DB=django_db
+            - DATABASE_USER=django_db_user
+            - DATABASE_PASSWORD=password1234
+            - DATABASE_HOST=postgres
+            - DATABASE_PORT=5432
+        depends_on:
+            - postgres
+    
+    postgres:
+        container_name: imahima_db_dev
+        # 公式からイメージをpull
+        image: postgres:14.1-alpine
+        # データベースの永続化
+        # ホストのディレクトリにマウントしない様に、先頭に`./`をつけない
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        # su権限を持つ、指定されたユーザーと同じ名前のデータベースを作成
+        # valueはdjangoサービスで指定したものと同じ様に記載する
+        environment:
+            - POSTGRES_USER=django_db_user
+            - POSTGRES_PASSWORD=password1234
+            - POSTGRES_DB=django_db
+volumes:
+    postgres_data:
