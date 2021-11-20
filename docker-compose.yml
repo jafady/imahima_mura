@@ -3,19 +3,20 @@ version: '3.8'
 services:
   vue:
     container_name: imahima_web_dev
+    command: npm run serve
     build:
       context: ./app/imahima
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     volumes:
       - ./app/imahima:/usr/src/app/
     ports:
-      - '8080:80'
+      - '8080:8080'
+    environment:
+      - VUE_APP_API_ENDPOINT=http://localhost:8000/
 
   django:
     container_name: imahima_server_dev
     build: ./server
-    # サービス起動後に入力されるコマンドを設定
-    command: python manage.py runserver 0.0.0.0:8000
     # データを永続化させる場合の設定。`host:container`でパスを記載
     volumes:
         - ./server/imahima_mura:/usr/src/server/

@@ -19,7 +19,9 @@ COPY ./requirements.txt /usr/src/server/requirements.txt
 RUN pip install -r requirements.txt
 
 # ホストのカレントディレクトリ（現在はserverディレクトリ）を作業ディレクトリにコピー
-COPY . /usr/src/server/
+COPY imahima_mura/ /usr/src/server/
 
+ENV PORT=8000
 # entrypoint.shを実行
 ENTRYPOINT ["/usr/src/server/entrypoint.sh"]
+CMD python manage.py runserver 0.0.0.0:$PORT

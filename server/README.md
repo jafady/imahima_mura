@@ -34,5 +34,19 @@ docker-compose exec postgres psql --username=django_db_user --dbname=django_db
 ## vue
 http://localhost:8080/
 
+# 公開環境へのデプロイ
+## 使用環境
+- heroku
+## デプロイ方法
+- herokuのコンテナレジストリに公開してそこからリリース
+  - github連携だといちいちコミットが必要になってきてしまうので気軽に試すのが難しくなりそうだったので。
+  - serverとappでレポジトリを分けるのが面倒だったというのもある。
+- server側をRestAPIとして作るつもりで、バックグラウンド処理ではなかったのでHeroku上1サーバにするのは無理だった
+- デプロイにはheroku cliが必要
+## 環境変数
+- docker-compose内で定義する。
+  - 開発環境と公開環境でcomposeの形自体もどうせ違うので環境変数だけ切り出さなくても良いかなと。
+
+
 # ディレクトリ構成
 具体的にものを作り始めたら記載しはじめる

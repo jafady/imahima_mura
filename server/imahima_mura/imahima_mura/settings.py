@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = int(os.environ.get('DEBUG', default=0))
 
 # # 許可するホストを記載
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','imahima-mura-server.herokuapp.com']
 
 
 # Application definition
@@ -70,6 +70,7 @@ JWT_AUTH = {
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
+    'https://imahima-mura.herokuapp.com/',
 )
 
 MIDDLEWARE = [

@@ -47,7 +47,7 @@ export default {
         login() {
             this.loading = true;
             const userId = this.credentials.username;
-            this.$http.post('http://localhost:8000/auth/', this.credentials).then(response => {
+            this.$http.post('auth/', this.credentials).then(response => {
                 this.$store.dispatch("auth", {
                     userId: userId,
                     userToken: response.data.token
