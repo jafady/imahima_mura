@@ -1,7 +1,8 @@
 # ビルド環境
 FROM node:lts-alpine
-WORKDIR /app
+WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 COPY . .
 ENV VUE_APP_API_ENDPOINT=$VUE_APP_API_ENDPOINT
+CMD npm run serve

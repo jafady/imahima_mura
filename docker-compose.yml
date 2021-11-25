@@ -3,7 +3,6 @@ version: '3.8'
 services:
   vue:
     container_name: imahima_web_dev
-    command: npm run serve
     build:
       context: ./app/imahima
       dockerfile: Dockerfile.dev

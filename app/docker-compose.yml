@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   web:
-    container_name: imahima_web_dev
-    command: npm run serve
+    container_name: imahima_web_dev_alone
     build:
       context: ./imahima
       dockerfile: Dockerfile.dev

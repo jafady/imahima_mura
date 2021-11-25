@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     django:
-        container_name: imahima_server_dev
+        container_name: imahima_server_dev_alone
         # appディレクトリの中から`Dockerfile`を探す
         build: ./
         # データを永続化させる場合の設定。`host:container`でパスを記載
@@ -27,7 +27,7 @@ services:
             - postgres
     
     postgres:
-        container_name: imahima_db_dev
+        container_name: imahima_db_dev_alone
         # 公式からイメージをpull
         image: postgres:14.1-alpine
         # データベースの永続化
