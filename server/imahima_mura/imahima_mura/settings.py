@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'channels',
 
     'imahima',
 ]
@@ -103,6 +104,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'imahima_mura.wsgi.application'
+# websocket
+ASGI_APPLICATION = "imahima_mura.asgi.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))],
+        },
+    },
+}
 
 
 # Database

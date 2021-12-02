@@ -1,5 +1,7 @@
 # 公式からpython3.10 on slim-busterイメージをpull
-FROM python:3.10-slim-buster
+# 同期関数あたりでバグにあたったので、3.10.1が出るまでは3.9を使う(channelsのredis書き込みあたり)
+# https://github.com/aio-libs/janus/issues/358
+FROM python:3.9.9-slim-buster
 
 # 作業ディレクトリを設定
 WORKDIR /usr/src/server

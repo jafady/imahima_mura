@@ -25,6 +25,7 @@ services:
             - DATABASE_PORT=5432
         depends_on:
             - postgres
+            - redis
     
     postgres:
         container_name: imahima_db_dev_alone
@@ -42,5 +43,13 @@ services:
             - POSTGRES_USER=django_db_user
             - POSTGRES_PASSWORD=password1234
             - POSTGRES_DB=django_db
+
+    redis:
+        container_name: imahima_redis_dev
+        # 公式からイメージをpull
+        image: redis:6.2.6-alpine
+        ports:
+            - 6379:6379
+
 volumes:
     postgres_data:

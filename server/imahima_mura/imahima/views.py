@@ -5,7 +5,7 @@ from rest_framework import generics, permissions
 from .serializers import UserSerializer
 
 # Create your views here.
-
+# 認証機能
 class UserList(generics.ListAPIView):
     """ View to list all users"""
     queryset = User.objects.all().order_by('id')
