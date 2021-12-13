@@ -35,7 +35,15 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => !record.meta.beforeAuth) && !Store.state.userToken) {
-    next({ path: '/login', query: { redirect: to.fullPath } });
+    if(localStorage.getItem('token')){
+      Store.dispatch("auth", {
+          userId: localStorage.getItem('userId'),
+          userToken: localStorage.getItem('token')
+      });
+      next();
+    } else {
+      next({ path: '/login', query: { redirect: to.fullPath } });
+    }
   } else {
     next();
   }

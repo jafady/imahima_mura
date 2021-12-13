@@ -44,6 +44,14 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'channels',
 
+    # # Allauth用
+    # 'django.contrib.sites', 
+    # 'allauth',
+    # 'allauth.account',
+    # 'rest_auth',
+    # 'rest_auth.registration',
+    # 'allauth.socialaccount',
+
     'imahima',
 ]
 
@@ -54,20 +62,20 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
 }
 
-JWT_AUTH = {
-    'JWT_VERIFY': True,
-    'JWT_VERIFY_EXPIRATION': True,
-    'JWT_LEEWAY': 0,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=86400),
-    'JWT_ALLOW_REFRESH': True,
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
-}
+# JWT_AUTH = {
+#     'JWT_VERIFY': True,
+#     'JWT_VERIFY_EXPIRATION': True,
+#     'JWT_LEEWAY': 0,
+#     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=86400),
+#     'JWT_ALLOW_REFRESH': True,
+#     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+# }
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
@@ -114,6 +122,23 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# カスタムユーザ
+# AUTH_USER_MODEL = 'imahima.CustomUser'
+# # allAuth
+# SITE_ID = 1
+# AUTHENTICATION_BACKENDS = (
+#     'allauth.account.auth_backends.AuthenticationBackend',  # 一般ユーザー用(メールアドレス認証)
+#     'django.contrib.auth.backends.ModelBackend',  # 管理サイト用(ユーザー名認証)
+# )
+# ACCOUNT_AUTHENTICATION_METHOD = 'email'  # メールアドレス認証に変更する設定
+# ACCOUNT_USERNAME_REQUIRED = False  # サインナップ、ログイン時のユーザーネーム認証をキャンセル
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # サインアップにメールアドレス確認を使用
+# ACCOUNT_EMAIL_REQUIRED = True
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # ローカルでの開発のためメールをコンソールで表示する
+# # LOGIN_REDIRECT_URL = 'imahima:home'  # ログイン成功後の遷移先の指定
+# # ACCOUNT_LOGOUT_REDIRECT_URL = 'imahima:welcome'  # ログアウト成功後の遷移先の指定
+# ACCOUNT_LOGOUT_ON_GET = True  # 確認を行わずログアウトする設定
 
 
 # Database
