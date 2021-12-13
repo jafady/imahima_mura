@@ -17,12 +17,14 @@ export default {
   name: "PushTest",
   mounted: function(){
     // websocket接続(例の単純移植)
+    const token = localStorage.getItem('token');
     const chatSocket = new WebSocket(
         'ws://'
         + process.env.VUE_APP_API_ENDPOINT_HOST
         + '/ws/chat/'
-        + 'pushroom'
-        + '/'
+        + 'pushroom/'
+        + '?token='
+        + token
     );
 
     chatSocket.onmessage = function(e) {
@@ -52,6 +54,9 @@ export default {
   },
   methods: {
     push() {
+      // ログイン確認用の簡易的なログアウト機構
+      // localStorage.setItem('userId', '');
+      // localStorage.setItem('token', '');
       // this.$push.create('Hello World!')
       this.$push.config({
          serviceWorker: './customServiceWorker.js',

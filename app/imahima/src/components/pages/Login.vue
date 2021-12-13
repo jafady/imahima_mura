@@ -47,11 +47,14 @@ export default {
         login() {
             this.loading = true;
             const userId = this.credentials.username;
+            // this.$http.post('rest-auth/logout/', this.credentials).then(response => {
             this.$http.post('auth/', this.credentials).then(response => {
                 this.$store.dispatch("auth", {
                     userId: userId,
                     userToken: response.data.token
                 });
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('token', response.data.token);
                 this.$router.push(this.$route.query.redirect);
             }).catch(e => {
                     this.loading = false;

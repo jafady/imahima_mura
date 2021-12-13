@@ -15,11 +15,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include,path
-from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework.authtoken.views import obtain_auth_token
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', obtain_jwt_token),
+    path('auth/', obtain_auth_token),# トークン発行用
+
+    # # allauth用
+    # path('accounts/', include('allauth.urls')),
+    # path('rest-auth/', include('rest_auth.urls')),
+    # path('rest-auth/registration/', include('rest_auth.registration.urls')),
+    # # メールアドレスの確認メールを送らないなら以下2ついらなくなる
+    # path('account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
+    #      name='account_confirm_email'),
+    # path('account-confirm-email/', include('allauth.urls')),
+    # # allauth用終わり
+
 
     path('api/', include('imahima.urls')),
 ]
