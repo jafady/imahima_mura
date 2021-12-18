@@ -124,7 +124,8 @@ CHANNEL_LAYERS = {
 }
 
 # カスタムユーザ
-# AUTH_USER_MODEL = 'imahima.CustomUser'
+AUTH_USER_MODEL = 'imahima.User'
+
 # # allAuth
 # SITE_ID = 1
 # AUTHENTICATION_BACKENDS = (
