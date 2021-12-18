@@ -35,7 +35,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => !record.meta.beforeAuth) && !Store.state.userToken) {
+    // localStorage.setItem('userId', '');
+    // localStorage.setItem('token', '');
     if(localStorage.getItem('token')){
+      // todo tokenの生存確認しなきゃ。。
       Store.dispatch("auth", {
           userId: localStorage.getItem('userId'),
           userToken: localStorage.getItem('token')
