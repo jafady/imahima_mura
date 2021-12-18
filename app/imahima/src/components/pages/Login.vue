@@ -6,7 +6,7 @@
                     <h5 class="card-title">ログイン</h5>
                     <form>
                         <div class="mb-3 text-start">
-                            <label for="username" class="form-label">名前</label>
+                            <label for="username" class="form-label">ID</label>
                             <input class="form-control" id="username" v-model="credentials.username">
                         </div>
                         <div class="mb-3 text-start">
@@ -43,6 +43,11 @@ export default {
             }
         }
     ),
+    mounted : function(){
+        if(localStorage.getItem('userId')){
+            this.credentials.username = localStorage.getItem('userId');
+        }
+    },
     methods: {
         login() {
             this.loading = true;
