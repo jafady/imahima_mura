@@ -5,6 +5,7 @@ import store from './store'
 
 import "bootstrap"
 import "bootstrap/dist/css/bootstrap.min.css"
+import "./assets/scss/common.scss";
 
 import Axios from 'axios'
 import Push from 'push.js'
