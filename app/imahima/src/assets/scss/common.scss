@@ -2,6 +2,8 @@
     --main-bg-color: rgba(58,190,39,1);
     --text-color-white: rgba(255,255,255,1);
     --text-color-black: rgba(0,0,0,1);
+
+    --btn-active-trans: translate(2px, 4px);
 }
 
 .btn_primary {
@@ -13,7 +15,7 @@
     background-image: url("../../assets/img/triangle_right.svg");
     background-repeat: no-repeat;
     background-position-y: center;
-    background-position-x: 80%;
+    background-position-x: 88%;
     box-shadow: 3px 7px 2px rgb(0,0,0,0.1);
 }
 .btn_primary:hover {
@@ -21,5 +23,5 @@
 }
 .btn_primary:active {
     box-shadow: none;
-    transform: translate(2px, 4px);
+    transform: var(--btn-active-trans);
 }

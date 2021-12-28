@@ -11,7 +11,7 @@
                     <div class="mb-3 text-start">
                         <input type="password" class="form-control" placeholder="パスワード" id="password" v-model="credentials.password">
                     </div>
-                    <button type="login" class="btn btn_primary btn_login" @click="login">ログイン</button>
+                    <button type="submit" class="btn btn_primary btn_login" @click="login">ログイン</button>
                 </form>
                 <span class="d-flex mb-3">
                     <div class="login_dash_box login_dash_box_left"></div>
@@ -22,7 +22,7 @@
                     <div class="login_firstvisiter_text">
                         はじめましての方は
                     </div>
-                    <button type="login" class="btn btn_primary btn_firstvisitor" @click="firstvisitor">こちらへ</button>
+                    <button type="button" class="btn btn_primary btn_firstvisitor" @click="firstvisitor">こちらへ</button>
                 </span>
             </div>
         </div>
@@ -95,7 +95,6 @@
             height: 22px;
             font-size: 12px!important;
             background-size: 10px;
-            background-position-x: 88%!important;
             margin-left: 5%;
         }
     }
