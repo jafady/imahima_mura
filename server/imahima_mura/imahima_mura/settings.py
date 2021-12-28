@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_yasg',
+    
     'channels',
 
     # # Allauth用
@@ -125,6 +127,17 @@ CHANNEL_LAYERS = {
 
 # カスタムユーザ
 AUTH_USER_MODEL = 'imahima.User'
+
+# swagger
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+}
 
 # # allAuth
 # SITE_ID = 1

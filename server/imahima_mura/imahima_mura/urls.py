@@ -18,6 +18,24 @@ from django.urls import include,path
 from rest_framework.authtoken.views import obtain_auth_token
 from django.views.generic import TemplateView
 
+from .settings import DEBUG
+from rest_framework import routers, permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+  openapi.Info(
+     title="イマヒマ村API",
+     default_version='v1.0',
+     description="イマヒマ村APIDOC",
+     terms_of_service="https://www.xxx.com/api/",
+     contact=openapi.Contact(email="test"),
+     license=openapi.License(name="BSD License"),
+  ),
+  public=True,
+  permission_classes=(permissions.AllowAny,) if DEBUG else (permissions.IsAdminUser,),
+)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', obtain_auth_token),# トークン発行用
@@ -34,4 +52,8 @@ urlpatterns = [
 
 
     path('api/', include('imahima.urls')),
+    #drf -yasgルーター
+    path('^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

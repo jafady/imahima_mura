@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-    id = models.TextField(primary_key=True, unique=True)
+    id = models.TextField(primary_key=True, unique=True, blank=True)
     username = models.TextField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -41,7 +41,8 @@ class User(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
-        unique=True,
+        unique=False,
+        blank=True
     )
     # first_name = models.TextField()
     # last_name = models.TextField()
