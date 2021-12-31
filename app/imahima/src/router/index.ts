@@ -3,7 +3,9 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 //component
 import Login from '@/components/pages/Login.vue'
 import FirstVisitor from '@/components/pages/FirstVisitor.vue'
-import Welcome from '@/components/pages/Welcome.vue'
+
+import House from '@/components/pages/House.vue'
+
 import PushTest from '@/components/pages/PushTest.vue'
 
 // store
@@ -11,7 +13,7 @@ import Store from '@/store/index'
 
 declare module 'vue-router' {
   interface RouteMeta {
-    beforeAuth: boolean
+    beforeAuth?: boolean
     title?: string
   }
 }
@@ -30,9 +32,10 @@ const routes: Array<RouteRecordRaw> = [
     meta: { beforeAuth: true, title:'イマヒマ村へようこそ' }
   },
   {
-    path: '/',
-    name: 'Welcome',
-    component: Welcome
+    path: '/House',
+    name: 'House',
+    component: House,
+    meta: { title:'イマヒマ村 居間' }
   },
   {
     path: '/pushtest',

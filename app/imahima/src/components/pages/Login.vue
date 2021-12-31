@@ -56,7 +56,6 @@
     .login_card_base{
         width: 90%;
         max-width: 600px;
-        height: 42%;
         margin: 0 auto;
         background-color: rgba(58, 190, 39, 0.3);
         border-radius: 8px;
@@ -127,7 +126,11 @@ export default {
                 });
                 localStorage.setItem("userId", userId);
                 localStorage.setItem("token", response.data.token);
-                this.$router.push(this.$route.query.redirect);
+                let next = this.$route.query.redirect;
+                if(!this.$route.query.redirect){
+                    next = "House"
+                }
+                this.$router.push(next);
             }).catch(e => {
                     this.loading = false;
                     this.isError = true;
