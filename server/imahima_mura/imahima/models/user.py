@@ -44,8 +44,6 @@ class User(AbstractBaseUser):
         unique=False,
         blank=True
     )
-    # first_name = models.TextField()
-    # last_name = models.TextField()
 
     last_login = models.DateTimeField(auto_now=True)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -56,17 +54,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return self.email
-
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
+        return self.username
 
     @property
     def is_staff(self):

@@ -81,7 +81,7 @@ REST_FRAMEWORK = {
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
-    'https://imahima-mura.herokuapp.com/',
+    'https://imahima-mura.herokuapp.com',
 )
 
 MIDDLEWARE = [

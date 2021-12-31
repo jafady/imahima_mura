@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from .models import User
+from ..models import User
 from rest_framework import generics, permissions
 
-from .serializers import UserSerializer
+from ..serializers import UserSerializer
 
 # ユーザ操作
 class UserList(generics.ListAPIView):
@@ -16,7 +16,7 @@ class UserCreate(generics.CreateAPIView):
     """ View to create a new user. Only accepts POST requests """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.AllowAny, )
 
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
