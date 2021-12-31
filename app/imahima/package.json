@@ -53,7 +53,9 @@
       "ecmaVersion": 2020
     },
     "rules": {
-      "@typescript-eslint/no-var-requires": 0
+      "@typescript-eslint/no-var-requires": 0,
+      "@typescript-eslint/no-this-alias":"Off",
+      "consistent-this": [2, "that"]
     },
     "overrides": [
       {
