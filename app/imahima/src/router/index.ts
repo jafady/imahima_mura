@@ -2,23 +2,40 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 
 //component
 import Login from '@/components/pages/Login.vue'
-import Welcome from '@/components/pages/Welcome.vue'
+import FirstVisitor from '@/components/pages/FirstVisitor.vue'
+
+import House from '@/components/pages/House.vue'
+
 import PushTest from '@/components/pages/PushTest.vue'
 
 // store
 import Store from '@/store/index'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    beforeAuth?: boolean
+    title?: string
+  }
+}
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'Login',
     component: Login,
-    meta: { beforeAuth: true }
+    meta: { beforeAuth: true, title:'イマヒマ村 ログイン' }
   },
   {
-    path: '/',
-    name: 'Welcome',
-    component: Welcome
+    path: '/FirstVisitor',
+    name: 'FirstVisitor',
+    component: FirstVisitor,
+    meta: { beforeAuth: true, title:'イマヒマ村へようこそ' }
+  },
+  {
+    path: '/House',
+    name: 'House',
+    component: House,
+    meta: { title:'イマヒマ村 居間' }
   },
   {
     path: '/pushtest',
@@ -28,6 +45,7 @@ const routes: Array<RouteRecordRaw> = [
   },
 ]
 
+const DEFAULT_TITLE = 'イマヒマ村'
 const router = createRouter({
   history: createWebHashHistory(),
   routes
@@ -51,5 +69,8 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
+router.afterEach((to, from) => {
+  document.title = to.meta.title || DEFAULT_TITLE
+})
 
 export default router

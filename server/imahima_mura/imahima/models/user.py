@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-    id = models.TextField(primary_key=True, unique=True)
+    id = models.TextField(primary_key=True, unique=True, blank=True)
     username = models.TextField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -41,10 +41,9 @@ class User(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
-        unique=True,
+        unique=False,
+        blank=True
     )
-    # first_name = models.TextField()
-    # last_name = models.TextField()
 
     last_login = models.DateTimeField(auto_now=True)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -55,17 +54,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return self.email
-
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
+        return self.username
 
     @property
     def is_staff(self):

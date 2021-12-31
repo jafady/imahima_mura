@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_yasg',
+    
     'channels',
 
     # # Allauth用
@@ -79,7 +81,7 @@ REST_FRAMEWORK = {
 
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8080',
-    'https://imahima-mura.herokuapp.com/',
+    'https://imahima-mura.herokuapp.com',
 )
 
 MIDDLEWARE = [
@@ -125,6 +127,17 @@ CHANNEL_LAYERS = {
 
 # カスタムユーザ
 AUTH_USER_MODEL = 'imahima.User'
+
+# swagger
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+}
 
 # # allAuth
 # SITE_ID = 1
