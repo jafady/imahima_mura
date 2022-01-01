@@ -5,6 +5,7 @@ import Login from '@/components/pages/Login.vue'
 import FirstVisitor from '@/components/pages/FirstVisitor.vue'
 
 import House from '@/components/pages/House.vue'
+import Mypage from '@/components/pages/Mypage.vue'
 
 import PushTest from '@/components/pages/PushTest.vue'
 
@@ -19,6 +20,12 @@ declare module 'vue-router' {
 }
 
 const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    name: 'House',
+    component: House,
+    meta: { title:'イマヒマ村 居間' }
+  },
   {
     path: '/login',
     name: 'Login',
@@ -36,6 +43,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'House',
     component: House,
     meta: { title:'イマヒマ村 居間' }
+  },
+  {
+    path: '/MyPage',
+    name: 'MyPage',
+    component: Mypage,
+    meta: { title:'イマヒマ村 マイページ' }
   },
   {
     path: '/pushtest',
@@ -69,7 +82,7 @@ router.beforeEach((to, from, next) => {
     next();
   }
 });
-router.afterEach((to, from) => {
+router.afterEach((to) => {
   document.title = to.meta.title || DEFAULT_TITLE
 })
 
