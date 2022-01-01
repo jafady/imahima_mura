@@ -18,46 +18,7 @@
     background-color: rgba(0, 0, 0, 0.4);
     background-blend-mode: hard-light;
 
-    .header{
-        height:70px;
-        width:100%;
 
-        justify-content: space-around;
-        align-items: center;
-        background: linear-gradient(rgba(255,255,255,1),rgb(200 200 200));
-
-        .info{
-            height: 50px;
-            width: 50px;
-            .info_mark{
-                font-size: 28px;
-                font-weight: bold;
-                transform: translateY(-5px);
-            }
-            .info_word{
-                font-size: 11px;
-                font-weight: bold;
-                transform: translateY(-10px);
-            }
-        }
-
-        .house_logo{
-            background-image: url("../../assets/img/logo.svg");
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: cover;
-            height: 50px;
-            width: 50px;
-        }
-        .mypage{
-            height: 50px;
-            width: 50px;
-            background-color: #c9e8aa;
-            border-radius: 25px;
-        }
-    }
-    
-    
 }
 </style>
 
