@@ -18,6 +18,7 @@
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vue-session": "^1.0.0",
+    "vue3-timepicker": "^1.0.0-beta.2",
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
@@ -54,8 +55,11 @@
     },
     "rules": {
       "@typescript-eslint/no-var-requires": 0,
-      "@typescript-eslint/no-this-alias":"Off",
-      "consistent-this": [2, "that"]
+      "@typescript-eslint/no-this-alias": "Off",
+      "consistent-this": [
+        2,
+        "that"
+      ]
     },
     "overrides": [
       {

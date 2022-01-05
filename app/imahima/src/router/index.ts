@@ -22,7 +22,7 @@ declare module 'vue-router' {
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'House',
+    name: '',
     component: House,
     meta: { title:'イマヒマ村 居間' }
   },

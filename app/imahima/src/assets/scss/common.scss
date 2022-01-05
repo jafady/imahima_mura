@@ -1,10 +1,20 @@
 :root {
     --main-bg-color: rgba(58,190,39,1);
     --content-bg-color: rgba(209,238,216,1);
+    --inactive-bg-color: rgba(225,230,225,1);
     --text-color-white: rgba(255,255,255,1);
     --text-color-black: rgba(0,0,0,1);
+    --text-color-gray: rgba(155,155,155,1);
+
+    --status-color-ongame: rgba(0,163,226,1);
+    --status-color-hima: rgba(15,226,0,1);
+    --status-color-maybe: rgba(191,226,0,1);
+    --status-color-busy: rgba(226,0,94,1);
 
     --btn-active-trans: translate(2px, 4px);
+    --box-shadow: 3px 7px 2px rgb(0,0,0,0.1);
+    --content-border-radius: 8px;
+    
 }
 
 .btn_primary {
@@ -17,12 +27,16 @@
     background-repeat: no-repeat;
     background-position-y: center;
     background-position-x: 88%;
-    box-shadow: 3px 7px 2px rgb(0,0,0,0.1);
+    box-shadow: var(--box-shadow);
 }
 .btn_primary:hover {
     color: var(--text-color-white);
 }
 .btn_primary:active {
     box-shadow: none;
+    transform: var(--btn-active-trans);
+}
+.btn_imahima:active {
+    box-shadow: none!important;
     transform: var(--btn-active-trans);
 }

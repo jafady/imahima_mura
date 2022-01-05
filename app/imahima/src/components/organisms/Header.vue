@@ -1,7 +1,7 @@
 <template>
     <div class="header d-flex">
         <div class="header_info">
-            <div class="header_info_mark">?</div>
+            <div class="header_info_icon">?</div>
             <div class="header_info_word">ご案内</div>
         </div>
         <svg class="header_house_logo" @click="goHouse"/>
@@ -21,7 +21,7 @@
     .header_info{
         height: 50px;
         width: 50px;
-        .header_info_mark{
+        .header_info_icon{
             font-size: 28px;
             font-weight: bold;
             transform: translateY(-5px);
