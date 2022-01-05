@@ -30,7 +30,7 @@ class HouseMateInvitation(APIView):
     """ 招待確認 """
     permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, userId):
-        fields = ('id', 'houseId', 'userId', 'isApproved', 'house')
+        # fields = ('id', 'houseId', 'userId', 'isApproved', 'house')
         invitation = HouseMate.objects.select_related('House').filter(userId=userId,isApproved=False).values('id', 'houseId', 'userId', 'houseId__houseName')
 
         res_json = json.dumps(list(invitation), cls=DjangoJSONEncoder)

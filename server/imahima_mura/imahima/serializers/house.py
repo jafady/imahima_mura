@@ -8,7 +8,6 @@ class HouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = House
         fields = ('id', 'houseName')
-        # fields = ('houseName')
     
     def create(self, validated_data):
         return House.objects.create_house(self.context["request"].user, **validated_data)
