@@ -12,28 +12,19 @@ from django.http import HttpResponse
 
 # ユーザ操作
 class UserList(generics.ListAPIView):
-    """ View to list all users"""
+    """ ユーザ一覧 """
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
 
 class UserCreate(generics.CreateAPIView):
-    """ View to create a new user. Only accepts POST requests """
+    """ ユーザ作成 """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.AllowAny, )
 
-# 削除予定
-class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
-    """ Retrieve a user or update user information.
-    Accepts GET and PUT requests and the record id must be provided in the request """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated, )
 
-
-# @swagger_auto_schema(methods=['put', 'post'], request_body=UserSerializer)
 class UserInfo(APIView):
     """ 一連のユーザ情報取得 """
     serializer_class = UserSerializer
@@ -44,10 +35,12 @@ class UserInfo(APIView):
                 .prefetch_related('UserSelectCategory').select_related('UserSelectCategory__categoryId__CategoryMaster')\
                 .filter(id=userId)\
                 .values('id','username',
-                    'usersetting__icon','usersetting__isAllCategorySelected','usersetting__noticableTimeStart','usersetting__noticableTimeEnd',
-                    'usersetting__canNoticeMon','usersetting__canNoticeTue','usersetting__canNoticeWed','usersetting__canNoticeThu',
-                    'usersetting__canNoticeFri','usersetting__canNoticeSat','usersetting__canNoticeSun',
-                    'usersetting__statusId__statusName',
+                    'userSetting__icon','userSetting__isAllCategorySelected',
+                    'userSetting__noticableMonTimeStart','userSetting__noticableMonTimeEnd','userSetting__noticableTueTimeStart','userSetting__noticableTueTimeEnd',
+                    'userSetting__noticableWedTimeStart','userSetting__noticableWedTimeEnd','userSetting__noticableThuTimeStart','userSetting__noticableThuTimeEnd',
+                    'userSetting__noticableFriTimeStart','userSetting__noticableFriTimeEnd','userSetting__noticableSatTimeStart','userSetting__noticableSatTimeEnd',
+                    'userSetting__noticableSunTimeStart','userSetting__noticableSunTimeEnd',
+                    'userSetting__statusValidDateTime','userSetting__statusId__statusName',
                     'userselectcategory__categoryId','userselectcategory__categoryId__categoryName',
                     )
                 
@@ -56,15 +49,16 @@ class UserInfo(APIView):
         return HttpResponse(res_json, content_type="application/json")
 
 class UserInfoRetrieveUpdate(generics.RetrieveUpdateAPIView):
-    """ Retrieve a user or update user information.
-    Accepts GET and PUT requests and the record id must be provided in the request """
+    """ ユーザ基本情報取得用 """
     queryset = User.objects.all()
+    # queryset = User.objects.select_related('UserSetting').values('id','username',
+    #                 'usersetting'
+    #                 )
     serializer_class = UserInfoSerializer
     permission_classes = (permissions.IsAuthenticated, )
 
 class UserSettingRetrieveUpdate(generics.RetrieveUpdateAPIView):
-    """ Retrieve a user or update user information.
-    Accepts GET and PUT requests and the record id must be provided in the request """
+    """ ユーザ設定更新用 """
     queryset = UserSetting.objects.all()
     serializer_class = UserSettingSerializer
     lookup_field = 'userId'

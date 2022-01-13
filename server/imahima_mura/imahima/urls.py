@@ -7,7 +7,7 @@ urlpatterns = [
     path('users/', UserList.as_view()),
     path('create_user/', UserCreate.as_view()),
     path('users/<userId>/', UserInfo.as_view()),
-    path('userinfo/<pk>/', UserInfoRetrieveUpdate.as_view()),
+    path('user_info/<pk>/', UserInfoRetrieveUpdate.as_view()),
     path('user_setting/<userId>/', UserSettingRetrieveUpdate.as_view()),
     path('user_select_category/', UserSelectCategoryCreate.as_view()),
     path('user_select_category/delete/<userId>/<categoryId>/', UserSelectCategoryDelete.as_view()),

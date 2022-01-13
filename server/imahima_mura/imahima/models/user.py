@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser,PermissionsMixin
+from django.utils import timezone
 import uuid
 from .mixin import MyBaseModel
 from .master import StatusMaster
@@ -107,19 +108,25 @@ class UserSettingManager(models.Manager):
 
 
 class UserSetting(MyBaseModel):
-    userId = models.ForeignKey('User', to_field='id', on_delete=models.CASCADE, null=False)
-    icon = models.BinaryField(null=True)
+    userId = models.ForeignKey('User', to_field='id', related_name='userSetting', on_delete=models.CASCADE, null=False, unique=True)
+    icon = models.BinaryField(null=True,editable=True)
     statusId = models.ForeignKey('StatusMaster', to_field='id', on_delete=models.PROTECT, default=StatusMaster.objects.get(statusName = 'ヒマ').id ,null=False)
+    statusValidDateTime = models.DateTimeField(null=True, default=timezone.now)
     isAllCategorySelected = models.BooleanField(default=True)
-    noticableTimeStart = models.TimeField(null=True)
-    noticableTimeEnd = models.TimeField(null=True)
-    canNoticeMon = models.BooleanField(default=True)
-    canNoticeTue = models.BooleanField(default=True)
-    canNoticeWed = models.BooleanField(default=True)
-    canNoticeThu = models.BooleanField(default=True)
-    canNoticeFri = models.BooleanField(default=True)
-    canNoticeSat = models.BooleanField(default=True)
-    canNoticeSun = models.BooleanField(default=True)
+    noticableMonTimeStart = models.TimeField(null=True, default='00:00')
+    noticableMonTimeEnd = models.TimeField(null=True, default='00:00')
+    noticableTueTimeStart = models.TimeField(null=True, default='00:00')
+    noticableTueTimeEnd = models.TimeField(null=True, default='00:00')
+    noticableWedTimeStart = models.TimeField(null=True, default='00:00')
+    noticableWedTimeEnd = models.TimeField(null=True, default='00:00')
+    noticableThuTimeStart = models.TimeField(null=True, default='00:00')
+    noticableThuTimeEnd = models.TimeField(null=True, default='00:00')
+    noticableFriTimeStart = models.TimeField(null=True, default='00:00')
+    noticableFriTimeEnd = models.TimeField(null=True, default='00:00')
+    noticableSatTimeStart = models.TimeField(null=True, default='00:00')
+    noticableSatTimeEnd = models.TimeField(null=True, default='00:00')
+    noticableSunTimeStart = models.TimeField(null=True, default='00:00')
+    noticableSunTimeEnd = models.TimeField(null=True, default='00:00')
 
     objects = UserSettingManager()
 
