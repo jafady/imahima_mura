@@ -5,7 +5,9 @@
             <div class="header_info_word">ご案内</div>
         </div>
         <svg class="header_house_logo" @click="goHouse"/>
-        <div class="header_mypage"  @click="goMyPage" />
+        <div class="header_mypage" :class="statusCss" @click="goMyPage">
+            <img :src="myIcon" class="icon_image" />
+        </div>
     </div>
 </template>
 
@@ -44,22 +46,46 @@
     .header_mypage{
         height: 50px;
         width: 50px;
-        background-color: #c9e8aa;
-        border-radius: 25px;
+        border-radius: 50%;
+
+        .icon_image{
+            width: 90%;
+            margin-top: 5%;
+            background-color: white;
+            border-radius: 50%;
+        }
     }
 }
 </style>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+export type DataType = {
+    myIcon: string | ArrayBuffer | null,
+}
+
+export default defineComponent({
     name: "Header",
-    data: () => ({
-            credentials: {},
-            valid:true,
-            loading:false,
-            isError: false,
+    data(): DataType {
+        return{
+            myIcon: require("../../assets/img/default_icon.png")
         }
-    ),
+    },
+    computed: {
+        statusCss(): string{
+            return "icon_bg_" + this.$store.state.userStatus
+        }
+    },
+    mounted : function():void{
+        if(this.$store.state.userIcon){
+            this.myIcon = this.$store.state.userIcon;
+        }else{
+            this.$store.dispatch("getUserInfo").then(()=>{
+                this.myIcon = this.$store.state.userIcon;
+            });
+        }
+    },
     methods: {
         goHouse() {
             this.$router.push('House');
@@ -68,7 +94,7 @@ export default {
             this.$router.push('MyPage');
         }
     }
-}
+})
 </script>
 
 

@@ -10,7 +10,7 @@
                     </div>
                 </div>
                 <div>
-                    <div class="mypage_icon"></div>
+                    <IconUploadModal />
                     <div class="mypage_username">{{userName}}</div>
                     <div class="mypage_id d-inline-flex">
                         <div class="mypage_id_weight"></div>
@@ -135,14 +135,6 @@
                     font-size:10px
                 }
             }
-        }
-        .mypage_icon{
-            height: 100px;
-            width: 100px;
-            background-color: #c9e8aa;
-            border-radius: 50px;
-            background-position: center;
-            margin: 0 auto;
         }
         .mypage_username{
             font-size: 35px;
@@ -320,6 +312,7 @@ import { defineComponent } from 'vue'
 import CONST, { STATUS } from '../const'
 import Header from '../organisms/Header.vue'
 import Switch from '../molecules/Switch.vue'
+import IconUploadModal from '../organisms/IconUploadModal.vue'
 
 import utils from '@/mixins/utils'
 interface category {id:string,name:string,selected:boolean}
@@ -328,7 +321,6 @@ interface weekContent {id:string,name:string,selected:boolean,startTime:any,endT
 export type DataType = {
     userId: string,
     userName: string,
-    userIcon: string | null,
 
     statusHima: boolean,
     statusBusy: boolean,
@@ -352,6 +344,7 @@ export default defineComponent({
     components: {
         Header,
         Switch,
+        IconUploadModal,
     },
     setup(): Record<string, any>{
         const { dateTimeToString } = utils()
@@ -363,7 +356,6 @@ export default defineComponent({
         return{
             userId: "",
             userName: "",
-            userIcon: null,
 
             statusHima: true,
             statusBusy: false,
@@ -464,7 +456,6 @@ export default defineComponent({
         getUserFromStore():void{
             this.userId = this.$store.state.userId;
             this.userName = this.$store.state.userName;
-            this.userIcon = this.$store.state.userIcon;
         },
         async getUserInfo():Promise<void>{
             const categoryRes = await this.$http.get("/api/categorys/");
@@ -482,9 +473,7 @@ export default defineComponent({
             this.setNoticeData(firstData);
         },
         setStatusFlg(statusName:string):void{
-            // this.statusOngame = false;
             this.statusHima = false;
-            // this.statusMaybe = false;
             this.statusBusy = false;
             if (statusName == CONST.STATUS.hima){
                 this.statusHima = true;
@@ -521,8 +510,10 @@ export default defineComponent({
             this.refresh *= -1;
         },
         logout():void{
-            localStorage.setItem("token", "");
-            this.$router.push("Login");
+            this.$http.get("/api/logout/").then(()=>{
+                localStorage.setItem("token", "");
+                this.$router.push("Login");
+            });
         },
         copyId():void{
             navigator.clipboard.writeText(this.userId).then(() => {
@@ -549,14 +540,15 @@ export default defineComponent({
             const saveData = {statusId:null};
             if (this.statusHima){
                 saveData["statusId"] = statusRes.data.find((status:any) => status.statusName == CONST.STATUS.hima).id;
+                this.$store.dispatch("setStatus", "hima");
             }else if(this.statusBusy){
                 saveData["statusId"] = statusRes.data.find((status:any) => status.statusName == CONST.STATUS.busy).id;
+                this.$store.dispatch("setStatus", "busy");
             }
             this.saveUserSetting(saveData);
             
         },
         changeStatusValidTime():void{
-            console.log(this.dateTimeToString(this.statusValidDateTime))
             const saveData = {
                 statusValidDateTime: this.statusValidDateTime
             };

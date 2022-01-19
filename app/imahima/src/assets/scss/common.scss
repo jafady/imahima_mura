@@ -2,6 +2,7 @@
     --main-bg-color: rgba(58,190,39,1);
     --content-bg-color: rgba(209,238,216,1);
     --inactive-bg-color: rgba(225,230,225,1);
+    --cancel-bg-color: rgba(86,94,100,1);
     --text-color-white: rgba(255,255,255,1);
     --text-color-black: rgba(0,0,0,1);
     --text-color-gray: rgba(155,155,155,1);
@@ -17,6 +18,7 @@
     
 }
 
+// ボタン
 .btn_primary {
     background-color: var(--main-bg-color);
     border-radius: 40px;
@@ -36,7 +38,45 @@
     box-shadow: none;
     transform: var(--btn-active-trans);
 }
+.btn_primary_normal {
+    background-color: var(--main-bg-color);
+    border-radius: 40px;
+    padding: unset;
+    color: var(--text-color-white);
+    font-size: 18px;
+    box-shadow: var(--box-shadow);
+}
+.btn_primary_normal:active {
+    box-shadow: none;
+    transform: var(--btn-active-trans);
+}
+.btn_cancel {
+    background-color: var(--cancel-bg-color);
+    border-radius: 40px;
+    padding: unset;
+    color: var(--text-color-white);
+    font-size: 18px;
+    box-shadow: var(--box-shadow);
+}
+.btn_cancel:active {
+    box-shadow: none;
+    transform: var(--btn-active-trans);
+}
 .btn_imahima:active {
     box-shadow: none!important;
     transform: var(--btn-active-trans);
+}
+
+// アイコンカラー
+.icon_bg_hima{
+    background-color: var(--status-color-hima);
+}
+.icon_bg_maybe{
+    background-color: var(--status-color-maybe);
+}
+.icon_bg_busy{
+    background-color: var(--status-color-busy);
+}
+.icon_bg_ongame{
+    background-color: var(--status-color-ongame);
 }

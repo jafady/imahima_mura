@@ -13,6 +13,8 @@ import VueTimepicker from 'vue3-timepicker'
 import 'vue3-timepicker/dist/VueTimepicker.css'
 import Datepicker from 'vue3-datepicker';
 import 'vue3-datepicker/dist/vue3-datepicker.css'
+import Cropper from "cropperjs";
+import 'cropperjs/dist/cropper.min.css'
 
 const app = createApp(App).use(store).use(router);
 Axios.defaults.baseURL = process.env.VUE_APP_API_ENDPOINT_PROTOCOL +"://"+process.env.VUE_APP_API_ENDPOINT_HOST+"/";
@@ -27,4 +29,5 @@ app.config.globalProperties.$http = Axios;
 app.config.globalProperties.$push = Push;
 app.component('VueTimepicker', VueTimepicker);
 app.component('Datepicker', Datepicker);
+app.component('Cropper', Cropper);
 app.mount('#app');

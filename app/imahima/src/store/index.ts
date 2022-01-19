@@ -7,6 +7,8 @@ Axios.interceptors.request.use((config: AxiosRequestConfig) => {
     }
     return config
 });
+import CONST from '../components/const'
+import utils from '@/mixins/utils'
 
 export default createStore({
   state: {
@@ -14,6 +16,7 @@ export default createStore({
     userToken: "",
     userName: "",
     userIcon: null,
+    userStatus: "hima",
   },
   mutations: {
     loginUser(state, user) {
@@ -23,7 +26,12 @@ export default createStore({
     userInfo(state, userInfo) {
       state.userName = userInfo.userName;
       state.userIcon = userInfo.userIcon;
+      state.userStatus = userInfo.userStatus;
+    },
+    setStatus(state, userStatus){
+      state.userStatus = userStatus;
     }
+    
   },
   actions: {
     auth(context, user) {
@@ -31,14 +39,19 @@ export default createStore({
     },
     async getUserInfo(context) {
       const userId = context.state.userId;
-      await Axios.get("/api/user_info/" + userId + "/").then((response:any) => {
-          const userInfo = {
-            userName: response.data.username,
-            userIcon: response.data.userSetting[0]
-          }
-          context.commit('userInfo', userInfo);
+      await Axios.get("/api/user_base_info/" + userId + "/").then((response:any) => {
+        const { getStatusByName } = utils()
+        const userInfo = {
+          userName: response.data[0].username,
+          userIcon: CONST.BASE64.header + response.data[0].userSetting__icon,
+          userStatus: getStatusByName(response.data[0].userSetting__statusId__statusName)
+        }
+        context.commit('userInfo', userInfo);
       })
-    }
+    },
+    setStatus(context, userStatus) {
+      context.commit('setStatus', userStatus);
+    },
     
   },
   modules: {
