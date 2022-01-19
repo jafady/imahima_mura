@@ -36,6 +36,7 @@ schema_view = get_schema_view(
   permission_classes=(permissions.AllowAny,) if DEBUG else (permissions.IsAdminUser,),
 )
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', obtain_auth_token),# トークン発行用

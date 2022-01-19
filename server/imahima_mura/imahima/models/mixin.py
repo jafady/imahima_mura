@@ -5,7 +5,6 @@ class MyBaseModel(models.Model):
     class Meta:
         abstract = True
 
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
 
     create_user = models.CharField(

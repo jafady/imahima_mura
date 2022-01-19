@@ -1,5 +1,6 @@
 <template>
     <div class="container house_container">
+        <Header />
         <div>
             <button class="btn btn-primary" @click="logout">ログアウト</button>
         </div>
@@ -8,22 +9,27 @@
 
 <style  lang="scss">
 .house_container {
-    height: 100%;
+    min-height: 100%;
     max-width: 100% !important;
     padding: unset !important;
-    background-position: center;
-    background-size: cover;
-    background-image: url("../../assets/img/login/woodenDoor.jpg");
-    background-color: rgba(230, 255, 230, 0.2);
-    background-blend-mode: soft-light;
+    background-position: top;
+    background-size: auto;
+    background-image: url("../../assets/img/house/flooring.png");
+    background-color: rgba(0, 0, 0, 0.4);
+    background-blend-mode: hard-light;
 
-    
+
 }
 </style>
 
 <script>
+import Header from '../organisms/Header.vue'
+
 export default {
     name: "House",
+    components: {
+        Header,
+    },
     data: () => ({
             credentials: {},
             valid:true,
