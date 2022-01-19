@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from ..models import User,UserSetting,UserSelectCategory
-from ..serializers import UserSerializer,UserInfoSerializer,UserSettingSerializer,UserSelectCategorySerializer
-from rest_framework import generics, permissions
+from ..serializers import UserSerializer,UserSettingSerializer,UserSelectCategorySerializer
+from rest_framework import generics, permissions, status
 from .mixin import MultipleFieldLookupMixin
 
 from rest_framework.views import APIView
@@ -9,6 +9,14 @@ from rest_framework.response import Response
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse
+
+# ログアウト
+class Logout(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, format=None):
+        # simply delete the token to force a login
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_200_OK)
 
 # ユーザ操作
 class UserList(generics.ListAPIView):
@@ -48,14 +56,23 @@ class UserInfo(APIView):
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
 
-class UserInfoRetrieveUpdate(generics.RetrieveUpdateAPIView):
+class UserBaseInfo(APIView):
     """ ユーザ基本情報取得用 """
-    queryset = User.objects.all()
-    # queryset = User.objects.select_related('UserSetting').values('id','username',
-    #                 'usersetting'
-    #                 )
-    serializer_class = UserInfoSerializer
-    permission_classes = (permissions.IsAuthenticated, )
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, userId):
+        info = User.objects\
+                .select_related('UserSetting').select_related('UserSetting__statusId__StatusMaster')\
+                .prefetch_related('UserSelectCategory').select_related('UserSelectCategory__categoryId__CategoryMaster')\
+                .filter(id=userId)\
+                .values('id','username',
+                    'userSetting__icon',
+                    'userSetting__statusValidDateTime','userSetting__statusId__statusName',
+                    )
+                
+
+        res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
 
 class UserSettingRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """

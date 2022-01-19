@@ -52,16 +52,17 @@ class UserSelectCategorySerializer(serializers.ModelSerializer):
         return UserSelectCategory.objects.create_userselectcategory(self.context["request"].user, **validated_data)
 
 
-class UserInfoSerializer(serializers.ModelSerializer):
-    """ A serializer class for the User model """
-    userSetting = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='icon'
-     )
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'userSetting')
+# 未使用だが、SlugRelatedFieldのサンプル用に残す
+# class UserInfoSerializer(serializers.ModelSerializer):
+#     """ A serializer class for the User model """
+#     userSetting = serializers.SlugRelatedField(
+#         many=True,
+#         read_only=True,
+#         slug_field='icon'
+#      )
+#     class Meta:
+#         model = User
+#         fields = ('id', 'username', 'userSetting')
     
-    def update(self, instance, validated_data):
-        return User.objects.update_user(self.context["request"].user, instance, **validated_data)
+#     def update(self, instance, validated_data):
+#         return User.objects.update_user(self.context["request"].user, instance, **validated_data)
