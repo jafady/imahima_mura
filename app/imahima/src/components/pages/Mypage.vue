@@ -89,7 +89,7 @@
                 </div>
             </div>
         </div>
-        <div class="m-3 mypage_blank" />
+        <div class="m-3 blank_content" />
         
     </div>
 </template>
@@ -299,9 +299,6 @@
                 }
             }
         }
-    }
-    .mypage_blank{
-        height: 10px;
     }
 }
 </style>
