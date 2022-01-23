@@ -15,7 +15,7 @@ export default createStore({
     userId: "",
     userToken: "",
     userName: "",
-    userIcon: null,
+    userIcon: require("../assets/img/default_icon.png"),
     userStatus: "hima",
   },
   mutations: {
@@ -23,7 +23,7 @@ export default createStore({
       state.userId = "";
       state.userToken = "";
       state.userName = "";
-      state.userIcon = null;
+      state.userIcon = require("../assets/img/default_icon.png");
       state.userStatus = "hima";
     },
     loginUser(state, user) {
@@ -32,8 +32,15 @@ export default createStore({
     },
     userInfo(state, userInfo) {
       state.userName = userInfo.userName;
-      state.userIcon = userInfo.userIcon;
       state.userStatus = userInfo.userStatus;
+      if(userInfo.userIcon){
+        state.userIcon = userInfo.userIcon;
+      }
+    },
+    setUserIcon(state, userIcon){
+      if(userIcon){
+        state.userIcon = userIcon;
+      }
     },
     setStatus(state, userStatus){
       state.userStatus = userStatus;
@@ -59,6 +66,10 @@ export default createStore({
         }
         context.commit('userInfo', userInfo);
       })
+    },
+    setUserIcon(context, icon){
+      const userIcon = icon? CONST.BASE64.header + icon: null;
+      context.commit('setUserIcon', userIcon);
     },
     setStatus(context, userStatus) {
       context.commit('setStatus', userStatus);

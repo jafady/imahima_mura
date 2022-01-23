@@ -83,7 +83,6 @@ export type DataType = {
     cropper: any,
     zoomRangeValue: number,
     uploadingFile: string | ArrayBuffer | null,
-    croppedFile: string | ArrayBuffer | null,
     userStatus: string,
 }
 
@@ -96,25 +95,19 @@ export default defineComponent({
             cropper: null,
             zoomRangeValue: 0,
             uploadingFile: null,
-            croppedFile: require("../../assets/img/default_icon.png"),
             userStatus: "icon_bg_hima",
         }
     },
     computed: {
         statusCss(): string{
             return "icon_bg_" + this.$store.state.userStatus
-        }
-    },
-    mounted : function():void{
-        if(this.$store.state.userIcon){
-            this.croppedFile = this.$store.state.userIcon;
-        }else{
-            this.$store.dispatch("getUserInfo").then(()=>{
-                if(this.$store.state.userIcon){
-                    this.croppedFile = this.$store.state.userIcon;
-                }
-            });
-        }
+        },
+        croppedFile(): string | ArrayBuffer | null{
+            if(!this.$store.state.userIcon){
+                this.$store.dispatch("getUserInfo")
+            }
+            return this.$store.state.userIcon;
+        },
     },
     methods: {
         onImageUploaded(e:any):void {
@@ -189,25 +182,23 @@ export default defineComponent({
                     height: 200,
                 });
                 let roundedCanvas = this.getRoundedCanvas(croppedCanvas);
-
-                this.croppedFile = roundedCanvas.toDataURL();
-
                 // 保存処理
-                this.saveIcon();
+                this.saveIcon(roundedCanvas.toDataURL());
             }
         },
-        saveIcon():void {
-            if(!this.croppedFile){
+        saveIcon(data:any):void {
+            if(!data){
                 return
             }
             const saveData:Record<string, unknown> = {};
             // 保存用に接頭辞を外す
-            let data:any = this.croppedFile;
             data = data.replace(CONST.BASE64.header, '');
 
             saveData["icon"] = data;
             
             this.saveUserSetting(saveData);
+            // storeにも反映させる
+            this.$store.dispatch("setUserIcon", data)
         },
         saveUserSetting(data:any):void{
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data);
