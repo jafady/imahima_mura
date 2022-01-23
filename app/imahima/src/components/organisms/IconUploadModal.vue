@@ -110,7 +110,9 @@ export default defineComponent({
             this.croppedFile = this.$store.state.userIcon;
         }else{
             this.$store.dispatch("getUserInfo").then(()=>{
-                this.croppedFile = this.$store.state.userIcon;
+                if(this.$store.state.userIcon){
+                    this.croppedFile = this.$store.state.userIcon;
+                }
             });
         }
     },

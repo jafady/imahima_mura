@@ -508,6 +508,7 @@ export default defineComponent({
         },
         logout():void{
             this.$http.get("/api/logout/").then(()=>{
+                this.$store.dispatch("clear");
                 localStorage.setItem("token", "");
                 this.$router.push("Login");
             });

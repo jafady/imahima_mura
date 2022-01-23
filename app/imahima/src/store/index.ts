@@ -19,6 +19,13 @@ export default createStore({
     userStatus: "hima",
   },
   mutations: {
+    clear(state) {
+      state.userId = "";
+      state.userToken = "";
+      state.userName = "";
+      state.userIcon = null;
+      state.userStatus = "hima";
+    },
     loginUser(state, user) {
       state.userId = user.userId;
       state.userToken = user.userToken;
@@ -34,16 +41,20 @@ export default createStore({
     
   },
   actions: {
+    clear(context) {
+      context.commit('clear');
+    },
     auth(context, user) {
       context.commit('loginUser', user);
     },
     async getUserInfo(context) {
       const userId = context.state.userId;
       await Axios.get("/api/user_base_info/" + userId + "/").then((response:any) => {
-        const { getStatusByName } = utils()
+        const { getStatusByName } = utils();
+        const userIcon = response.data[0].userSetting__icon? CONST.BASE64.header + response.data[0].userSetting__icon: null;
         const userInfo = {
           userName: response.data[0].username,
-          userIcon: CONST.BASE64.header + response.data[0].userSetting__icon,
+          userIcon: userIcon,
           userStatus: getStatusByName(response.data[0].userSetting__statusId__statusName)
         }
         context.commit('userInfo', userInfo);
