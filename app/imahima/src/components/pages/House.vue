@@ -86,7 +86,7 @@
 
         .friend{
             background-color: var(--inactive-bg-color2);
-            width: 55%;
+            width: calc(50vw + 7%);
             height: inherit;
             border-radius: 32px 0px 0px 32px;
             clip-path: polygon(0% 100%, 0% 0%, 100% 0%, 65% 100%);
@@ -118,7 +118,7 @@
         }
         .room{
             background-color: var(--inactive-bg-color2);
-            width: 55%;
+            width: calc(50vw + 7%);
             height: inherit;
             border-radius: 0px 32px 32px 0px;
             clip-path: polygon(0% 100%, 35% 0%, 100% 0%, 100% 100%);
@@ -127,7 +127,7 @@
             display: flex;
             padding: 5px;
             position: absolute;
-            right: 5%;
+            left: calc(50vw - 12%);
             justify-content: flex-end;
             .room_icon{
                 width: 30px;

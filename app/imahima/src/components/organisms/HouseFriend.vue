@@ -46,7 +46,7 @@
             height: 40px;
             .hima{
                 background-color: var(--inactive-bg-color2);
-                width: 47%;
+                width: calc(50vw - 3%);
                 height: inherit;
                 border-radius: 8px 0px 0px 0px;
                 clip-path: polygon(0% 100%, 0% 0%, 70% 0%, 100% 100%);
@@ -80,7 +80,7 @@
 
             .maybe{
                 background-color: var(--inactive-bg-color2);
-                width: 47%;
+                width: calc(50vw - 3%);
                 height: inherit;
                 border-radius: 0px 8px 0px 0px;
                 clip-path: polygon(0% 100%, 30% 0%, 100% 0%, 100% 100%);
@@ -89,7 +89,7 @@
                 display: flex;
                 padding-top: 5px;
                 position: absolute;
-                right: 5%;
+                left: calc(50vw - 2%);
                 justify-content: flex-end;
                 border-bottom: 5px solid var(--main-bg-color);
                 .maybe_icon{
