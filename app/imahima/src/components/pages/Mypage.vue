@@ -456,7 +456,7 @@ export default defineComponent({
         },
         async getUserInfo():Promise<void>{
             const categoryRes = await this.$http.get("/api/categorys/");
-            const userInfoRes = await this.$http.get("/api/users/" + this.$store.state.userId + "/");
+            const userInfoRes = await this.$http.get("/api/user_info/" + this.$store.state.userId + "/");
             const firstData = userInfoRes.data[0];
             // status
             this.setStatusFlg(firstData.userSetting__statusId__statusName);

@@ -12,7 +12,16 @@
                     <div class="maybe_icon"></div>
                 </div>
             </div>
-            <div class="friend_content"></div>
+            <div class="friend_content">
+            <!-- 住民一覧を出す -->
+                <div v-for="(value) in houseMateList" v-bind:key="value.id">
+                    <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
+                        <div class="icon_area"><Icon :userId="value.id" /></div>
+                        <div>{{value.name}}</div>
+                        <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- 雑談 -->
         <div class="mt-4 talk">
@@ -120,6 +129,20 @@
             height: 115px;
             background-color: var(--content-bg-color);
             border-radius: 0px 0px 8px 8px;
+            padding: 5px;
+            display: flex;
+            overflow-x: scroll;
+            .housemate{
+                width: 80px;
+                margin-right: 10px;
+                font-size: 13px;
+                font-weight: bold;
+                .icon_area{
+                    height:60px;
+                    width:60px;
+                    margin: 0 auto;
+                }
+            }   
         }
     }
 
@@ -183,7 +206,18 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import utils from '@/mixins/utils'
+import Icon from '@/components/molecules/Icon.vue'
 
+interface houseMate {
+    id: string,
+    name: string,
+    icon: string,
+    noticableStartTime: string,
+    noticableEndTime: string,
+    nowStatus: string,
+    }
+interface houseMates {[key:string]:houseMate}
 export type DataType = {
     friendMode: string,
 }
@@ -191,6 +225,13 @@ export type DataType = {
 export default defineComponent({
     name: "HouseFriend",
     components: {
+        Icon,
+    },
+    setup(): Record<string, any>{
+        const { cutSeconds } = utils()
+        return{
+            cutSeconds
+        }
     },
     data(): DataType {
         return {
@@ -204,11 +245,24 @@ export default defineComponent({
         isMaybeMode():boolean {
             return this.friendMode == "maybe";
         },
+        houseMateList():houseMates {
+            return this.$store.state.houseMates;
+        }
 
     },
     // mounted : function(){
     // },
     methods: {
+        isHouseMateDisplay(nowStatus:string):boolean {
+            if(nowStatus == "hima" || nowStatus == "ongame"){
+                return this.isHimaMode;
+            }else{
+                return this.isMaybeMode;
+            }
+        },
+        // cutSeconds(fullTime:string):string{
+        //     return fullTime.substring(0,5);
+        // }
     }
 })
 </script>

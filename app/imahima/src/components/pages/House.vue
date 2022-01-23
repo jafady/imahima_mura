@@ -160,10 +160,13 @@ import Header from '../organisms/Header.vue'
 import HouseFriend from '@/components/organisms/HouseFriend.vue'
 import HouseRoom from '@/components/organisms/HouseRoom.vue'
 
+interface house {id:string,name:string}
+interface houseList {[key:string]:house}
 export type DataType = {
     houseId: string,
     houseName: string,
     houseMode: string,
+    houseList: houseList,
 }
 
 export default defineComponent({
@@ -176,9 +179,9 @@ export default defineComponent({
     data(): DataType {
         return {
             houseId: "",
-            houseName: "カメハウス",
+            houseName: "カメハウスa",
             houseMode: "friend",
-
+            houseList: {"":{id:"",name:""}},
         }
     },
     computed: {
@@ -190,9 +193,39 @@ export default defineComponent({
         },
 
     },
-    // mounted : function(){
-    // },
+    mounted : function(){
+        // 家一覧取得
+        this.$http.get("/api/myhouses/" + this.$store.state.userId + "/").then((response)=>{
+            this.setHouseList(response.data);
+            this.setHouseInfo();
+            this.getHouseInfo();
+        });
+    },
     methods: {
+        setHouseList(houses:any[]):void{
+            const data:houseList = {};
+            for (const key in houses) {
+                data[houses[key].id] = {
+                    id: houses[key].id,
+                    name: houses[key].houseName,
+                }
+            }
+            this.houseList = data;
+        },
+        setHouseInfo():void{
+            if(!this.$store.state.houseId){
+                // 選択されたものがなければlistから取得する
+                // 任意のもので良いのでobjectで良い
+                const selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;
+                this.$store.dispatch("setHouseId", selectedHouseId);
+                this.houseName = this.houseList[selectedHouseId].name;
+            }
+        },
+        async getHouseInfo():Promise<void>{
+            if(this.$store.state.houseId){
+                this.$store.dispatch("getHouseUsers");
+            }
+        },
     }
 })
 </script>

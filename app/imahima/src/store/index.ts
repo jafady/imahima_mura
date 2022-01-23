@@ -17,6 +17,8 @@ export default createStore({
     userName: "",
     userIcon: require("../assets/img/default_icon.png"),
     userStatus: "hima",
+    houseId: "",
+    houseMates: {}
   },
   mutations: {
     clear(state) {
@@ -44,6 +46,12 @@ export default createStore({
     },
     setStatus(state, userStatus){
       state.userStatus = userStatus;
+    },
+    setHouseId(state, houseId){
+      state.houseId = houseId;
+    },
+    setHouseMates(state, houseMates){
+      state.houseMates = houseMates;
     }
     
   },
@@ -74,6 +82,30 @@ export default createStore({
     setStatus(context, userStatus) {
       context.commit('setStatus', userStatus);
     },
+    setHouseId(context, houseId){
+      context.commit('setHouseId', houseId);
+    },
+    async getHouseUsers(context) {
+      // 家のIDを基に住民情報取得
+      // アイコンの呼び出しなどで仕様するため、共通変数に入れる
+      await Axios.get("/api/users/" + context.state.houseId + "/").then((response:any) => {
+        const { getStatusByName } = utils();
+        const data:any = {};
+        const res = response.data
+        for (const key in res) {
+          const userIcon = res[key].userSetting__icon? CONST.BASE64.header + res[key].userSetting__icon: null;
+          data[res[key].id] = {
+            id: res[key].id,
+            name: res[key].username,
+            icon: userIcon,
+            noticableStartTime: res[key].todayStartTime,
+            noticableEndTime: res[key].todayEndTime,
+            nowStatus: getStatusByName(res[key].nowStatus)
+          }
+        }
+        context.commit('setHouseMates', data);
+      });
+    }
     
   },
   modules: {

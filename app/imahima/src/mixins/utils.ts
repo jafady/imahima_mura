@@ -10,16 +10,21 @@ export default function utils():Record<string, any> {
   }
 
   const getStatusByName = function(data:string):string{
-    const swho:Record<string, unknown> = CONST.STATUS;
-    const result = Object.keys(swho).filter((key:string) => { 
-        return swho[key] === data
+    const statuses:Record<string, unknown> = CONST.STATUS;
+    const result = Object.keys(statuses).filter((key:string) => { 
+        return statuses[key] === data
     }).shift();
     return result || ""
   }
 
+  const cutSeconds = function(fullTime:string):string{
+      return fullTime.substring(0,5);
+  }
+
   return {
     dateTimeToString,
-    getStatusByName
+    getStatusByName,
+    cutSeconds,
   }
   
 }

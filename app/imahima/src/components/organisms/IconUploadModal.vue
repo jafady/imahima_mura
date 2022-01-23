@@ -103,7 +103,7 @@ export default defineComponent({
             return "icon_bg_" + this.$store.state.userStatus
         },
         croppedFile(): string | ArrayBuffer | null{
-            if(!this.$store.state.userIcon){
+            if(!this.$store.state.userIcon || this.$store.state.userIcon == require("@/assets/img/default_icon.png")){
                 this.$store.dispatch("getUserInfo")
             }
             return this.$store.state.userIcon;

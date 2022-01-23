@@ -30,7 +30,6 @@ class HouseMateInvitation(APIView):
     """ 招待確認 """
     permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, userId):
-        # fields = ('id', 'houseId', 'userId', 'isApproved', 'house')
         invitation = HouseMate.objects.select_related('House').filter(userId=userId,isApproved=False).values('id', 'houseId', 'userId', 'houseId__houseName')
 
         res_json = json.dumps(list(invitation), cls=DjangoJSONEncoder)
@@ -38,8 +37,8 @@ class HouseMateInvitation(APIView):
 
 
 class AcceptInvitation(APIView):
+    """ 招待承認 """
     permission_classes = (permissions.IsAuthenticated,)
-
     def put(self, request, pk):
         invitation = HouseMate.objects.get(id=pk)
         if invitation:
@@ -48,4 +47,12 @@ class AcceptInvitation(APIView):
         
         resdata = HouseMate.objects.filter(id=pk)
         res_json = json.dumps(list(resdata.values()), cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
+
+class MyHouses(APIView):
+    """ 家一覧 """
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, userId):
+        houses = House.objects.prefetch_related('HouseMate').filter(housemate__userId=userId,housemate__isApproved=True).values('id', 'houseName')
+        res_json = json.dumps(list(houses), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
