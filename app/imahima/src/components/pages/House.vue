@@ -86,7 +86,7 @@
 
         .friend{
             background-color: var(--inactive-bg-color2);
-            width: calc(50vw + 7%);
+            width: calc(50vw + 5%);
             height: inherit;
             border-radius: 32px 0px 0px 32px;
             clip-path: polygon(0% 100%, 0% 0%, 100% 0%, 65% 100%);
@@ -118,7 +118,7 @@
         }
         .room{
             background-color: var(--inactive-bg-color2);
-            width: calc(50vw + 7%);
+            width: calc(50vw + 5%);
             height: inherit;
             border-radius: 0px 32px 32px 0px;
             clip-path: polygon(0% 100%, 35% 0%, 100% 0%, 100% 100%);
@@ -127,7 +127,7 @@
             display: flex;
             padding: 5px;
             position: absolute;
-            left: calc(50vw - 12%);
+            left: calc(50vw - 10%);
             justify-content: flex-end;
             .room_icon{
                 width: 30px;
@@ -179,7 +179,7 @@ export default defineComponent({
     data(): DataType {
         return {
             houseId: "",
-            houseName: "カメハウスa",
+            houseName: "",
             houseMode: "friend",
             houseList: {"":{id:"",name:""}},
         }
@@ -219,6 +219,8 @@ export default defineComponent({
                 const selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;
                 this.$store.dispatch("setHouseId", selectedHouseId);
                 this.houseName = this.houseList[selectedHouseId].name;
+            }else{
+                this.houseName = this.houseList[this.$store.state.houseId].name;
             }
         },
         async getHouseInfo():Promise<void>{
