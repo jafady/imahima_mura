@@ -18,7 +18,10 @@ export default function utils():Record<string, any> {
   }
 
   const cutSeconds = function(fullTime:string):string{
-      return fullTime.substring(0,5);
+    if(!fullTime){
+      return fullTime;
+    }
+    return fullTime.substring(0,5);
   }
 
   return {

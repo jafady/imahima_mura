@@ -614,7 +614,10 @@ export default defineComponent({
             return data.HH + ":" + data.mm;
         },
         saveUserSetting(data:any):void{
-            this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data);
+            this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data).then(()=>{
+                this.$store.dispatch("getUserInfo");
+            });
+
         }
     }
 })

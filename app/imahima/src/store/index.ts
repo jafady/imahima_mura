@@ -10,7 +10,27 @@ Axios.interceptors.request.use((config: AxiosRequestConfig) => {
 import CONST from '../components/const'
 import utils from '@/mixins/utils'
 
-export default createStore({
+interface houseMate {
+  id: string,
+  name: string,
+  icon: string,
+  noticableStartTime: string,
+  noticableEndTime: string,
+  nowStatus: string,
+  }
+interface houseMates {[key:string]:houseMate}
+
+export interface State {
+  userId: string,
+  userToken: string,
+  userName: string,
+  userIcon: string,
+  userStatus: string,
+  houseId: string,
+  houseMates: houseMates
+}
+
+export default createStore<State>({
   state: {
     userId: "",
     userToken: "",
@@ -52,6 +72,16 @@ export default createStore({
     },
     setHouseMates(state, houseMates){
       state.houseMates = houseMates;
+    },
+    setOneHouseMate(state, data){
+      state.houseMates[data.id] = {
+        id: data.id,
+        name: data.username,
+        icon: data.userIcon,
+        noticableStartTime: data.todayStartTime,
+        noticableEndTime: data.todayEndTime,
+        nowStatus: data.nowStatus
+      }
     }
     
   },
@@ -62,17 +92,29 @@ export default createStore({
     auth(context, user) {
       context.commit('loginUser', user);
     },
-    async getUserInfo(context) {
-      const userId = context.state.userId;
+    async getUserInfo(context, userId) {
+      userId = userId || context.state.userId;
       await Axios.get("/api/user_base_info/" + userId + "/").then((response:any) => {
         const { getStatusByName } = utils();
-        const userIcon = response.data[0].userSetting__icon? CONST.BASE64.header + response.data[0].userSetting__icon: null;
+        const res = response.data[0];
+        const userIcon = res.userSetting__icon? CONST.BASE64.header + res.userSetting__icon: null;
         const userInfo = {
-          userName: response.data[0].username,
+          userName: res.username,
           userIcon: userIcon,
-          userStatus: getStatusByName(response.data[0].userSetting__statusId__statusName)
+          userStatus: getStatusByName(res.nowStatus)
         }
         context.commit('userInfo', userInfo);
+
+        // ユーザ一覧中の情報も更新する
+        const data = {
+          id: res.id,
+          name: res.username,
+          icon: userIcon,
+          noticableStartTime: res.todayStartTime,
+          noticableEndTime: res.todayEndTime,
+          nowStatus: getStatusByName(res.nowStatus)
+        }
+        context.commit('setOneHouseMate', data);
       })
     },
     setUserIcon(context, icon){
