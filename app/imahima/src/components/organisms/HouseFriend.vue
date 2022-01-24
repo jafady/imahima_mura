@@ -131,7 +131,7 @@
             border-radius: 0px 0px 8px 8px;
             padding: 5px;
             display: flex;
-            overflow-x: scroll;
+            overflow-x: auto;
             .housemate{
                 width: 80px;
                 margin-right: 10px;
