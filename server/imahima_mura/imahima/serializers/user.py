@@ -37,9 +37,6 @@ class UserSettingSerializer(serializers.ModelSerializer):
         self.readonly_fields = ('id',)
         return UserSetting.objects.update_usersetting(self.context["request"].user, instance, **validated_data)
     
-    # def change_view(self, request, object_id, form_url='', extra_context=None):
-    #     self.readonly_fields = ('code',)
-    #     return self.changeform_view(request, object_id, form_url, extra_context)
 
 
 class UserSelectCategorySerializer(serializers.ModelSerializer):
