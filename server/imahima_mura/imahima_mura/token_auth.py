@@ -35,10 +35,7 @@ class TokenAuthMiddlewareInstance:
         decoded_qs = urllib.parse.parse_qs(self.scope["query_string"])
         if b'token' in decoded_qs:
             receive_token = decoded_qs.get(b'token').pop().decode()
-            print('受け取ったトークン')
-            print(receive_token)
             self.scope['user'] = await get_user(receive_token)
-            print(self.scope['user'])
         else:
             self.scope['user'] = AnonymousUser()
         return await self.inner(self.scope, receive, send)

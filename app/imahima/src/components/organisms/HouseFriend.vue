@@ -26,11 +26,25 @@
         <!-- 雑談 -->
         <div class="mt-4 talk">
             <div class="talk_header">
-
                 <div class="talk_word">雑談</div>
                 <div class="talk_icon"></div>
             </div>
-            <div class="talk_content"></div>
+            <div class="talk_content">
+                <div class="talk_field">
+                    <div v-for="(value,index) in talks" v-bind:key="index" class="one_field" >
+                        <div class="icon"><Icon :userId="value.userId" /></div>
+                        <div class="msg_field">
+                            <div class="info_field">
+                                <div class="name">{{value.userName}}</div>
+                                <div class="time">{{value.time}}</div>
+                            </div>
+                            <div class="message">{{value.message}}</div>
+                        </div>
+                    </div>
+                    <div class="m-3 blank_content" />
+                </div>
+                <input type="text" v-model="inputText" v-on:keyup.enter="sendTalk" class="talk_input" placeholder="話す">
+            </div>
         </div>
         <!-- 部屋を作るボタン -->
         <div class="mt-4 make_house">
@@ -174,9 +188,49 @@
             
         }
         .talk_content{
-            height: 20vh;
+            height: 150px;
             background-color: var(--content-bg-color);
             border-radius: 0px 0px 8px 8px;
+            .talk_field{
+                width: 100%;
+                height: calc(100% - 30px);
+                overflow-y: auto;
+                .one_field{
+                    display: flex;
+                    padding: 5px;
+                    margin-bottom: 10px;
+                    .icon{
+                        height:40px;
+                        width:40px;
+                        margin: 0 auto;
+                    }
+                    .msg_field{
+                        width: calc(100% - 35px);
+                        padding-left: 10px;
+                        .info_field{
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 10px;
+                        }
+                        .message{
+                            background-color: var(--inactive-bg-color2);
+                            border-radius: 10px;
+                            padding-left: 10px;
+                            text-align: left;
+                            font-size: 13px;
+                            overflow-wrap: anywhere;
+                            padding: 3px 10px;
+                        }
+                    }
+                }
+                
+            }
+            .talk_input{
+                width: 100%;
+                height: 30px;
+                border: none;
+                padding-left: 10px;
+            }
         }
     }
 
@@ -218,8 +272,10 @@ interface houseMate {
     nowStatus: string,
     }
 interface houseMates {[key:string]:houseMate}
+
 export type DataType = {
     friendMode: string,
+    inputText: string,
 }
 
 export default defineComponent({
@@ -233,9 +289,13 @@ export default defineComponent({
             cutSeconds
         }
     },
+    props: {
+      talks: Array
+    },
     data(): DataType {
         return {
             friendMode: "hima",
+            inputText: "",
         }
     },
     computed: {
@@ -260,9 +320,15 @@ export default defineComponent({
                 return this.isMaybeMode;
             }
         },
-        // cutSeconds(fullTime:string):string{
-        //     return fullTime.substring(0,5);
-        // }
+        sendTalk():void{
+            if(this.$store.state.websocket){
+                this.$store.state.websocket.send(JSON.stringify({
+                    "type": "talk",
+                    "message": this.inputText
+                }));
+            }
+            this.inputText = "";
+        }
     }
 })
 </script>

@@ -23,7 +23,7 @@
         </div>
         <!-- 選択メニューによって切り替える予定 -->
         <div v-if="isFriendMode" class="mt-4">
-            <HouseFriend />
+            <HouseFriend :talks="talks"/>
         </div>
         <div v-else-if="isRoomMode" class="mt-4">
             <HouseRoom />
@@ -162,11 +162,13 @@ import HouseRoom from '@/components/organisms/HouseRoom.vue'
 
 interface house {id:string,name:string}
 interface houseList {[key:string]:house}
+interface talk {message:string,userId:string,userName:string,date:string,time:string}
 export type DataType = {
     houseId: string,
     houseName: string,
     houseMode: string,
     houseList: houseList,
+    talks: talk[],
 }
 
 export default defineComponent({
@@ -182,6 +184,7 @@ export default defineComponent({
             houseName: "",
             houseMode: "friend",
             houseList: {"":{id:"",name:""}},
+            talks:[],
         }
     },
     computed: {
@@ -199,6 +202,7 @@ export default defineComponent({
             this.setHouseList(response.data);
             this.setHouseInfo();
             this.getHouseInfo();
+            this.connectWebSocket();
         });
     },
     methods: {
@@ -228,6 +232,35 @@ export default defineComponent({
                 this.$store.dispatch("getHouseUsers");
             }
         },
+        connectWebSocket():void{
+            const token = localStorage.getItem("token");
+            const socket = new WebSocket(
+                "ws://"
+                + process.env.VUE_APP_API_ENDPOINT_HOST
+                + "/ws/imahima/"
+                + this.$store.state.houseId
+                + "/?token="
+                + token
+            );
+            socket.onmessage = (e)=>{
+                const data = JSON.parse(e.data);
+                this.webSocketOnmessage(data);
+            }
+            socket.onclose = (e) => {
+                console.error("Chat socket closed unexpectedly");
+                // this.connectWebSocket();
+            }
+            this.$store.dispatch("connectWebsocket", socket)
+        },
+        webSocketOnmessage(data:any):void{
+            this.talks.push({
+                message: data.message,
+                userId: data.userId,
+                userName: data.userName,
+                date: data.date,
+                time: data.time,
+            })
+        }
     }
 })
 </script>

@@ -27,7 +27,8 @@ export interface State {
   userIcon: string,
   userStatus: string,
   houseId: string,
-  houseMates: houseMates
+  houseMates: houseMates,
+  websocket: WebSocket | null
 }
 
 export default createStore<State>({
@@ -38,7 +39,8 @@ export default createStore<State>({
     userIcon: require("../assets/img/default_icon.png"),
     userStatus: "hima",
     houseId: "",
-    houseMates: {}
+    houseMates: {},
+    websocket: null,
   },
   mutations: {
     clear(state) {
@@ -82,6 +84,9 @@ export default createStore<State>({
         noticableEndTime: data.todayEndTime,
         nowStatus: data.nowStatus
       }
+    },
+    connectWebsocket(state, websocket){
+      state.websocket = websocket;
     }
     
   },
@@ -147,6 +152,9 @@ export default createStore<State>({
         }
         context.commit('setHouseMates', data);
       });
+    },
+    connectWebsocket(context, websocket){
+      context.commit('connectWebsocket', websocket);
     }
     
   },
