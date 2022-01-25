@@ -23,7 +23,7 @@
         </div>
         <!-- 選択メニューによって切り替える予定 -->
         <div v-if="isFriendMode" class="mt-4">
-            <HouseFriend :talks="talks"/>
+            <HouseFriend :talks="talks" ref="houseFriend"/>
         </div>
         <div v-else-if="isRoomMode" class="mt-4">
             <HouseRoom />
@@ -156,9 +156,10 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Header from '../organisms/Header.vue'
+import Header from '@/components/organisms/Header.vue'
 import HouseFriend from '@/components/organisms/HouseFriend.vue'
 import HouseRoom from '@/components/organisms/HouseRoom.vue'
+import utils from '@/mixins/utils'
 
 interface house {id:string,name:string}
 interface houseList {[key:string]:house}
@@ -178,6 +179,12 @@ export default defineComponent({
         HouseFriend,
         HouseRoom,
     },
+    setup(): Record<string, any>{
+        const { sendWebsocket } = utils()
+        return{
+            sendWebsocket
+        }
+    },
     data(): DataType {
         return {
             houseId: "",
@@ -188,12 +195,16 @@ export default defineComponent({
         }
     },
     computed: {
+        refs():any {
+            return this.$refs;
+        },
         isFriendMode():boolean {
             return this.houseMode == "friend";
         },
         isRoomMode():boolean {
             return this.houseMode == "room";
         },
+        
 
     },
     mounted : function(){
@@ -203,6 +214,7 @@ export default defineComponent({
             this.setHouseInfo();
             this.getHouseInfo();
             this.connectWebSocket();
+            this.requestTalks();
         });
     },
     methods: {
@@ -253,13 +265,51 @@ export default defineComponent({
             this.$store.dispatch("connectWebsocket", socket)
         },
         webSocketOnmessage(data:any):void{
+            if(data.type == "talk"){
+                this.addTalk(data);
+            }
+            if(data.type == "requestTalks"){
+                this.sendTalks(data);
+            }
+            if(data.type == "receiveTalks"){
+                this.receiveTalks(data);
+            }
+        },
+        addTalk(data:any):void{
             this.talks.push({
                 message: data.message,
                 userId: data.userId,
                 userName: data.userName,
                 date: data.date,
                 time: data.time,
-            })
+            });
+            this.talkScrollEnd();
+        },
+        requestTalks():void{
+            // 描画直後に一番情報持っている人に情報をもらう
+            this.sendWebsocket(JSON.stringify({
+                "type": "requestTalks"
+            }));
+        },
+        sendTalks(data:any):void{
+            // 自分の持っているデータを送ってあげる
+            this.sendWebsocket(JSON.stringify({
+                "type": "sendTalks",
+                "target": data.userId,
+                "talks": this.talks
+            }));
+        },
+        receiveTalks(data:any):void{
+            // 自分の持っている情報よりも大きければ採用。
+            if(this.talks.length < data.talks.length ){
+                this.talks = data.talks;
+                this.talkScrollEnd();
+                // this.$refs?.houseFriend.talkScrollEnd();
+            }
+        },
+        async talkScrollEnd() {
+            await (this.isFriendMode == true)
+            this.refs.houseFriend.talkScrollEnd();
         }
     }
 })

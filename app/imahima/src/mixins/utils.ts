@@ -1,4 +1,5 @@
 import CONST from '../components/const'
+import Store from '@/store'
 
 // 共通処理用のファイル
 export default function utils():Record<string, any> {
@@ -24,10 +25,30 @@ export default function utils():Record<string, any> {
     return fullTime.substring(0,5);
   }
 
+  const waitWSConnection = (callback:()=>void, interval:number) => {
+    const ws = Store.state.websocket;
+    if (!ws) return;
+    if (ws.readyState === 1) {
+      callback();
+    } else {
+        // optional: implement backoff for interval here
+        setTimeout(function () {
+          waitWSConnection(callback, interval);
+        }, interval);
+    }
+  }
+
+  const sendWebsocket = (message:string) => {
+    waitWSConnection(()=>{
+      Store.state.websocket?.send(message);
+    }, 1000);
+  }
+
   return {
     dateTimeToString,
     getStatusByName,
     cutSeconds,
+    sendWebsocket,
   }
   
 }

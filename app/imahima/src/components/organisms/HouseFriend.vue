@@ -30,9 +30,9 @@
                 <div class="talk_icon"></div>
             </div>
             <div class="talk_content">
-                <div class="talk_field">
-                    <div v-for="(value,index) in talks" v-bind:key="index" class="one_field" >
-                        <div class="icon"><Icon :userId="value.userId" /></div>
+                <div class="talk_field" id="talk_field">
+                    <div v-for="(value,index) in talks" v-bind:key="index" class="one_field">
+                        <div class="icon_area"><Icon :userId="value.userId" /></div>
                         <div class="msg_field">
                             <div class="info_field">
                                 <div class="name">{{value.userName}}</div>
@@ -199,7 +199,7 @@
                     display: flex;
                     padding: 5px;
                     margin-bottom: 10px;
-                    .icon{
+                    .icon_area{
                         height:40px;
                         width:40px;
                         margin: 0 auto;
@@ -284,9 +284,10 @@ export default defineComponent({
         Icon,
     },
     setup(): Record<string, any>{
-        const { cutSeconds } = utils()
+        const { cutSeconds, sendWebsocket } = utils()
         return{
-            cutSeconds
+            cutSeconds,
+            sendWebsocket
         }
     },
     props: {
@@ -321,13 +322,17 @@ export default defineComponent({
             }
         },
         sendTalk():void{
-            if(this.$store.state.websocket){
-                this.$store.state.websocket.send(JSON.stringify({
-                    "type": "talk",
-                    "message": this.inputText
-                }));
-            }
+            this.sendWebsocket(JSON.stringify({
+                "type": "talk",
+                "message": this.inputText
+            }));
             this.inputText = "";
+            this.talkScrollEnd();
+        },
+        talkScrollEnd():void{
+            const target = document.getElementById("talk_field");
+            if(!target) return;
+            target.scrollTop = target.scrollHeight;
         }
     }
 })

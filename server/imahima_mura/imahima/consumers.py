@@ -46,10 +46,27 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'time': datetime.datetime.now(pytz.timezone('Asia/Tokyo')).strftime("%H:%M"),
                 }
             )
+        if msg_type == 'requestTalks':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'talk.requestdata',
+                    'userId': self.user.id,
+                }
+            )
+        
+        if msg_type == 'sendTalks':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'talk.senddata',
+                    'target': data_json['target'],
+                    'talks': data_json['talks'],
+                }
+            )
 
     # Receive message from room group
     async def talk_receive(self, event):
-        msg_type = event['type']
         await self.send(text_data=json.dumps({
             'type': 'talk',
             'message': event['message'],
@@ -58,3 +75,18 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             'date': event['date'],
             'time': event['time'],
         }))
+    
+    # 雑談のログをリクエスト
+    async def talk_requestdata(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'requestTalks',
+            'userId': event['userId'],
+        }))
+    
+    # 雑談のログを受領する
+    async def talk_senddata(self, event):
+        if self.user.id == event['target']:
+            await self.send(text_data=json.dumps({
+                'type': 'receiveTalks',
+                'talks': event['talks'],
+            }))
