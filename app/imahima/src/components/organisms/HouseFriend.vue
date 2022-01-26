@@ -262,16 +262,8 @@
 import { defineComponent } from 'vue'
 import utils from '@/mixins/utils'
 import Icon from '@/components/molecules/Icon.vue'
+import {houseMates} from '@/mixins/interface'
 
-interface houseMate {
-    id: string,
-    name: string,
-    icon: string,
-    noticableStartTime: string,
-    noticableEndTime: string,
-    nowStatus: string,
-    }
-interface houseMates {[key:string]:houseMate}
 
 export type DataType = {
     friendMode: string,

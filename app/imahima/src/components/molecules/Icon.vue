@@ -29,7 +29,6 @@
 </style>
 
 <script>
-// import { toRefs, computed } from 'vue'
 import { defineComponent } from 'vue'
 export default defineComponent({
     name: "Icon",
@@ -44,19 +43,6 @@ export default defineComponent({
             return "icon_bg_" + this.$store.state.houseMates[this.userId].nowStatus;
         },
     },
-    // setup(props, { emit }) {
-    //     const { value,switchId } = toRefs(props)
-    //     const valueComputed = computed({
-    //         get: () => value.value,
-    //         set: (value) => {
-    //             emit('update:value', value)
-    //         },
-    //     })
-
-    //     return {
-    //         valueComputed,
-    //     }
-    // }
 })
 </script>
 

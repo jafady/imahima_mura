@@ -1,5 +1,5 @@
 <template>
-    <div class="container house_container">
+    <div class="container house_container" v-on:click="checkStatus">
         <Header />
         <!-- 家タイトル -->
         <div class="mt-2 house_title content_center">
@@ -29,6 +29,7 @@
             <HouseRoom />
         </div>
         <div class="m-3 blank_content" />
+        <StatusSettingModal ref="statusSettingModal"/>
     </div>
 </template>
 
@@ -156,14 +157,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import utils from '@/mixins/utils'
 import Header from '@/components/organisms/Header.vue'
 import HouseFriend from '@/components/organisms/HouseFriend.vue'
 import HouseRoom from '@/components/organisms/HouseRoom.vue'
-import utils from '@/mixins/utils'
+import StatusSettingModal from '@/components/organisms/StatusSettingModal.vue'
 
-interface house {id:string,name:string}
-interface houseList {[key:string]:house}
-interface talk {message:string,userId:string,userName:string,date:string,time:string}
+import {houseList, talk} from '@/mixins/interface'
+
 export type DataType = {
     houseId: string,
     houseName: string,
@@ -178,6 +179,7 @@ export default defineComponent({
         Header,
         HouseFriend,
         HouseRoom,
+        StatusSettingModal,
     },
     setup(): Record<string, any>{
         const { sendWebsocket } = utils()
@@ -218,6 +220,12 @@ export default defineComponent({
         });
     },
     methods: {
+        checkStatus():void{
+            // ステータスを確認し、意思表示有効期間が過ぎていたら、ステータスを教えてもらう。
+            if(new Date(this.$store.state.houseMates[this.$store.state.userId].statusValidDateTime) < new Date()){
+                this.refs.statusSettingModal.openModal();
+            }
+        },
         setHouseList(houses:any[]):void{
             const data:houseList = {};
             for (const key in houses) {
@@ -304,7 +312,6 @@ export default defineComponent({
             if(this.talks.length < data.talks.length ){
                 this.talks = data.talks;
                 this.talkScrollEnd();
-                // this.$refs?.houseFriend.talkScrollEnd();
             }
         },
         async talkScrollEnd() {

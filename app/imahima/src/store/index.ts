@@ -9,16 +9,8 @@ Axios.interceptors.request.use((config: AxiosRequestConfig) => {
 });
 import CONST from '../components/const'
 import utils from '@/mixins/utils'
+import {houseMates} from '@/mixins/interface'
 
-interface houseMate {
-  id: string,
-  name: string,
-  icon: string,
-  noticableStartTime: string,
-  noticableEndTime: string,
-  nowStatus: string,
-  }
-interface houseMates {[key:string]:houseMate}
 
 export interface State {
   userId: string,
@@ -78,11 +70,12 @@ export default createStore<State>({
     setOneHouseMate(state, data){
       state.houseMates[data.id] = {
         id: data.id,
-        name: data.username,
-        icon: data.userIcon,
-        noticableStartTime: data.todayStartTime,
-        noticableEndTime: data.todayEndTime,
-        nowStatus: data.nowStatus
+        name: data.name,
+        icon: data.icon,
+        noticableStartTime: data.noticableStartTime,
+        noticableEndTime: data.noticableEndTime,
+        nowStatus: data.nowStatus,
+        statusValidDateTime: data.statusValidDateTime,
       }
     },
     connectWebsocket(state, websocket){
@@ -117,7 +110,8 @@ export default createStore<State>({
           icon: userIcon,
           noticableStartTime: res.todayStartTime,
           noticableEndTime: res.todayEndTime,
-          nowStatus: getStatusByName(res.nowStatus)
+          nowStatus: getStatusByName(res.nowStatus),
+          statusValidDateTime: res.userSetting__statusValidDateTime
         }
         context.commit('setOneHouseMate', data);
       })
@@ -147,7 +141,8 @@ export default createStore<State>({
             icon: userIcon,
             noticableStartTime: res[key].todayStartTime,
             noticableEndTime: res[key].todayEndTime,
-            nowStatus: getStatusByName(res[key].nowStatus)
+            nowStatus: getStatusByName(res[key].nowStatus),
+            statusValidDateTime: res[key].userSetting__statusValidDateTime,
           }
         }
         context.commit('setHouseMates', data);

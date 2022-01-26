@@ -253,7 +253,6 @@
 
 
         .mypage_week_area{
-            overflow-x: auto;
             white-space: nowrap;
 
             .mypage_week_button_area{
