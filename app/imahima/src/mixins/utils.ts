@@ -44,11 +44,27 @@ export default function utils():Record<string, any> {
     }, 1000);
   }
 
+  const checkNoticePermission =  async ():Promise<boolean> =>{
+      // 通知許可チェック
+      if (!("Notification" in window)) {
+          // ブラウザ自体が未対応なので無視する
+          return false;
+      }
+      if (Notification.permission === "granted") {
+          return true;
+      }else{
+          // 許可されてないので許可を依頼する
+          const result = await Notification.requestPermission();
+          return result === "granted";
+      }
+  }
+
   return {
     dateTimeToString,
     getStatusByName,
     cutSeconds,
     sendWebsocket,
+    checkNoticePermission
   }
   
 }

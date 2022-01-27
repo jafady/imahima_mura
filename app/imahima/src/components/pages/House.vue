@@ -29,7 +29,7 @@
             <HouseRoom />
         </div>
         <div class="m-3 blank_content" />
-        <StatusSettingModal ref="statusSettingModal"/>
+        <StatusSettingModal ref="statusSettingModal" @noticeChangeStatus="noticeChangeStatus" />
     </div>
 </template>
 
@@ -163,7 +163,7 @@ import HouseFriend from '@/components/organisms/HouseFriend.vue'
 import HouseRoom from '@/components/organisms/HouseRoom.vue'
 import StatusSettingModal from '@/components/organisms/StatusSettingModal.vue'
 
-import {houseList, talk} from '@/mixins/interface'
+import {houseList, houseMate, talk} from '@/mixins/interface'
 
 export type DataType = {
     houseId: string,
@@ -182,9 +182,10 @@ export default defineComponent({
         StatusSettingModal,
     },
     setup(): Record<string, any>{
-        const { sendWebsocket } = utils()
+        const { sendWebsocket, checkNoticePermission } = utils()
         return{
-            sendWebsocket
+            sendWebsocket,
+            checkNoticePermission
         }
     },
     data(): DataType {
@@ -218,6 +219,7 @@ export default defineComponent({
             this.connectWebSocket();
             this.requestTalks();
         });
+        this.registServiceWorker();
     },
     methods: {
         checkStatus():void{
@@ -249,9 +251,14 @@ export default defineComponent({
         },
         async getHouseInfo():Promise<void>{
             if(this.$store.state.houseId){
-                this.$store.dispatch("getHouseUsers");
+                await this.$store.dispatch("getHouseUsers");
             }
         },
+        async talkScrollEnd() {
+            await (this.isFriendMode == true)
+            this.refs.houseFriend.talkScrollEnd();
+        },
+
         connectWebSocket():void{
             const token = localStorage.getItem("token");
             const socket = new WebSocket(
@@ -273,6 +280,7 @@ export default defineComponent({
             this.$store.dispatch("connectWebsocket", socket)
         },
         webSocketOnmessage(data:any):void{
+            // websocketからのコマンドを捌く
             if(data.type == "talk"){
                 this.addTalk(data);
             }
@@ -281,6 +289,9 @@ export default defineComponent({
             }
             if(data.type == "receiveTalks"){
                 this.receiveTalks(data);
+            }
+            if(data.type == "someOneChangeStatus"){
+                this.someOneChangeStatus(data);
             }
         },
         addTalk(data:any):void{
@@ -314,9 +325,44 @@ export default defineComponent({
                 this.talkScrollEnd();
             }
         },
-        async talkScrollEnd() {
-            await (this.isFriendMode == true)
-            this.refs.houseFriend.talkScrollEnd();
+        noticeChangeStatus():void{
+            // ステータス変更の周知
+            console.log("noticeChangeStatus");
+            this.sendWebsocket(JSON.stringify({
+                "type": "noticeChangeStatus",
+                "status": this.$store.state.userStatus
+            }));
+        },
+        async someOneChangeStatus(data:any):Promise<void>{
+            // 誰かがステータス更新した。
+            // ステータス情報を洗ったうえでカウントして通知出すかを判断する
+            await this.getHouseInfo();
+            const houseMates = this.$store.state.houseMates;
+            const himaNumber = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == "hima").length;
+            if(himaNumber >= 2){
+                this.noticeOnlineMembers(himaNumber);
+            }
+        },
+        async noticeOnlineMembers(count:number):Promise<void>{
+            // 通知許可チェック
+            const permission = await this.checkNoticePermission();
+            if(!permission) return;
+            // 2人以上になったよの通知
+            console.log("2人以上になったよの通知");
+            console.log(count);
+            const title = "";
+            const img = this.$store.state.userIcon;
+            const text = count + "人ヒマな人がいます。";
+            const options = {
+                body: text,
+                icon: img,
+                requireInteraction: true,
+                // actions: [{action: 'archive',title: "archivetitleテスト",icon: img}]
+            }
+            const notification = new Notification("ヒマですか？", options);
+        },
+        registServiceWorker():void{
+            navigator.serviceWorker.register("src/mixins/serviceworker.js");
         }
     }
 })

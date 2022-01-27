@@ -270,6 +270,7 @@ export default defineComponent({
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data)
             .then(()=>{
                 this.$store.dispatch("getUserInfo");
+                this.$emit("noticeChangeStatus")
             });
         }
     }

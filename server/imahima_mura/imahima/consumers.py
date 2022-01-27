@@ -64,6 +64,17 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'talks': data_json['talks'],
                 }
             )
+        
+        if msg_type == 'noticeChangeStatus':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'status.notice',
+                    'userId': self.user.id,
+                    'status': data_json['status'],
+                }
+            )
+        
 
     # Receive message from room group
     async def talk_receive(self, event):
@@ -89,4 +100,13 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 'type': 'receiveTalks',
                 'talks': event['talks'],
+            }))
+    
+    # ステータス変更を受領する
+    async def status_notice(self, event):
+        if self.user.id != event['userId']:
+            await self.send(text_data=json.dumps({
+                'type': 'someOneChangeStatus',
+                'userId': event['userId'],            
+                'status': event['status'],
             }))
