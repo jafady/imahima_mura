@@ -75,6 +75,7 @@
             <div class="mypage_title">ヒマ予定時間</div>
             <div class="mypage_content">
                 <div class="mt-2">
+                    <div class="mypage_week_induction">お誘いしやすくするため、ヒマかもしれないふわっとした時間を教えてください</div>
                     <div class="mypage_week_area">
                         <div v-for="(item, index) in week" :key="index" class="mypage_week_button_area">
                             <input type="checkbox" v-model="item.selected" :id="index" disabled="disabled">
@@ -194,17 +195,22 @@
             align-items: center;
             width: 100%;
             .vue-datepicker-box{
-                width: 125px;
+                width: 120px;
                 height: 40px;
                 border: none;
                 border-radius: 8px;
+                font-family: "游ゴシック";
+                margin-right: 20px;
+                text-align: center;
             }
 
             .time{
-                width: 125px;
+                width: 70px;
                 height: 40px;
                 border: none;
                 border-radius: 8px;
+                font-family: "游ゴシック";
+                text-align: center;
             }
             
         }
@@ -251,6 +257,9 @@
             }
         }
 
+        .mypage_week_induction{
+            text-align: left;
+        }
 
         .mypage_week_area{
             white-space: nowrap;
@@ -287,10 +296,12 @@
                     width: calc(100% - 60px);
 
                     .time{
-                        width: 125px;
+                        width: 70px;
                         height: 40px;
                         border: none;
                         border-radius: 8px;
+                        font-family: "游ゴシック";
+                        text-align: center;
                     }
                     .hyphen{
                         width: 30px;
@@ -299,6 +310,9 @@
             }
         }
     }
+}
+.vue__time-picker{
+    width:fit-content !important;
 }
 </style>
 

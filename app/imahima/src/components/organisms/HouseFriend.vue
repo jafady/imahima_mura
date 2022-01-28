@@ -230,6 +230,7 @@
                 height: 30px;
                 border: none;
                 padding-left: 10px;
+                border-radius: 0 0 8px 8px;
             }
         }
     }

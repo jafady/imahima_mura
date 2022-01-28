@@ -96,18 +96,22 @@
             align-items: center;
             width: 100%;
             .vue-datepicker-box{
-                width: 125px;
+                width: 120px;
                 height: 40px;
                 border: none;
                 border-radius: 8px;
+                font-family: "游ゴシック";
+                text-align: center;
             }
 
             .time{
-                width: 125px;
+                width: 70px;
                 height: 40px;
                 border: none;
                 border-radius: 8px;
                 margin-left: 20px;
+                font-family: "游ゴシック";
+                text-align: center;
             }
             
         }
@@ -122,7 +126,9 @@
     background-color: var(--content-bg-color);
 }
 
-
+.vue__time-picker{
+    width:fit-content !important;
+}
 
 </style>
 
