@@ -18,10 +18,21 @@ herokku postgresは1GB 1万行までがfreeらしい。。
   - vscode(エディタならなんでも)
 
 ### docker環境への入り方
+```
 docker exec -it imahima_server_dev bash
+```
 
 ### ローカルpostgres
+```
 docker-compose exec postgres psql --username=django_db_user --dbname=django_db
+```
+
+### swagger
+API単体確認用
+```
+http://localhost:8000/swagger  
+```
+必要なトークンなどはauthで発行する
 
 ## django実行メモ
 - 接続先

@@ -22,6 +22,7 @@
             </div>
         </div>
         <!-- 選択メニューによって切り替える予定 -->
+        <!-- TODO: 友達に会うは、ヒマじゃない人には見せない。 -->
         <div v-if="isFriendMode" class="mt-4">
             <HouseFriend :talks="talks" ref="houseFriend"/>
         </div>
@@ -171,6 +172,9 @@ export type DataType = {
     houseMode: string,
     houseList: houseList,
     talks: talk[],
+    noticeIntervalMinOM: number,
+    latestNoticeTimeOM: Date,
+    latestNoticeHouseMatesNumOM: number,
 }
 
 export default defineComponent({
@@ -195,6 +199,9 @@ export default defineComponent({
             houseMode: "friend",
             houseList: {"":{id:"",name:""}},
             talks:[],
+            noticeIntervalMinOM: 1,
+            latestNoticeTimeOM: new Date(),
+            latestNoticeHouseMatesNumOM: 0,
         }
     },
     computed: {
@@ -206,6 +213,9 @@ export default defineComponent({
         },
         isRoomMode():boolean {
             return this.houseMode == "room";
+        },
+        noticeIntervalMSecOM():number {
+            return this.noticeIntervalMinOM * 60 * 1000; 
         },
         
 
@@ -219,7 +229,6 @@ export default defineComponent({
             this.connectWebSocket();
             this.requestTalks();
         });
-        this.registServiceWorker();
     },
     methods: {
         checkStatus():void{
@@ -312,6 +321,7 @@ export default defineComponent({
         },
         sendTalks(data:any):void{
             // 自分の持っているデータを送ってあげる
+            // 会話ログが負担になったら長さで消すかも
             this.sendWebsocket(JSON.stringify({
                 "type": "sendTalks",
                 "target": data.userId,
@@ -337,33 +347,74 @@ export default defineComponent({
             // 誰かがステータス更新した。
             // ステータス情報を洗ったうえでカウントして通知出すかを判断する
             await this.getHouseInfo();
-            const houseMates = this.$store.state.houseMates;
-            const himaNumber = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == "hima").length;
-            if(himaNumber >= 2){
-                this.noticeOnlineMembers(himaNumber);
+            if (!this.checkCanNoticeOnlineMembers(data)){
+                return
             }
+            const houseMates = this.$store.state.houseMates;
+            const himaCount = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == "hima").length;
+            // 人数チェック & 人数増加チェック(規定時間ごとの確認のため)
+            if(himaCount < 2 || this.latestNoticeHouseMatesNumOM >= himaCount) {
+                return;
+            }
+
+            this.noticeOnlineMembers(himaCount);
+        },
+        checkCanNoticeOnlineMembers(data:any):boolean{
+            // 誰かの更新の際に全員分取り直しているので、自分含めて最新を持っているはず。
+            // 人数チェック(人数を通知に使うのでこれは別口で。)
+            // 増えた時だけ通知
+            if(data.status != "hima"){
+                return false;
+            }
+            // 自分のステータスチェック(予定ではヒマとヒマに送る)
+            const myStatus = this.$store.state.houseMates[this.$store.state.userId].nowStatus;
+            if(myStatus != "hima" && myStatus != "maybe"){
+                return false;
+            }
+            // 前回の通知から規定時間以上立っていたら送る
+            const latestNoticeTimeOM:Date = new Date(this.latestNoticeTimeOM.getTime());
+            latestNoticeTimeOM.setMinutes( latestNoticeTimeOM.getMinutes() + this.noticeIntervalMinOM);
+            if(latestNoticeTimeOM > new Date()){
+                return false;
+            }
+
+            return true;
         },
         async noticeOnlineMembers(count:number):Promise<void>{
+            // 2人以上になったよの通知
+            // 通知しつつ次の通知のインターバルを設定する。
+
             // 通知許可チェック
             const permission = await this.checkNoticePermission();
             if(!permission) return;
-            // 2人以上になったよの通知
-            console.log("2人以上になったよの通知");
-            console.log(count);
-            const title = "";
-            const img = this.$store.state.userIcon;
+
+            // 通知時間の記録
+            this.latestNoticeTimeOM = new Date();
+
+            // 人数の記録
+            this.latestNoticeHouseMatesNumOM = count;
+
+            const img = require('@/assets/img/notification/app_icon.png');
             const text = count + "人ヒマな人がいます。";
             const options = {
-                body: text,
+                tag: 'noticeOnlineMembers',
                 icon: img,
-                requireInteraction: true,
-                // actions: [{action: 'archive',title: "archivetitleテスト",icon: img}]
+                body: text,
+                actions: [
+                    {action: 'enterRoom', title: "入る"}
+                    ],
+                data: {
+                    baseUrl: process.env.BASE_URL,
+                    url: "/?#/House",
+                }
             }
-            const notification = new Notification("ヒマですか？", options);
+            navigator.serviceWorker.ready.then((registration) => {
+                registration.showNotification("ヒマですか？", options);
+            });
+            
+            // インターバルよりも少し多く待つ
+            setTimeout(this.someOneChangeStatus, this.noticeIntervalMSecOM + 1000, {status:"hima"});
         },
-        registServiceWorker():void{
-            navigator.serviceWorker.register("src/mixins/serviceworker.js");
-        }
     }
 })
 </script>

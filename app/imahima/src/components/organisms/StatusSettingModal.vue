@@ -274,8 +274,8 @@ export default defineComponent({
         },
         saveUserSetting(data:any):void{
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data)
-            .then(()=>{
-                this.$store.dispatch("getUserInfo");
+            .then(async ()=>{
+                await this.$store.dispatch("getUserInfo");
                 this.$emit("noticeChangeStatus")
             });
         }
