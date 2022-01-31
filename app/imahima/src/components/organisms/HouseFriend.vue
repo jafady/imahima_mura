@@ -14,7 +14,28 @@
             </div>
             <div class="friend_content">
             <!-- 住民一覧を出す -->
-                <div v-for="(value) in houseMateList" v-bind:key="value.id">
+                <div v-for="(value) in houseMateListHima" v-bind:key="value.id">
+                    <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
+                        <div class="icon_area"><Icon :userId="value.id" /></div>
+                        <div>{{value.name}}</div>
+                        <div>~{{cutSeconds(value.noticableEndTime)}}</div>
+                    </div>
+                </div>
+                <div v-for="(value) in houseMateListOngame" v-bind:key="value.id">
+                    <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
+                        <div class="icon_area"><Icon :userId="value.id" /></div>
+                        <div>{{value.name}}</div>
+                        <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
+                    </div>
+                </div>
+                <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
+                    <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
+                        <div class="icon_area"><Icon :userId="value.id" /></div>
+                        <div>{{value.name}}</div>
+                        <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
+                    </div>
+                </div>
+                <div v-for="(value) in houseMateListBusy" v-bind:key="value.id">
                     <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
                         <div class="icon_area"><Icon :userId="value.id" /></div>
                         <div>{{value.name}}</div>
@@ -263,7 +284,7 @@
 import { defineComponent } from 'vue'
 import utils from '@/mixins/utils'
 import Icon from '@/components/molecules/Icon.vue'
-import {houseMates} from '@/mixins/interface'
+import {houseMates, houseMate} from '@/mixins/interface'
 
 
 export type DataType = {
@@ -277,8 +298,9 @@ export default defineComponent({
         Icon,
     },
     setup(): Record<string, any>{
-        const { cutSeconds, sendWebsocket } = utils()
+        const { sortTime,cutSeconds, sendWebsocket } = utils()
         return{
+            sortTime,
             cutSeconds,
             sendWebsocket
         }
@@ -299,9 +321,19 @@ export default defineComponent({
         isMaybeMode():boolean {
             return this.friendMode == "maybe";
         },
-        houseMateList():houseMates {
-            return this.$store.state.houseMates;
-        }
+        houseMateListHima():houseMate[] {
+            return this.getHouseMateList("hima");
+        },
+        houseMateListMaybe():houseMate[] {
+            return this.getHouseMateList("maybe");
+        },
+        houseMateListBusy():houseMate[] {
+            return this.getHouseMateList("busy");
+        },
+        houseMateListOngame():houseMate[] {
+            return this.getHouseMateList("ongame");
+        },
+
 
     },
     // mounted : function(){
@@ -326,6 +358,22 @@ export default defineComponent({
             const target = document.getElementById("talk_field");
             if(!target) return;
             target.scrollTop = target.scrollHeight;
+        },
+        getHouseMateList(status:string):houseMate[]{
+            // 計算量を減らすためにfilterで母数を減らす
+            // ソート順 ステータス＞ヒマ終了時間＞ヒマ開始時間
+            const houseMates:houseMates = this.$store.state.houseMates;
+            const houseMateList:houseMate[] = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == status)
+            .sort((a:houseMate, b:houseMate)=>{
+                // 時間
+                const end = this.sortTime(a.noticableEndTime, b.noticableEndTime);
+                if(end == 0){
+                    return this.sortTime(a.noticableStartTime, b.noticableStartTime);
+                }else{
+                    return end;
+                }
+            });
+            return houseMateList;
         }
     }
 })
