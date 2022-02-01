@@ -349,6 +349,7 @@ export default defineComponent({
         sendTalk():void{
             this.sendWebsocket(JSON.stringify({
                 "type": "talk",
+                "houseId": this.$store.state.houseId,
                 "message": this.inputText
             }));
             this.inputText = "";
@@ -374,6 +375,13 @@ export default defineComponent({
                 }
             });
             return houseMateList;
+        },
+        makeRoom():void{
+            console.log("makeRoom");
+            // this.sendWebsocket(JSON.stringify({
+            //     "type": "addConnect",
+            //     "houseId": this.$store.state.houseId
+            // }));
         }
     }
 })

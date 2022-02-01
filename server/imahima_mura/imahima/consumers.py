@@ -1,42 +1,58 @@
 import json
 from asgiref.sync import async_to_sync
+from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.auth import login
 import datetime
 import pytz
+
+from channels.db import database_sync_to_async
+
+from .models import House,HouseMate,User
 # websocketのリクエスト受信
 class ImahimaConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         print('websocket接続--------------------------')
         print(self.scope["user"])
-        # print(self.scope["user"].id)
         self.user = self.scope["user"]
-        self.room_name = self.scope['url_route']['kwargs']['houseId']
-        self.room_group_name = 'chat_%s' % self.room_name
-
-        # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        # 参加している家IDを一覧取得し、全部に入る
+        houseIds = await self.get_houses()
+        for houseId in houseIds:
+            room_group_name = self.get_room_group_name(houseId)
+            print(room_group_name)
+            await self.channel_layer.group_add(
+                room_group_name,
+                self.channel_name
+            )
 
         await self.accept()
 
     async def disconnect(self, close_code):
         # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        houseIds = await self.get_houses()
+        for houseId in houseIds:
+            room_group_name = self.get_room_group_name(houseId)
+            await self.channel_layer.group_discard(
+                room_group_name,
+                self.channel_name
+            )
 
     # Receive message from WebSocket
     async def receive(self, text_data):
         data_json = json.loads(text_data)
         msg_type = data_json['type']
+        room_group_name = self.get_room_group_name(data_json['houseId'])
+        # 接続の追加
+        if msg_type == 'addConnect':
+            await self.channel_layer.group_add(
+                room_group_name,
+                self.channel_name
+            )
+
         if msg_type == 'talk':
             message = data_json['message']
             await self.channel_layer.group_send(
-                self.room_group_name,
+                room_group_name,
                 {
                     'type': 'talk.receive',
                     'message': message,
@@ -48,7 +64,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             )
         if msg_type == 'requestTalks':
             await self.channel_layer.group_send(
-                self.room_group_name,
+                room_group_name,
                 {
                     'type': 'talk.requestdata',
                     'userId': self.user.id,
@@ -57,7 +73,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         
         if msg_type == 'sendTalks':
             await self.channel_layer.group_send(
-                self.room_group_name,
+                room_group_name,
                 {
                     'type': 'talk.senddata',
                     'target': data_json['target'],
@@ -67,7 +83,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         
         if msg_type == 'noticeChangeStatus':
             await self.channel_layer.group_send(
-                self.room_group_name,
+                room_group_name,
                 {
                     'type': 'status.notice',
                     'userId': self.user.id,
@@ -110,3 +126,16 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 'userId': event['userId'],            
                 'status': event['status'],
             }))
+    
+
+    # 共通処理
+    def get_room_group_name(self,houseId):
+        return 'socket_%s' % houseId
+
+    # DB操作
+    # 参加している家一覧取得
+    @database_sync_to_async
+    def get_houses(self):
+        result = House.objects.prefetch_related('HouseMate').filter(housemate__userId=self.scope["user"].id,housemate__isApproved=True).values('id', 'houseName')
+        houseId = [str(data['id']) for data in result]
+        return houseId

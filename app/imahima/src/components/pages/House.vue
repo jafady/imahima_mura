@@ -274,8 +274,7 @@ export default defineComponent({
                 "ws://"
                 + process.env.VUE_APP_API_ENDPOINT_HOST
                 + "/ws/imahima/"
-                + this.$store.state.houseId
-                + "/?token="
+                + "?token="
                 + token
             );
             socket.onmessage = (e)=>{
@@ -316,7 +315,8 @@ export default defineComponent({
         requestTalks():void{
             // 描画直後に一番情報持っている人に情報をもらう
             this.sendWebsocket(JSON.stringify({
-                "type": "requestTalks"
+                "type": "requestTalks",
+                "houseId": this.$store.state.houseId
             }));
         },
         sendTalks(data:any):void{
@@ -324,6 +324,7 @@ export default defineComponent({
             // 会話ログが負担になったら長さで消すかも
             this.sendWebsocket(JSON.stringify({
                 "type": "sendTalks",
+                "houseId": this.$store.state.houseId,
                 "target": data.userId,
                 "talks": this.talks
             }));
@@ -340,6 +341,7 @@ export default defineComponent({
             console.log("noticeChangeStatus");
             this.sendWebsocket(JSON.stringify({
                 "type": "noticeChangeStatus",
+                "houseId": this.$store.state.houseId,
                 "status": this.$store.state.userStatus
             }));
         },
