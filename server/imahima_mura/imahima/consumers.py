@@ -86,6 +86,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 room_group_name,
                 {
                     'type': 'status.notice',
+                    'houseId': data_json['houseId'],
                     'userId': self.user.id,
                     'status': data_json['status'],
                 }
@@ -123,6 +124,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         if self.user.id != event['userId']:
             await self.send(text_data=json.dumps({
                 'type': 'someOneChangeStatus',
+                'houseId': event['houseId'],
                 'userId': event['userId'],            
                 'status': event['status'],
             }))

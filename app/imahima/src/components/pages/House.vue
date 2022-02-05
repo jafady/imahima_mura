@@ -226,7 +226,7 @@ export default defineComponent({
             this.setHouseList(response.data);
             this.setHouseInfo();
             this.getHouseInfo();
-            this.connectWebSocket();
+            this.setWebSocketAction();
             this.requestTalks();
         });
     },
@@ -268,24 +268,14 @@ export default defineComponent({
             this.refs.houseFriend.talkScrollEnd();
         },
 
-        connectWebSocket():void{
-            const token = localStorage.getItem("token");
-            const socket = new WebSocket(
-                "ws://"
-                + process.env.VUE_APP_API_ENDPOINT_HOST
-                + "/ws/imahima/"
-                + "?token="
-                + token
-            );
+        setWebSocketAction():void{
+            const socket = this.$store.state.websocket;
+            if(!socket)return;
             socket.onmessage = (e)=>{
                 const data = JSON.parse(e.data);
                 this.webSocketOnmessage(data);
             }
-            socket.onclose = (e) => {
-                console.error("Chat socket closed unexpectedly");
-                // this.connectWebSocket();
-            }
-            this.$store.dispatch("connectWebsocket", socket)
+            this.$store.dispatch("setWebsocket", socket);
         },
         webSocketOnmessage(data:any):void{
             // websocketからのコマンドを捌く
@@ -299,7 +289,10 @@ export default defineComponent({
                 this.receiveTalks(data);
             }
             if(data.type == "someOneChangeStatus"){
-                this.someOneChangeStatus(data);
+                // 画面更新
+                this.$store.dispatch("getHouseUsers");
+                // 通知
+                this.$store.dispatch("someOneChangeStatus", data);
             }
         },
         addTalk(data:any):void{
@@ -344,78 +337,6 @@ export default defineComponent({
                 "houseId": this.$store.state.houseId,
                 "status": this.$store.state.userStatus
             }));
-        },
-        async someOneChangeStatus(data:any):Promise<void>{
-            // 誰かがステータス更新した。
-            // ステータス情報を洗ったうえでカウントして通知出すかを判断する
-            await this.getHouseInfo();
-            if (!this.checkCanNoticeOnlineMembers(data)){
-                return
-            }
-            const houseMates = this.$store.state.houseMates;
-            const himaCount = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == "hima").length;
-            // 人数チェック & 人数増加チェック(規定時間ごとの確認のため)
-            if(himaCount < 2 || this.latestNoticeHouseMatesNumOM >= himaCount) {
-                return;
-            }
-
-            this.noticeOnlineMembers(himaCount);
-        },
-        checkCanNoticeOnlineMembers(data:any):boolean{
-            // 誰かの更新の際に全員分取り直しているので、自分含めて最新を持っているはず。
-            // 人数チェック(人数を通知に使うのでこれは別口で。)
-            // 増えた時だけ通知
-            if(data.status != "hima"){
-                return false;
-            }
-            // 自分のステータスチェック(予定ではヒマとヒマに送る)
-            const myStatus = this.$store.state.houseMates[this.$store.state.userId].nowStatus;
-            if(myStatus != "hima" && myStatus != "maybe"){
-                return false;
-            }
-            // 前回の通知から規定時間以上立っていたら送る
-            const latestNoticeTimeOM:Date = new Date(this.latestNoticeTimeOM.getTime());
-            latestNoticeTimeOM.setMinutes( latestNoticeTimeOM.getMinutes() + this.noticeIntervalMinOM);
-            if(latestNoticeTimeOM > new Date()){
-                return false;
-            }
-
-            return true;
-        },
-        async noticeOnlineMembers(count:number):Promise<void>{
-            // 2人以上になったよの通知
-            // 通知しつつ次の通知のインターバルを設定する。
-
-            // 通知許可チェック
-            const permission = await this.checkNoticePermission();
-            if(!permission) return;
-
-            // 通知時間の記録
-            this.latestNoticeTimeOM = new Date();
-
-            // 人数の記録
-            this.latestNoticeHouseMatesNumOM = count;
-
-            const img = require('@/assets/img/notification/app_icon.png');
-            const text = count + "人ヒマな人がいます。";
-            const options = {
-                tag: 'noticeOnlineMembers',
-                icon: img,
-                body: text,
-                actions: [
-                    {action: 'enterRoom', title: "入る"}
-                    ],
-                data: {
-                    baseUrl: process.env.BASE_URL,
-                    url: "/?#/House",
-                }
-            }
-            navigator.serviceWorker.ready.then((registration) => {
-                registration.showNotification("ヒマですか？", options);
-            });
-            
-            // インターバルよりも少し多く待つ
-            setTimeout(this.someOneChangeStatus, this.noticeIntervalMSecOM + 1000, {status:"hima"});
         },
     }
 })
