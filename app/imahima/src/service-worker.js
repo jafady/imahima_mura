@@ -20,8 +20,8 @@ self.addEventListener('notificationclick', function(event) {
       // 対象 URL に一致するウィンドウタブが既に存在する場合は、それにフォーカスして指定ページに遷移する。
       const hadWindowToFocus = clientsArr.some(windowClient => {
         if(windowClient.url.indexOf(host)){
-          // serviceworkerのcontroll化にない場合はfocusだけでも行う。
-          // navigateの方は実行のエラーになる
+          // serviceworkerのcontroll下にない場合はfocusだけでも行う。
+          // その場合navigateの方は実行のエラーになる
           windowClient.focus();
           windowClient.navigate(event.notification.data.url);
           return true;

@@ -74,9 +74,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  // websocket疎通確認&接続
-  Store.dispatch("connectWebsocket");
-  Store.dispatch("setDefaultOnmessage");
+
   if (to.matched.some(record => !record.meta.beforeAuth)) {
     if(localStorage.getItem('token')){
       // tokenの生存確認用に適当なところにリクエストを送っている
@@ -85,6 +83,8 @@ router.beforeEach((to, from, next) => {
           userId: localStorage.getItem('userId'),
           userToken: localStorage.getItem('token')
         });
+        // websocket疎通確認&接続
+        Store.dispatch("connectWebsocket");
         next();
       }).catch(()=>{
         Store.dispatch("clear");
@@ -95,6 +95,8 @@ router.beforeEach((to, from, next) => {
       next({ path: '/login', query: { redirect: to.fullPath } });
     }
   } else {
+    // websocket疎通確認&接続
+    Store.dispatch("connectWebsocket");
     next();
   }
 });

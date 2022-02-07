@@ -38,8 +38,6 @@ https://design.dena.com/design/atomic-design-%E3%82%92%E5%88%86%E3%81%8B%E3%81%A
 ```
 http://localhost:8887/
 ```
-4. service-worker.jsに更新がある場合は、unregisterで削除したあとに2回リロードする。
-  - 登録用とコントロールする用の2回
 
-※通知を出すだけならregisterServiceWorker.tsをいじればserviceworkerの登録はできる。  
-buildをしないとカスタムのService workerが入らないので、通知を押したあとの挙動が実行できなくなる。(まあページ遷移ぐらいかもしれないが。。)
+※通知機能は、Websocketからの受信含め全てServiceWorker内で行う。
+画面でもWebsocket自体はつなぎ、送受信を行う。画面に関係する箇所は画面で完結させる方針

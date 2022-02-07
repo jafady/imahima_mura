@@ -11,11 +11,6 @@ import CONST from '../components/const'
 import utils from '@/mixins/utils'
 import {houseMates} from '@/mixins/interface'
 
-export interface LatestNotice {
-  houseId: string,
-  latestNoticeTimeOM: Date,
-  latestNoticeHouseMatesNumOM: number
-}
 
 export interface State {
   userId: string,
@@ -26,11 +21,6 @@ export interface State {
   houseId: string,
   houseMates: houseMates,
   websocket: WebSocket | null,
-  noticeIntervalMinOM: number,
-  latestNoticeData: {[key:string]:LatestNotice},
-
-  latestNoticeTimeOM: Date,
-  latestNoticeHouseMatesNumOM: number
 }
 
 export default createStore<State>({
@@ -43,11 +33,6 @@ export default createStore<State>({
     houseId: "",
     houseMates: {},
     websocket: null,
-    noticeIntervalMinOM: 1,
-    latestNoticeData: {},
-
-    latestNoticeTimeOM: new Date(),
-    latestNoticeHouseMatesNumOM: 0,
   },
   mutations: {
     clear(state) {
@@ -95,23 +80,6 @@ export default createStore<State>({
     },
     setWebsocket(state, websocket){
       state.websocket = websocket;
-    },
-    setNoticeIntervalMinOM(state, noticeIntervalMinOM){
-      state.noticeIntervalMinOM = noticeIntervalMinOM;
-    },
-    setlatestNoticeData(state, latestNoticeData){
-      state.latestNoticeData[latestNoticeData.houseId] = {
-        houseId: latestNoticeData.houseId,
-        latestNoticeTimeOM: latestNoticeData.latestNoticeTimeOM,
-        latestNoticeHouseMatesNumOM: latestNoticeData.latestNoticeHouseMatesNumOM
-      }
-    },
-
-    setLatestNoticeTimeOM(state, latestNoticeTimeOM){
-      state.latestNoticeTimeOM = latestNoticeTimeOM;
-    },
-    setLatestNoticeHouseMatesNumOM(state, latestNoticeHouseMatesNumOM){
-      state.latestNoticeHouseMatesNumOM = latestNoticeHouseMatesNumOM;
     },
     
   },
@@ -184,6 +152,14 @@ export default createStore<State>({
       context.commit('setWebsocket', websocket);
     },
     connectWebsocket(context){
+      navigator.serviceWorker.ready.then( registration => {
+        registration.active?.postMessage({
+          type: "connectWebsocket",
+          token: localStorage.getItem("token"),
+          userId: context.state.userId
+        });
+      });
+
       if(context.state.websocket != null) {
         return;
       }
@@ -197,9 +173,6 @@ export default createStore<State>({
       );
       socket.onmessage = (e)=>{
           const data = JSON.parse(e.data);
-          if(data.type == "someOneChangeStatus"){
-            context.dispatch("someOneChangeStatus", data);
-          }
       }
       socket.onclose = (e) => {
           console.error("Chat socket closed unexpectedly");
@@ -207,122 +180,6 @@ export default createStore<State>({
       }
 
       context.commit('setWebsocket', socket);
-    },
-    setDefaultOnmessage(context){
-      const socket = context.state.websocket;
-      if(!socket)return;
-      socket.onmessage = (e)=>{
-        const data = JSON.parse(e.data);
-        if(data.type == "someOneChangeStatus"){
-          context.dispatch("someOneChangeStatus", data);
-        }
-      }
-      context.commit('setWebsocket', socket);
-    },
-
-    // 通知制御
-    async someOneChangeStatus(context, data:any):Promise<void>{
-      // 誰かがステータス更新した。
-      // ステータス情報をカウントして通知出すかを判断する
-
-      const res = await context.dispatch("checkCanNoticeOnlineMembers",data);
-      // 通知の開発用に一時的にコメントアウト
-      // if (!res){
-      //     return
-      // }
-
-      // 人数チェック & 人数増加チェック(規定時間ごとの確認のため)
-      // houseIdを基に問い合わせ。人数チェックする
-      const houseId = data.houseId;
-      let himaCount = 0;
-      await Axios.get("/api/users/" + houseId + "/").then((response:any) => {
-        const { getStatusByName } = utils();
-        const res = response.data
-        for (const key in res) {
-          if (getStatusByName(res[key].nowStatus) == "hima") {
-            himaCount += 1;
-          }
-        }
-      });
-
-      if(himaCount < 2 || context.state.latestNoticeData[houseId].latestNoticeHouseMatesNumOM >= himaCount) {
-          return;
-      }
-
-      context.dispatch("noticeOnlineMembers",{
-        houseId:houseId,
-        count:himaCount
-      });
-    },
-    checkCanNoticeOnlineMembers(context, data:any):boolean{
-      // 誰かの更新の際に全員分取り直しているので、自分含めて最新を持っているはず。
-      // 人数チェック(人数を通知に使うのでこれは別口で。)
-      // 増えた時だけ通知
-      if(data.status != "hima"){
-          return false;
-      }
-      // 自分のステータスチェック(予定ではヒマとヒマに送る)
-      const myStatus = context.state.houseMates[context.state.userId].nowStatus;
-      if(myStatus != "hima" && myStatus != "maybe"){
-          return false;
-      }
-
-      // 指定のhouseIdがあるかチェック なければinitデータを作る
-      const houseId = data.houseId;
-      if(context.state.latestNoticeData[houseId] == undefined){
-        // init
-        context.commit('setlatestNoticeData', {
-          houseId: houseId,
-          latestNoticeTimeOM: new Date(),
-          latestNoticeHouseMatesNumOM: 0
-        });
-      }
-
-      // 前回の通知から規定時間以上立っていたら送る
-      const latestNoticeTimeOM:Date = new Date(context.state.latestNoticeData[houseId].latestNoticeTimeOM.getTime());
-      latestNoticeTimeOM.setMinutes( latestNoticeTimeOM.getMinutes() + context.state.noticeIntervalMinOM);
-      if(latestNoticeTimeOM > new Date()){
-          return false;
-      }
-
-      return true;
-    },
-    async noticeOnlineMembers(context:any, data:{houseId:string, count:number}):Promise<void>{
-      // 2人以上になったよの通知
-      // 通知しつつ次の通知のインターバルを設定する。
-
-      // 通知許可チェック
-      const { checkNoticePermission } = utils();
-      const permission = await checkNoticePermission();
-      if(!permission) return;
-
-      // 人数と通知時間の記録(その家のものに)
-      context.commit('setlatestNoticeData', {
-        houseId: data.houseId,
-        latestNoticeTimeOM: new Date(),
-        latestNoticeHouseMatesNumOM: data.count
-      });
-
-      const img = require('@/assets/img/notification/app_icon.png');
-      const text = data.count + "人ヒマな人がいます。";
-      const options = {
-          tag: 'noticeOnlineMembers',
-          icon: img,
-          body: text,
-          actions: [
-              {action: 'enterRoom', title: "入る"}
-              ],
-          data: {
-              baseUrl: process.env.BASE_URL,
-              url: "/?#/House",
-          }
-      }
-      navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification("ヒマですか？", options);
-      });
-      
-      // インターバルよりも少し多く待つ
-      setTimeout(() =>{context.dispatch("someOneChangeStatus",{houseId: data.houseId, status:"hima"})}, context.state.noticeIntervalMinOM * 60 * 1000 + 1000);
     },
     
   },

@@ -291,8 +291,6 @@ export default defineComponent({
             if(data.type == "someOneChangeStatus"){
                 // 画面更新
                 this.$store.dispatch("getHouseUsers");
-                // 通知
-                this.$store.dispatch("someOneChangeStatus", data);
             }
         },
         addTalk(data:any):void{
