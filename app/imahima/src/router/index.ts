@@ -59,12 +59,6 @@ const routes: Array<RouteRecordRaw> = [
     component: Mypage,
     meta: { title:'イマヒマ村 マイページ' }
   },
-  {
-    path: '/pushtest',
-    name: 'PushTest',
-    component: PushTest,
-    meta: { beforeAuth: true }
-  },
 ]
 
 const DEFAULT_TITLE = 'イマヒマ村'
