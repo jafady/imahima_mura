@@ -55,6 +55,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 room_group_name,
                 {
                     'type': 'talk.receive',
+                    'houseId': data_json['houseId'],
                     'message': message,
                     'userId': self.user.id,
                     'userName': self.user.username,
@@ -67,6 +68,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 room_group_name,
                 {
                     'type': 'talk.requestdata',
+                    'houseId': data_json['houseId'],
                     'userId': self.user.id,
                 }
             )
@@ -76,6 +78,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 room_group_name,
                 {
                     'type': 'talk.senddata',
+                    'houseId': data_json['houseId'],
                     'target': data_json['target'],
                     'talks': data_json['talks'],
                 }
@@ -97,6 +100,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     async def talk_receive(self, event):
         await self.send(text_data=json.dumps({
             'type': 'talk',
+            'houseId': event['houseId'],
             'message': event['message'],
             'userId': event['userId'],
             'userName': event['userName'],
@@ -108,6 +112,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     async def talk_requestdata(self, event):
         await self.send(text_data=json.dumps({
             'type': 'requestTalks',
+            'houseId': event['houseId'],
             'userId': event['userId'],
         }))
     
@@ -116,6 +121,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         if self.user.id == event['target']:
             await self.send(text_data=json.dumps({
                 'type': 'receiveTalks',
+                'houseId': event['houseId'],
                 'talks': event['talks'],
             }))
     

@@ -4,7 +4,11 @@
         <!-- 家タイトル -->
         <div class="mt-2 house_title content_center">
             <div class="weight"></div>
-            <div class="house_name">{{houseName}}</div>
+            <select class="house_name" v-model="selectedHouseId" @change="changeHouse">
+                <option v-for="value in houseList" v-bind:key="value.id" v-bind:value="value.id">
+                    {{ value.name }}
+                </option>
+            </select>
             <div class="house_setting">
                 <div class="setting_icon"></div>
                 <div class="setting_word">家の設定</div>
@@ -61,6 +65,10 @@
             font-size: 22px;
             font-weight: bold;
             color: var(--main-bg-color);
+            border: none;
+            text-align: center;
+            max-width: 65%;
+            background-size: 16px 16px;
         }
 
         .house_setting {
@@ -167,12 +175,10 @@ import StatusSettingModal from '@/components/organisms/StatusSettingModal.vue'
 import {houseList, houseMate, talk} from '@/mixins/interface'
 
 export type DataType = {
-    houseId: string,
-    houseName: string,
+    selectedHouseId: string,
     houseMode: string,
     houseList: houseList,
     talks: talk[],
-    noticeIntervalMinOM: number,
     latestNoticeTimeOM: Date,
     latestNoticeHouseMatesNumOM: number,
 }
@@ -194,12 +200,10 @@ export default defineComponent({
     },
     data(): DataType {
         return {
-            houseId: "",
-            houseName: "",
+            selectedHouseId: "",
             houseMode: "friend",
             houseList: {"":{id:"",name:""}},
             talks:[],
-            noticeIntervalMinOM: 1,
             latestNoticeTimeOM: new Date(),
             latestNoticeHouseMatesNumOM: 0,
         }
@@ -213,9 +217,6 @@ export default defineComponent({
         },
         isRoomMode():boolean {
             return this.houseMode == "room";
-        },
-        noticeIntervalMSecOM():number {
-            return this.noticeIntervalMinOM * 60 * 1000; 
         },
         
 
@@ -237,6 +238,16 @@ export default defineComponent({
                 this.refs.statusSettingModal.openModal();
             }
         },
+        changeHouse(value:any):void{
+            // 再読み込み用にlocalstorageへの保存
+            this.$store.dispatch("setHouseId", this.selectedHouseId);
+            // 雑談のリセット
+            this.talks.splice(0);
+            // ユーザの入れ替え
+            this.getHouseInfo();
+            // 雑談の入れ替え
+            this.requestTalks();
+        },
         setHouseList(houses:any[]):void{
             const data:houseList = {};
             for (const key in houses) {
@@ -253,9 +264,9 @@ export default defineComponent({
                 // 任意のもので良いのでobjectで良い
                 const selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;
                 this.$store.dispatch("setHouseId", selectedHouseId);
-                this.houseName = this.houseList[selectedHouseId].name;
+                this.selectedHouseId = selectedHouseId;
             }else{
-                this.houseName = this.houseList[this.$store.state.houseId].name;
+                this.selectedHouseId = this.$store.state.houseId;
             }
         },
         async getHouseInfo():Promise<void>{
@@ -278,6 +289,10 @@ export default defineComponent({
             this.$store.dispatch("setWebsocket", socket);
         },
         webSocketOnmessage(data:any):void{
+            // houseIdが選択中のものでなければ無関係なので何もしない
+            if(data.houseId != this.selectedHouseId){
+                return;
+            }
             // websocketからのコマンドを捌く
             if(data.type == "talk"){
                 this.addTalk(data);

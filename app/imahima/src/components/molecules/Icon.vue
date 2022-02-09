@@ -37,9 +37,12 @@ export default defineComponent({
     },
     computed: {
         icon(){
-            return this.$store.state.houseMates[this.userId].icon || require("@/assets/img/default_icon.png");
+            return this.$store.state.houseMates[this.userId]?.icon || require("@/assets/img/default_icon.png");
         },
         statusCss(){
+            if(!this.$store.state.houseMates[this.userId]){
+                return "icon_bg_hima"
+            }
             return "icon_bg_" + this.$store.state.houseMates[this.userId].nowStatus;
         },
     },
