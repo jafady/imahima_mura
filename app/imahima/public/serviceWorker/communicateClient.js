@@ -193,7 +193,7 @@ const noticeOnlineMembers = async (data) => {
     latestNoticeHouseMatesNumOM: data.count
   }
 
-  const img = "../img/serviceWorker/default_icon.png";
+  const img = "../img/serviceWorker/app_icon.png";
   const text = data.count + "人ヒマな人がいます。";
   const options = {
       tag: "noticeOnlineMembers",
