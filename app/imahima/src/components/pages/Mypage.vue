@@ -99,7 +99,7 @@
                 </div>
             </div>
         </div>
-        <div class="m-3 blank_content" />
+        <div class="mt-3 blank_content" />
         <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
     </div>
 </template>

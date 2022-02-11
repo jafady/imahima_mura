@@ -62,7 +62,7 @@
                             <div class="message">{{value.message}}</div>
                         </div>
                     </div>
-                    <div class="m-3 blank_content" />
+                    <div class="mt-3 blank_content" />
                 </div>
                 <input type="text" v-model="inputText" v-on:keyup.enter="sendTalk" class="talk_input" placeholder="話す">
             </div>

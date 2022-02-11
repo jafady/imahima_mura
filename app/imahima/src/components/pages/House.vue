@@ -33,7 +33,7 @@
         <div v-else-if="isRoomMode" class="mt-4">
             <HouseRoom />
         </div>
-        <div class="m-3 blank_content" />
+        <div class="mt-3 blank_content" />
         <StatusSettingModal ref="statusSettingModal" @noticeChangeStatus="noticeChangeStatus" />
         <HouseSettingModal ref="houseSettingModal" @changeHouseInfo="changeHouseInfo"/>
     </div>
