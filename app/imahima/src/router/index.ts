@@ -33,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: '',
     component: House,
-    meta: { title:'イマヒマ村 居間' }
+    meta: { title:'イマヒマ村 ホーム' }
   },
   {
     path: '/login',
@@ -51,7 +51,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/House',
     name: 'House',
     component: House,
-    meta: { title:'イマヒマ村 居間' }
+    meta: { title:'イマヒマ村 ホーム' }
   },
   {
     path: '/MyPage',

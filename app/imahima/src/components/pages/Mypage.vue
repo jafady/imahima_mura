@@ -11,12 +11,21 @@
                 </div>
                 <div>
                     <IconUploadModal />
-                    <div class="mypage_username">{{userName}}</div>
+                    <input type="text" v-model="userName" class="mypage_username" placeholder="名前" @change="changeUserName">
                     <div class="mypage_id d-inline-flex">
                         <div class="mypage_id_weight"></div>
                         <div class="mypage_id">ID:{{userId}}</div>
                         <div class="mypage_id_copy btn_imahima" @click="copyId"></div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="invitations.length > 0" class="m-3">
+            <div class="mypage_title">招待を受ける</div>
+            <div class="mypage_content">
+                <div v-for="(item, index) in invitations" :key="index" class="mt-2 d-inline-flex mypage_inline invite_house_area">
+                    <label class="invited_housename">{{item.houseName}}</label>
+                    <button class="btn_primary_normal btn_approve_invite" @click="approveHouse(item)">この家に入る</button>
                 </div>
             </div>
         </div>
@@ -75,11 +84,11 @@
             <div class="mypage_title">ヒマ予定時間</div>
             <div class="mypage_content">
                 <div class="mt-2">
-                    <div class="mypage_week_induction">お誘いしやすくするため、ヒマかもしれないふわっとした時間を教えてください</div>
+                    <div class="mypage_week_induction">お誘いしやすくするため、ヒマかもしれない時間を教えてください</div>
                     <div class="mypage_week_area">
                         <div v-for="(item, index) in week" :key="index" class="mypage_week_button_area">
                             <input type="checkbox" v-model="item.selected" :id="index" disabled="disabled">
-                            <label class="btn_week btn_imahima" :for="index">{{item.name}}</label>
+                            <label class="btn_week" :for="index">{{item.name}}</label>
                             <div class="d-inline-flex mypage_inline_noticable">
                                 <VueTimepicker input-class="time" format="HH:mm" v-model="item.startTime" :key="refresh" :minute-interval="10" hide-clear-button @change="changeWeekTime(item)"></VueTimepicker>
                                 <div class="hyphen">~</div>
@@ -91,7 +100,7 @@
             </div>
         </div>
         <div class="m-3 blank_content" />
-        
+        <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
     </div>
 </template>
 <style lang="scss">
@@ -139,6 +148,11 @@
         }
         .mypage_username{
             font-size: 35px;
+            width: 100%;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            background: none;
         }
         .mypage_id{
             font-size: 21px;
@@ -161,6 +175,7 @@
             height: 40px;
             margin-right: 15px;
         }
+        
 
         .mypage_inline{
             align-items: center;
@@ -189,6 +204,21 @@
                 .busy{
                     background-color: var(--status-color-busy);
                 }
+            }
+
+            
+        }
+        .invite_house_area{
+            height: 50px;
+            .invited_housename{
+                max-width: calc(100% - 150px);
+                overflow: auto;
+                text-align: left;
+            }
+            .btn_approve_invite{
+                border: none;
+                width: 130px;
+                height: 35px;
             }
         }
         .mypage_inline_statusValidDateTime{
@@ -319,18 +349,22 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
-import CONST, { STATUS } from '../const'
-import Header from '../organisms/Header.vue'
-import Switch from '../molecules/Switch.vue'
-import IconUploadModal from '../organisms/IconUploadModal.vue'
+import CONST, { STATUS } from '@/mixins/const'
+import Header from '@/components/organisms/Header.vue'
+import Switch from '@/components/molecules/Switch.vue'
+import Alert from '@/components/molecules/Alert.vue'
+import IconUploadModal from '@/components/organisms/IconUploadModal.vue'
 
 import utils from '@/mixins/utils'
 interface category {id:string,name:string,selected:boolean}
 interface weekContent {id:string,name:string,selected:boolean,startTime:any,endTime:any}
+interface invitation {id:string,houseName:string}
 
 export type DataType = {
     userId: string,
     userName: string,
+
+    invitations: invitation[],
 
     statusHima: boolean,
     statusBusy: boolean,
@@ -343,9 +377,9 @@ export type DataType = {
     refresh: number,
     week:weekContent[],
 
-    valid:boolean,
-    loading:boolean,
-    isError:boolean,
+    alertCss: string,
+    alertMsg: string,
+    alertDisplayTime: number,
 
 }
 
@@ -354,6 +388,7 @@ export default defineComponent({
     components: {
         Header,
         Switch,
+        Alert,
         IconUploadModal,
     },
     setup(): Record<string, any>{
@@ -366,6 +401,8 @@ export default defineComponent({
         return{
             userId: "",
             userName: "",
+
+            invitations:[],
 
             statusHima: true,
             statusBusy: false,
@@ -388,12 +425,15 @@ export default defineComponent({
                 {name:"日",id:"",selected:true,startTime:"time",endTime:"time"},
             ],
 
-            valid:true,
-            loading:false,
-            isError: false,
+            alertCss: "alert-success",
+            alertMsg: "",
+            alertDisplayTime: 2000,
         }
     },
     computed: {
+        refs():any {
+            return this.$refs;
+        },
         groupedCategorys():category[][]{
             const base = this.categorys.length
             const splitCnt = 2       // 何個ずつに分割するか
@@ -470,6 +510,8 @@ export default defineComponent({
         async getUserInfo():Promise<void>{
             const categoryRes = await this.$http.get("/api/categorys/");
             const userInfoRes = await this.$http.get("/api/user_info/" + this.$store.state.userId + "/");
+            const myInvitationRes = await this.$http.get("/api/get_myinvitation/" + this.$store.state.userId + "/");
+
             const firstData = userInfoRes.data[0];
             // status
             this.setStatusFlg(firstData.userSetting__statusId__statusName);
@@ -481,6 +523,10 @@ export default defineComponent({
 
             // week
             this.setNoticeData(firstData);
+
+            // invite
+            this.setInvitation(myInvitationRes.data);
+
         },
         setStatusFlg(statusName:string):void{
             this.statusHima = false;
@@ -519,6 +565,17 @@ export default defineComponent({
             ]
             this.refresh *= -1;
         },
+        setInvitation(data:any[]):void{
+            // 招待確認
+            const tempData = [];
+            for (const key in data) {
+                tempData.push({
+                    id: data[key].id,
+                    houseName: data[key].houseId__houseName
+                });
+            }
+            this.invitations = tempData;
+        },
         logout():void{
             this.$http.get("/api/logout/").then(()=>{
                 this.$store.dispatch("clear");
@@ -528,10 +585,40 @@ export default defineComponent({
         },
         copyId():void{
             navigator.clipboard.writeText(this.userId).then(() => {
-                alert("コピーしました");
+                this.alertCss = "alert-success";
+                this.alertMsg = "コピーしました";
+                this.alertDisplayTime = 2000;
+                this.refs.alert.open();
             });
         },
+        approveHouse(item:invitation):void{
+            this.$http.put("/api/accept_invitation/" + item.id + "/")
+            .then(()=>{
+                // 承認した。
+                // 招待の更新
+                this.updateInvitations();
 
+                // 入ったよのメッセージ
+                this.alertCss = "alert-success";
+                this.alertMsg = item.houseName + "に入りました";
+                this.alertDisplayTime = 5000;
+                this.refs.alert.open();
+            });
+        },
+        async updateInvitations():Promise<void>{
+            const myInvitationRes = await this.$http.get("/api/get_myinvitation/" + this.$store.state.userId + "/");
+            this.setInvitation(myInvitationRes.data);
+        },
+
+        changeUserName():void{
+            if(!this.userName){
+                return;
+            }
+            const saveData = {
+                username: this.userName
+            };
+            this.saveUserName(saveData);
+        },
         async changeStatus(statusName:string, val:boolean):Promise<void>{
             if(val){
                 this.statusHima = false;
@@ -626,11 +713,15 @@ export default defineComponent({
             }
             return data.HH + ":" + data.mm;
         },
+        saveUserName(data:any):void{
+            this.$http.put("/api/update_user/" + this.$store.state.userId + "/",data).then(()=>{
+                this.$store.dispatch("getUserInfo");
+            });
+        },
         saveUserSetting(data:any):void{
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data).then(()=>{
                 this.$store.dispatch("getUserInfo");
             });
-
         }
     }
 })

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from ..models import User,UserSetting,UserSelectCategory,HouseMate
-from ..serializers import UserSerializer,UserSettingSerializer,UserSelectCategorySerializer
+from ..serializers import UserSerializer,UserNameSerializer,UserSettingSerializer,UserSelectCategorySerializer
 from rest_framework import generics, permissions, status
 from .mixin import MultipleFieldLookupMixin
 
@@ -25,13 +25,6 @@ class Logout(APIView):
         # simply delete the token to force a login
         request.user.auth_token.delete()
         return Response(status=status.HTTP_200_OK)
-
-# ユーザ操作
-# class UserList(generics.ListAPIView):
-#     """ ユーザ一覧 """
-#     queryset = User.objects.all().order_by('id')
-#     serializer_class = UserSerializer
-#     permission_classes = (permissions.IsAuthenticated,)
 
 
 class UserCreate(generics.CreateAPIView):
@@ -64,6 +57,7 @@ class UserInfo(APIView):
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
 
+
 class UserBaseInfo(APIView):
     """ ユーザ基本情報取得用 """
     serializer_class = UserSerializer
@@ -80,6 +74,12 @@ class UserBaseInfo(APIView):
                 
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
+
+class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    """ ユーザ設定更新用 """
+    queryset = User.objects.all()
+    serializer_class = UserNameSerializer
+    permission_classes = (permissions.AllowAny, )
 
 class UserSettingRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """

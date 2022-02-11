@@ -15,10 +15,10 @@
         width: 100%;                  
         height: 100%;
         border-radius: 50%;
+        padding: 5%;
         .icon_image {
-            width: 90%;                  
-            height: 90%;
-            margin-top: 5%;
+            width: 100%;                  
+            height: 100%;
             background-color: white;
             border-radius: 50%;
         }

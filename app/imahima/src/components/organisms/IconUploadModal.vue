@@ -77,8 +77,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Cropper from "cropperjs";
-import CONST from '../const'
+import Cropper from "cropperjs"
+import CONST, { STATUS } from '@/mixins/const'
 export type DataType = {
     cropper: any,
     zoomRangeValue: number,

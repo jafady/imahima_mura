@@ -7,7 +7,7 @@ Axios.interceptors.request.use((config: AxiosRequestConfig) => {
     }
     return config
 });
-import CONST from '../components/const'
+import CONST from '@/mixins/const'
 import utils from '@/mixins/utils'
 import {houseMates} from '@/mixins/interface'
 

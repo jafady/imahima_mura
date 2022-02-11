@@ -1,4 +1,4 @@
-import CONST from '../components/const'
+import CONST from '@/mixins/const'
 import Store from '@/store'
 
 // 共通処理用のファイル

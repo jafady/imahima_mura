@@ -14,10 +14,20 @@ class HouseManager(models.Manager):
 
         house.save(using=self._db)
         return house
+    
+    def update_house(self, user, instance, **extra_fields):
+        """
+        update and saves a House
+        """
+        [setattr(instance, k, v) for k, v in extra_fields.items()]
+        instance.update_user = user.username
+        instance.save(using=self._db)
+        return instance
 
 
 class House(MyBaseModel):
-    houseName = models.TextField()
+    houseName = models.TextField(blank=True)
+    discordUrl = models.TextField(blank=True)
 
     objects = HouseManager()
 

@@ -11,7 +11,7 @@
             </select>
             <div class="house_setting">
                 <div class="setting_icon"></div>
-                <div class="setting_word">家の設定</div>
+                <div class="setting_word" @click="openHouseSetting">家の設定</div>
             </div>
         </div>
         <!-- メニュータブ -->
@@ -35,6 +35,7 @@
         </div>
         <div class="m-3 blank_content" />
         <StatusSettingModal ref="statusSettingModal" @noticeChangeStatus="noticeChangeStatus" />
+        <HouseSettingModal ref="houseSettingModal" @changeHouseInfo="changeHouseInfo"/>
     </div>
 </template>
 
@@ -171,6 +172,7 @@ import Header from '@/components/organisms/Header.vue'
 import HouseFriend from '@/components/organisms/HouseFriend.vue'
 import HouseRoom from '@/components/organisms/HouseRoom.vue'
 import StatusSettingModal from '@/components/organisms/StatusSettingModal.vue'
+import HouseSettingModal from '@/components/organisms/HouseSettingModal.vue'
 
 import {houseList, houseMate, talk} from '@/mixins/interface'
 
@@ -190,6 +192,7 @@ export default defineComponent({
         HouseFriend,
         HouseRoom,
         StatusSettingModal,
+        HouseSettingModal,
     },
     setup(): Record<string, any>{
         const { sendWebsocket, checkNoticePermission } = utils()
@@ -238,6 +241,9 @@ export default defineComponent({
                 this.refs.statusSettingModal.openModal();
             }
         },
+        openHouseSetting():void{
+            this.refs.houseSettingModal.openModal();
+        },
         changeHouse(value:any):void{
             // 再読み込み用にlocalstorageへの保存
             this.$store.dispatch("setHouseId", this.selectedHouseId);
@@ -247,6 +253,11 @@ export default defineComponent({
             this.getHouseInfo();
             // 雑談の入れ替え
             this.requestTalks();
+        },
+        getHouseList():void{
+            this.$http.get("/api/myhouses/" + this.$store.state.userId + "/").then((response)=>{
+                this.setHouseList(response.data);
+            });
         },
         setHouseList(houses:any[]):void{
             const data:houseList = {};
@@ -278,7 +289,11 @@ export default defineComponent({
             await (this.isFriendMode == true)
             this.refs.houseFriend.talkScrollEnd();
         },
+        changeHouseInfo():void{
+            this.getHouseList()
+        },
 
+        
         setWebSocketAction():void{
             const socket = this.$store.state.websocket;
             if(!socket)return;

@@ -134,7 +134,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import CONST from '@/components/const'
+import CONST from '@/mixins/const'
 import Switch from '@/components/molecules/Switch.vue'
 import { Modal } from 'bootstrap'
 

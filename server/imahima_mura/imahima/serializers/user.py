@@ -14,6 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
         UserSetting.objects.create_usersetting(self.context["request"].user, userId=user)
         return user
 
+class UserNameSerializer(serializers.ModelSerializer):
+    """ A serializer class for the User model """
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email',
+                  'is_admin', 'is_active', 'is_superuser')
 
 class UserSettingSerializer(serializers.ModelSerializer):
     """ A serializer class for the UserSetting model """
