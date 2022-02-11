@@ -52,14 +52,28 @@
             </div>
             <div class="talk_content">
                 <div class="talk_field" id="talk_field">
-                    <div v-for="(value,index) in talks" v-bind:key="index" class="one_field">
-                        <div class="icon_area"><Icon :userId="value.userId" /></div>
-                        <div class="msg_field">
-                            <div class="info_field">
-                                <div class="name">{{value.userName}}</div>
-                                <div class="time">{{value.time}}</div>
+                    <div v-for="(value,index) in talks" v-bind:key="index">
+                        <div v-if="checkDisplayDate(index)" class="mt-2 mb-2 date_field">{{value.date}}</div>
+                        <div v-if="value.userId != this.$store.state.userId" class="one_field">
+                            <div class="icon_area"><Icon :userId="value.userId" /></div>
+                            <div class="msg_field">
+                                <div class="info_field">
+                                    <div class="name">{{value.userName}}</div>
+                                    <div class="time">{{value.time}}</div>
+                                </div>
+                                <div class="message">{{value.message}}</div>
                             </div>
-                            <div class="message">{{value.message}}</div>
+                        </div>
+                        <div v-else class="one_field my_talk">
+                            <div class="msg_field">
+                                <div class="info_field">
+                                    <div class="time">{{value.time}}</div>
+                                    <div class="name">{{value.userName}}</div>
+                                    
+                                </div>
+                                <div class="message">{{value.message}}</div>
+                            </div>
+                            <div class="icon_area"><Icon :userId="value.userId" /></div>
                         </div>
                     </div>
                     <div class="mt-3 blank_content" />
@@ -216,6 +230,15 @@
                 width: 100%;
                 height: calc(100% - 30px);
                 overflow-y: auto;
+                .date_field{
+                    background-color: var(--main-bg-color);
+                    border-radius: 10px;
+                    width: 130px;
+                    margin: 0 auto;
+                    text-align: center;
+                    color: var(--text-color-white);
+                    font-size: 14px;
+                }
                 .one_field{
                     display: flex;
                     padding: 5px;
@@ -223,10 +246,9 @@
                     .icon_area{
                         height:40px;
                         width:40px;
-                        margin: 0 auto;
                     }
                     .msg_field{
-                        width: calc(100% - 35px);
+                        width: calc(75% - 35px);
                         padding-left: 10px;
                         .info_field{
                             display: flex;
@@ -242,6 +264,12 @@
                             overflow-wrap: anywhere;
                             padding: 3px 10px;
                         }
+                    }
+                }
+                .my_talk{
+                    justify-content: right;
+                    .icon_area{
+                        margin-left: 10px;
                     }
                 }
                 
@@ -281,10 +309,10 @@
 </style>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
 import utils from '@/mixins/utils'
 import Icon from '@/components/molecules/Icon.vue'
-import {houseMates, houseMate} from '@/mixins/interface'
+import {houseMates, houseMate, talk} from '@/mixins/interface'
 
 
 export type DataType = {
@@ -306,7 +334,7 @@ export default defineComponent({
         }
     },
     props: {
-      talks: Array
+      talks: Array as PropType<talk[]>,
     },
     data(): DataType {
         return {
@@ -354,6 +382,22 @@ export default defineComponent({
             }));
             this.inputText = "";
             this.talkScrollEnd();
+        },
+        checkDisplayDate(index:number):boolean{
+            if(!this.talks){
+                return false;
+            }
+
+            if(index == 0){
+                return true;
+            }
+
+            const currentData:talk = this.talks[index];
+            const lastData:talk = this.talks[index-1];
+            if(currentData.date != lastData.date){
+                return true;
+            }
+            return false;
         },
         talkScrollEnd():void{
             const target = document.getElementById("talk_field");
