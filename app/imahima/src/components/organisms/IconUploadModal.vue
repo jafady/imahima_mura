@@ -1,7 +1,7 @@
 <template>
     <div class="container IUM_container">
         <label type="button" class="mypage_icon" :class="statusCss" for="file_upload" data-bs-toggle="modal" data-bs-target="#icon_upload">
-            <input type="file" id="file_upload" @change="onImageUploaded" style="display: none;">
+            <input type="file" id="file_upload" @change="onImageUploaded" @click="setCurrentImage" style="display: none;">
             <img id="cropped_image" :src="croppedFile" class="cropped_image" />
         </label>
         <!-- Modal -->
@@ -110,6 +110,11 @@ export default defineComponent({
         },
     },
     methods: {
+        async setCurrentImage():Promise<void>{
+            this.uploadingFile = this.$store.state.userIcon;
+            await setTimeout(()=>{console.log("sleep")}, 1000);
+            this.makeCropper();
+        },
         onImageUploaded(e:any):void {
             // event(=e)から画像データを取得する
             const image = e.target.files[0];
