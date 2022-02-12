@@ -107,7 +107,7 @@ class UserList(APIView):
     def get(self, request, houseId):
         # 返す値：userid,username,icon,ステータス,今日のヒマ時間        
         info = User.objects.get_base_info()\
-                .filter(housemate__houseId=houseId).filter(housemate__isApproved=True)\
+                .filter(housemate__houseId=houseId,housemate__isApproved=True)\
                 .values('id','username',
                     'userSetting__icon',
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
