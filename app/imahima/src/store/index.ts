@@ -124,6 +124,7 @@ export default createStore<State>({
       context.commit('setStatus', userStatus);
     },
     setHouseId(context, houseId){
+      localStorage.setItem("houseId", houseId);
       context.commit('setHouseId', houseId);
     },
     async getHouseUsers(context) {
