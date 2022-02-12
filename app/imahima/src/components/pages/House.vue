@@ -9,9 +9,9 @@
                     {{ value.name }}
                 </option>
             </select>
-            <div class="house_setting">
+            <div class="house_setting" @click="openHouseSetting">
                 <div class="setting_icon"></div>
-                <div class="setting_word" @click="openHouseSetting">家の設定</div>
+                <div class="setting_word">家の設定</div>
             </div>
         </div>
         <!-- メニュータブ -->
