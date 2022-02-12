@@ -80,7 +80,7 @@ const connectWebsocket = (data) => {
   }
   socket.onclose = (e) => {
       console.error("Chat socket closed unexpectedly");
-      // this.connectWebSocket();
+      connectWebsocket();
   }
   state.websocket = socket;
 }

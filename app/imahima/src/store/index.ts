@@ -177,7 +177,7 @@ export default createStore<State>({
       }
       socket.onclose = (e) => {
           console.error("Chat socket closed unexpectedly");
-          // this.connectWebSocket();
+          context.dispatch("connectWebSocket");
       }
 
       context.commit('setWebsocket', socket);
