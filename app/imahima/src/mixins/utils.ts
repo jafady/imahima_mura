@@ -32,6 +32,9 @@ export default function utils():Record<string, any> {
     return 0;
   }
   
+  const queryToString = (value: string | (string | null)[] | undefined): string | undefined => {
+    return Array.isArray(value) ? value[0] || undefined : value;
+  }
 
   const getStatusByName = function(data:string):string{
     const statuses:Record<string, unknown> = CONST.STATUS;
@@ -86,6 +89,7 @@ export default function utils():Record<string, any> {
     dateTimeToString,
     time2Date,
     sortTime,
+    queryToString,
     getStatusByName,
     cutSeconds,
     sendWebsocket,

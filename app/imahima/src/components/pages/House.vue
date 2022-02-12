@@ -195,10 +195,10 @@ export default defineComponent({
         HouseSettingModal,
     },
     setup(): Record<string, any>{
-        const { sendWebsocket, checkNoticePermission } = utils()
+        const { sendWebsocket, queryToString } = utils()
         return{
             sendWebsocket,
-            checkNoticePermission
+            queryToString,
         }
     },
     data(): DataType {
@@ -270,10 +270,21 @@ export default defineComponent({
             this.houseList = data;
         },
         setHouseInfo():void{
+            // storeにあるということは選んでいるので使う
             if(!this.$store.state.houseId){
-                // 選択されたものがなければlistから取得する
-                // 任意のもので良いのでobjectで良い
-                const selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;
+                // 選択されたものがなければlistから取得する(任意のもので良いのでobjectで良い)
+                let selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;
+
+                // パラメータがあるならパラメータを使う
+                const paramHouseId:string | undefined = this.queryToString(this.$route.query.houseId);
+                if(paramHouseId && this.houseList[paramHouseId]){
+                    // パラメータは一回使用したら消す
+                    const url = new URL(window.location.href);
+                    history.replaceState('', '', url.href.replace(/\?.*$/,""));
+
+                    selectedHouseId = paramHouseId;
+                }
+
                 this.$store.dispatch("setHouseId", selectedHouseId);
                 this.selectedHouseId = selectedHouseId;
             }else{

@@ -204,7 +204,7 @@ const noticeOnlineMembers = async (data) => {
           ],
       data: {
           baseUrl: self.location.origin,
-          url: "/?#/House",
+          url: "/?#/House?houseId=" + data.houseId,
       }
   }
   registration.showNotification("ヒマですか？", options);
