@@ -12,6 +12,15 @@ import PushTest from '@/components/pages/PushTest.vue'
 // store
 import Store from '@/store/index'
 
+import Axios, {AxiosRequestConfig} from 'axios'
+Axios.defaults.baseURL = process.env.VUE_APP_API_ENDPOINT_PROTOCOL +"://"+process.env.VUE_APP_API_ENDPOINT_HOST+"/";
+Axios.interceptors.request.use((config: AxiosRequestConfig) => {
+    if(config.headers && localStorage.getItem('token')){
+        config.headers.Authorization = "Token " + localStorage.getItem('token')
+    }
+    return config
+});
+
 declare module 'vue-router' {
   interface RouteMeta {
     beforeAuth?: boolean
@@ -24,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: '',
     component: House,
-    meta: { title:'イマヒマ村 居間' }
+    meta: { title:'イマヒマ村 ホーム' }
   },
   {
     path: '/login',
@@ -42,19 +51,13 @@ const routes: Array<RouteRecordRaw> = [
     path: '/House',
     name: 'House',
     component: House,
-    meta: { title:'イマヒマ村 居間' }
+    meta: { title:'イマヒマ村 ホーム' }
   },
   {
     path: '/MyPage',
     name: 'MyPage',
     component: Mypage,
     meta: { title:'イマヒマ村 マイページ' }
-  },
-  {
-    path: '/pushtest',
-    name: 'PushTest',
-    component: PushTest,
-    meta: { beforeAuth: true }
   },
 ]
 
@@ -65,20 +68,29 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => !record.meta.beforeAuth) && !Store.state.userToken) {
-    // localStorage.setItem('userId', '');
-    // localStorage.setItem('token', '');
+
+  if (to.matched.some(record => !record.meta.beforeAuth)) {
     if(localStorage.getItem('token')){
-      // todo tokenの生存確認しなきゃ。。
-      Store.dispatch("auth", {
+      // tokenの生存確認用に適当なところにリクエストを送っている
+      Axios.get("/api/statuses/").then((response:any) => {
+        Store.dispatch("auth", {
           userId: localStorage.getItem('userId'),
           userToken: localStorage.getItem('token')
-      });
-      next();
+        });
+        // websocket疎通確認&接続
+        Store.dispatch("connectWebsocket");
+        next();
+      }).catch(()=>{
+        Store.dispatch("clear");
+        localStorage.setItem("token", "");
+        next({ path: '/login', query: { redirect: to.fullPath } });
+      })
     } else {
       next({ path: '/login', query: { redirect: to.fullPath } });
     }
   } else {
+    // websocket疎通確認&接続
+    Store.dispatch("connectWebsocket");
     next();
   }
 });

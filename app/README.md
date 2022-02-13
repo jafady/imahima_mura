@@ -4,9 +4,10 @@
 - Volta：jsバージョン管理(nodeのバージョン管理に使う)
 - Vue3
 - Bootstrap5
-    - bootstrap-vueやvuetifyは現時点でVue3に対応していないのでまだ使っていない
-    - 対応したら使うかもだが、デザインも自分でやるので使わないかもしれない
-
+  - bootstrap-vueやvuetifyは現時点でVue3に対応していないのでまだ使っていない
+  - 対応したら使うかもだが、デザインも自分でやるので使わないかもしれない
+- serviceworker
+  - 通知用
 
 ### nodeモジュールメモ  
 - axios 
@@ -27,3 +28,16 @@ https://design.dena.com/design/atomic-design-%E3%82%92%E5%88%86%E3%81%8B%E3%81%A
 - ライブラリ：cabab(foo-bar)
 - 独自定義：snake(foo_bar)
   - ライブラリとの混同を防ぐため
+
+# 開発環境について
+## 通知機能
+通知機能はビルド後の本番モードでないと発動できないので、以下の手順で確認する
+1. npm run build
+2. chromeアプリのWeb serverなどでdistフォルダをアプリとして起動する  
+3. 以下のパスで接続する(サーバ側でホワイトリスト設定されているもの)
+```
+http://localhost:8887/
+```
+
+※通知機能は、Websocketからの受信含め全てServiceWorker内で行う。
+画面でもWebsocket自体はつなぎ、送受信を行う。画面に関係する箇所は画面で完結させる方針

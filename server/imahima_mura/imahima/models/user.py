@@ -5,6 +5,12 @@ import uuid
 from .mixin import MyBaseModel
 from .master import StatusMaster
 
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F, Q, Case, When, Value, CharField, TimeField, DateTimeField, ExpressionWrapper
+from django.db.models.functions import Cast
+import datetime
+import calendar
+
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **extra_fields):
         """
@@ -40,6 +46,56 @@ class UserManager(BaseUserManager):
         [setattr(instance, k, v) for k, v in extra_fields.items()]
         instance.save(using=self._db)
         return instance
+    
+    def get_base_info(self):
+        """
+        ユーザ基本情報取得
+        """
+        # 曜日から取り出すカラムを特定する
+        weekday = datetime.date.today().weekday()
+        weekday_name = calendar.day_name[weekday][0:3]
+        todayStart = 'userSetting__noticable'+weekday_name+'TimeStart'
+        todayEnd = 'userSetting__noticable'+weekday_name+'TimeEnd'
+
+        # タイムゾーン変換はもっとマシな方法はあるはずだが、いったんは+9をする
+        queryset = User.objects\
+                .select_related('UserSetting').select_related('UserSetting__statusId__StatusMaster')\
+                .annotate(statusValidDateTime = ExpressionWrapper(F('userSetting__statusValidDateTime') + datetime.timedelta(hours=9),
+                    output_field=DateTimeField()
+                ))\
+                .annotate(todayStartTime = Case(
+                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now()), 
+                        then=Value('00:00:00')),
+                    default=F(todayStart),
+                    output_field=TimeField()
+                ))\
+                .annotate(todayEndTime = Case(
+                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now(), userSetting__statusValidDateTime__lt = datetime.date.today() + datetime.timedelta(days=1)), 
+                        then=Cast('statusValidDateTime', output_field=TimeField())),
+                    When(Q(userSetting__statusValidDateTime__gte = datetime.date.today() + datetime.timedelta(days=1)), 
+                        then=Value('00:00:00')),
+                    default=F(todayEnd),
+                    output_field=TimeField()
+                ))\
+                .annotate(nowStatus = Case(
+                    When(Q(userSetting__statusValidDateTime__lt = datetime.datetime.now(), todayStartTime__lt = datetime.datetime.now().time(), todayEndTime__gte = datetime.datetime.now().time()), 
+                        then=Value('予定ではヒマ')),
+                    When(Q(userSetting__statusValidDateTime__lt = datetime.datetime.now(), todayStartTime__gte = datetime.datetime.now().time()), 
+                        then=Value('ヒマじゃない')),
+                    When(Q(userSetting__statusValidDateTime__lt = datetime.datetime.now(), todayEndTime__lt = datetime.datetime.now().time()), 
+                        then=Value('ヒマじゃない')),
+                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now(), userSetting__statusId__statusName = 'ヒマじゃない'), 
+                        then=Value('ヒマじゃない')),
+                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now(), userSetting__statusId__statusName = 'ヒマ'), 
+                        then=Value('ヒマ')),
+                    default=Value('ヒマ'),
+                    output_field=CharField()
+                    )
+                )
+        try:
+            return queryset
+        except ObjectDoesNotExist:
+            return None
     
     
 
@@ -83,10 +139,6 @@ class UserSettingManager(models.Manager):
         """
         Creates and saves a UserSetting
         """
-        print('UserSettingManager userId')
-        print(userId)
-        print(user.username)
-        # userId = '68f047ff'
         usersetting = self.model(
             userId = userId,
             create_user = user.username,

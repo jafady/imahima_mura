@@ -16,6 +16,8 @@ import 'vue3-datepicker/dist/vue3-datepicker.css'
 import Cropper from "cropperjs";
 import 'cropperjs/dist/cropper.min.css'
 
+import './registerServiceWorker'
+
 const app = createApp(App).use(store).use(router);
 Axios.defaults.baseURL = process.env.VUE_APP_API_ENDPOINT_PROTOCOL +"://"+process.env.VUE_APP_API_ENDPOINT_HOST+"/";
 Axios.interceptors.request.use((config: AxiosRequestConfig) => {

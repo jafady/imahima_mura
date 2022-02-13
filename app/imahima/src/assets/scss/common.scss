@@ -2,10 +2,14 @@
     --main-bg-color: rgba(58,190,39,1);
     --content-bg-color: rgba(209,238,216,1);
     --inactive-bg-color: rgba(225,230,225,1);
+    --inactive-bg-color2: rgba(249,249,249,1);
+
     --cancel-bg-color: rgba(86,94,100,1);
-    --text-color-white: rgba(255,255,255,1);
+    
+    --text-color-white: rgba(249,249,249,1);
     --text-color-black: rgba(0,0,0,1);
     --text-color-gray: rgba(155,155,155,1);
+    --text-color-gray2: rgba(188,188,188,1);
 
     --status-color-ongame: rgba(0,163,226,1);
     --status-color-hima: rgba(15,226,0,1);
@@ -79,4 +83,34 @@
 }
 .icon_bg_ongame{
     background-color: var(--status-color-ongame);
+}
+
+// 整列
+.content_center{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    align-content: center;
+}
+.content_center_inline{
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-around;
+    align-content: center;
+}
+.blank_content{
+    height: 10px;
+}
+
+// 共通部品
+.container{
+    position: relative;
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+}
+select {
+    background-image: url("../../assets/img/triangle_down.svg");
+    background-position: right center;
+    background-repeat: no-repeat;
 }

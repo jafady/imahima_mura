@@ -1,7 +1,7 @@
 <template>
     <div class="container IUM_container">
         <label type="button" class="mypage_icon" :class="statusCss" for="file_upload" data-bs-toggle="modal" data-bs-target="#icon_upload">
-            <input type="file" id="file_upload" @change="onImageUploaded" style="display: none;">
+            <input type="file" id="file_upload" @change="onImageUploaded" @click="setCurrentImage" style="display: none;">
             <img id="cropped_image" :src="croppedFile" class="cropped_image" />
         </label>
         <!-- Modal -->
@@ -77,13 +77,12 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Cropper from "cropperjs";
-import CONST from '../const'
+import Cropper from "cropperjs"
+import CONST, { STATUS } from '@/mixins/const'
 export type DataType = {
     cropper: any,
     zoomRangeValue: number,
     uploadingFile: string | ArrayBuffer | null,
-    croppedFile: string | ArrayBuffer | null,
     userStatus: string,
 }
 
@@ -96,25 +95,26 @@ export default defineComponent({
             cropper: null,
             zoomRangeValue: 0,
             uploadingFile: null,
-            croppedFile: require("../../assets/img/default_icon.png"),
             userStatus: "icon_bg_hima",
         }
     },
     computed: {
         statusCss(): string{
             return "icon_bg_" + this.$store.state.userStatus
-        }
-    },
-    mounted : function():void{
-        if(this.$store.state.userIcon){
-            this.croppedFile = this.$store.state.userIcon;
-        }else{
-            this.$store.dispatch("getUserInfo").then(()=>{
-                this.croppedFile = this.$store.state.userIcon;
-            });
-        }
+        },
+        croppedFile(): string | ArrayBuffer | null{
+            if(!this.$store.state.userIcon || this.$store.state.userIcon == require("@/assets/img/default_icon.png")){
+                this.$store.dispatch("getUserInfo")
+            }
+            return this.$store.state.userIcon;
+        },
     },
     methods: {
+        async setCurrentImage():Promise<void>{
+            this.uploadingFile = this.$store.state.userIcon;
+            await setTimeout(()=>{console.log("sleep")}, 1000);
+            this.makeCropper();
+        },
         onImageUploaded(e:any):void {
             // event(=e)から画像データを取得する
             const image = e.target.files[0];
@@ -187,25 +187,23 @@ export default defineComponent({
                     height: 200,
                 });
                 let roundedCanvas = this.getRoundedCanvas(croppedCanvas);
-
-                this.croppedFile = roundedCanvas.toDataURL();
-
                 // 保存処理
-                this.saveIcon();
+                this.saveIcon(roundedCanvas.toDataURL());
             }
         },
-        saveIcon():void {
-            if(!this.croppedFile){
+        saveIcon(data:any):void {
+            if(!data){
                 return
             }
             const saveData:Record<string, unknown> = {};
             // 保存用に接頭辞を外す
-            let data:any = this.croppedFile;
             data = data.replace(CONST.BASE64.header, '');
 
             saveData["icon"] = data;
             
             this.saveUserSetting(saveData);
+            // storeにも反映させる
+            this.$store.dispatch("setUserIcon", data)
         },
         saveUserSetting(data:any):void{
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data);

@@ -62,29 +62,25 @@
 import { defineComponent } from 'vue'
 
 export type DataType = {
-    myIcon: string | ArrayBuffer | null,
 }
 
 export default defineComponent({
     name: "Header",
     data(): DataType {
         return{
-            myIcon: require("../../assets/img/default_icon.png")
         }
     },
     computed: {
         statusCss(): string{
             return "icon_bg_" + this.$store.state.userStatus
-        }
-    },
-    mounted : function():void{
-        if(this.$store.state.userIcon){
-            this.myIcon = this.$store.state.userIcon;
-        }else{
-            this.$store.dispatch("getUserInfo").then(()=>{
-                this.myIcon = this.$store.state.userIcon;
-            });
-        }
+        },
+        myIcon(): string | ArrayBuffer | null{
+            if(!this.$store.state.userIcon || this.$store.state.userIcon == require("@/assets/img/default_icon.png")){
+                this.$store.dispatch("getUserInfo")
+            }
+            return this.$store.state.userIcon;
+        },
+
     },
     methods: {
         goHouse() {
