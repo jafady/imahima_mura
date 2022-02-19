@@ -33,13 +33,17 @@ import { defineComponent } from 'vue'
 export default defineComponent({
     name: "Icon",
     props: {
-      userId: String
+      userId: String,
+      hideStatus: Boolean,
     },
     computed: {
         icon(){
             return this.$store.state.houseMates[this.userId]?.icon || require("@/assets/img/default_icon.png");
         },
         statusCss(){
+            if(this.hideStatus){
+                return "";
+            }
             if(!this.$store.state.houseMates[this.userId]){
                 return "icon_bg_hima"
             }

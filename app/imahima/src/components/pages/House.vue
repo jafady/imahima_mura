@@ -20,9 +20,9 @@
                 <div class="friend_icon"></div>
                 <div class="friend_word">友達に会う</div>
             </div>
-            <div class="room" :class={room_active:isRoomMode} @click="houseMode = 'room'">
-                <div class="room_word">部屋を探す</div>
-                <div class="room_icon"></div>
+            <div class="event" :class={event_active:isEventMode} @click="houseMode = 'event'">
+                <div class="event_word">誘いを探す</div>
+                <div class="event_icon"></div>
             </div>
         </div>
         <!-- 選択メニューによって切り替える予定 -->
@@ -30,12 +30,19 @@
         <div v-if="isFriendMode" class="mt-4">
             <HouseFriend :talks="talks" ref="houseFriend"/>
         </div>
-        <div v-else-if="isRoomMode" class="mt-4">
-            <HouseRoom />
+        <div v-else-if="isEventMode" class="mt-4">
+            <HouseEvent />
+        </div>
+        <div class="mt-4 create_event">
+            <button type="button" class="btn btn_primary btn_create_event content_center_inline" @click="openCreateEvent">
+                <div class="create_event_icon"></div>
+                <div class="create_event_word">誘う</div>
+            </button>
         </div>
         <div class="mt-3 blank_content" />
         <StatusSettingModal ref="statusSettingModal" @noticeChangeStatus="noticeChangeStatus" />
         <HouseSettingModal ref="houseSettingModal" @changeHouseInfo="changeHouseInfo"/>
+        <CreateHouseEventModal ref="createHouseEventModal" />
     </div>
 </template>
 
@@ -127,7 +134,7 @@
                 color: var(--text-color-white);
             }
         }
-        .room{
+        .event{
             background-color: var(--inactive-bg-color2);
             width: calc(50vw + 5%);
             height: inherit;
@@ -140,24 +147,44 @@
             position: absolute;
             left: calc(50vw - 10%);
             justify-content: flex-end;
-            .room_icon{
+            .event_icon{
                 width: 30px;
                 height: 55px;
             }
-            .room_word{
+            .event_word{
                 font-size: 22px;
                 font-weight: bold;
                 color: var(--text-color-gray2);
             }
         }
-        .room_active{
+        .event_active{
             background-color: var(--main-bg-color);
-            .room_icon{
+            .event_icon{
                 background-image: url("../../assets/img/house/think_girl.svg");
                 background-repeat: no-repeat;
             }
-            .room_word{
+            .event_word{
                 color: var(--text-color-white);
+            }
+        }
+    }
+    .create_event{
+        width: 90%;
+        height: 55px;
+        margin: 0 auto;
+        .btn_create_event{
+            width: 80%;
+            height: 55px;
+            font-size: 18px;
+            font-weight: bold;
+            background-position-x: 80%;
+
+            .create_event_icon{
+                position: absolute;
+                left: 23%;
+                width: 46px;
+                height: 55px;
+                background-image: url("../../assets/img/house/create_event.svg");
             }
         }
     }
@@ -170,9 +197,10 @@ import { defineComponent } from 'vue'
 import utils from '@/mixins/utils'
 import Header from '@/components/organisms/Header.vue'
 import HouseFriend from '@/components/organisms/HouseFriend.vue'
-import HouseRoom from '@/components/organisms/HouseRoom.vue'
+import HouseEvent from '@/components/organisms/HouseEvent.vue'
 import StatusSettingModal from '@/components/organisms/StatusSettingModal.vue'
 import HouseSettingModal from '@/components/organisms/HouseSettingModal.vue'
+import CreateHouseEventModal from '@/components/organisms/CreateHouseEventModal.vue'
 
 import {houseList, houseMate, talk} from '@/mixins/interface'
 
@@ -190,9 +218,10 @@ export default defineComponent({
     components: {
         Header,
         HouseFriend,
-        HouseRoom,
+        HouseEvent,
         StatusSettingModal,
         HouseSettingModal,
+        CreateHouseEventModal,
     },
     setup(): Record<string, any>{
         const { sendWebsocket, queryToString } = utils()
@@ -218,8 +247,8 @@ export default defineComponent({
         isFriendMode():boolean {
             return this.houseMode == "friend";
         },
-        isRoomMode():boolean {
-            return this.houseMode == "room";
+        isEventMode():boolean {
+            return this.houseMode == "event";
         },
         
 
@@ -244,6 +273,11 @@ export default defineComponent({
         openHouseSetting():void{
             this.refs.houseSettingModal.openModal();
         },
+        openCreateEvent(e:Event):void{
+            e.stopPropagation();
+            this.refs.createHouseEventModal.openModal();
+        },
+
         changeHouse(value:any):void{
             // 再読み込み用にlocalstorageへの保存
             this.$store.dispatch("setHouseId", this.selectedHouseId);
