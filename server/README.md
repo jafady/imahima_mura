@@ -60,7 +60,10 @@ http://localhost:8000/swagger
 - Djangoの起動
   - python manage.py runserver
 - DBの反映
+  - python manage.py makemigrations
+    - どう変更するかを作成
   - python manage.py migrate
+    - 変更をDBに適応
 
 ## vue
 http://localhost:8080/
