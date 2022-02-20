@@ -19,15 +19,25 @@ herokku postgresは1GB 1万行までがfreeらしい。。
 
 ### docker環境の立ち上げ方
 appやserviceと同じ階層で実行
----
+```
 docker-compose up -d --build
----
+```
 
 ### docker立ち上げ時のTips
 - starting container process caused: exec: "/usr/src/server/entrypoint.sh": permission denied: unknown
-  - chmod +x server/imahima_mura/entrypoint.sh server/imahima_mura/manage.py
-  
+  - 実行権限を付与する
+    - chmod +x server/imahima_mura/entrypoint.sh server/imahima_mura/manage.py
+
 ### docker環境への入り方
+リモートエクスプローラー
+1. docker環境を立ち上げる
+2. vscodeのリモートエクスプローラーを開いて、appとserverでAttach to Containerを選択する
+3. 開くを選択し、以下のディレクトリを指定してOKを押す
+  - app: /usr/src/app/
+  - server: /usr/src/server/
+4. これで実行中のdockerの中に入れるので作業を開始する
+
+execコマンド
 ```
 docker exec -it imahima_server_dev bash
 ```
