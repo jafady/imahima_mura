@@ -17,6 +17,16 @@ herokku postgresは1GB 1万行までがfreeらしい。。
   - git
   - vscode(エディタならなんでも)
 
+### docker環境の立ち上げ方
+appやserviceと同じ階層で実行
+---
+docker-compose up -d --build
+---
+
+### docker立ち上げ時のTips
+- starting container process caused: exec: "/usr/src/server/entrypoint.sh": permission denied: unknown
+  - chmod +x server/imahima_mura/entrypoint.sh server/imahima_mura/manage.py
+  
 ### docker環境への入り方
 ```
 docker exec -it imahima_server_dev bash
