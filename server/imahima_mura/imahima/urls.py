@@ -25,6 +25,15 @@ urlpatterns = [
     path('check_housemate/<houseId>/<userId>/', CheckHouseMate.as_view()),
 
 
+    path('create_event/', EventCreate.as_view()),
+    path('event_info/<eventId>/', EventInfo.as_view()),
+    path('update_event/<pk>/', EventUpdate.as_view()),
+    path('delete_event/<pk>/', EventDelete.as_view()),
+    path('join_event/', EventJoin.as_view()),
+    path('leave_event/<eventId>/<userId>/', EventLeave.as_view()),
+    path('events/<houseId>/', EventList.as_view()),
+
+
     path('create_status/', StatusMasterCreate.as_view()),
     path('statuses/', StatusMasterList.as_view()),
     path('create_category/', CategoryMasterCreate.as_view()),
