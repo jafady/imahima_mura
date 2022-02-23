@@ -37,6 +37,7 @@
             <button type="button" class="btn btn_primary btn_create_event content_center_inline" @click="openCreateEvent">
                 <div class="create_event_icon"></div>
                 <div class="create_event_word">誘う</div>
+                <div class="create_event_icon_dummy"></div>
             </button>
         </div>
         <div class="mt-3 blank_content" />
@@ -177,14 +178,18 @@
             height: 55px;
             font-size: 18px;
             font-weight: bold;
-            background-position-x: 80%;
+            background-position-x: 88%;
 
             .create_event_icon{
-                position: absolute;
-                left: 23%;
+                position: relative;
+                left: 3%;
                 width: 46px;
                 height: 55px;
                 background-image: url("../../assets/img/house/create_event.svg");
+            }
+            .create_event_icon_dummy{
+                width: 46px;
+                height: 55px;
             }
         }
     }

@@ -20,6 +20,16 @@ export default function utils():Record<string, any> {
     return day;
   }
 
+  const getDisplayTime = (data:any):string => {
+    if(!data){
+        return "00:00"
+    }
+    if(!data.HH || !data.mm){
+        return data;
+    }
+    return data.HH + ":" + data.mm;
+  }
+
   const sortTime = (a:string, b:string):number => {
     const aTime = time2Date(a);
     const bTime = time2Date(b);
@@ -88,6 +98,7 @@ export default function utils():Record<string, any> {
   return {
     dateTimeToString,
     time2Date,
+    getDisplayTime,
     sortTime,
     queryToString,
     getStatusByName,
