@@ -4,9 +4,11 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import json
+import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.http import HttpResponse
+from django.db.models import F, Q, DateTimeField, ExpressionWrapper
 
 from ..models import Event,EventMembers
 from ..serializers import EventSerializer,EventMembersSerializer
@@ -24,11 +26,18 @@ class EventList(APIView):
     permission_classes = (permissions.IsAuthenticated, )
     def get(self, request, houseId):
 
+        # target_day = datetime.datetime.now()
+        target_day = datetime.date.today()
+
         infos = Event.objects\
                 .select_related('EventMembers')\
-                .filter(houseId=houseId)\
+                .filter(Q(houseId=houseId), (Q(startDate__gte=target_day) | Q(startDate__isnull=True)))\
+                .annotate(startDateAtJp = ExpressionWrapper(F('startDate') + datetime.timedelta(hours=9),
+                    output_field=DateTimeField()
+                ))\
+                .order_by('startDate', 'startTime', 'endTime')\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'startDate', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
                     )
 
         for info in infos:
@@ -48,8 +57,11 @@ class EventInfo(APIView):
         infos = Event.objects\
                 .select_related('EventMembers')\
                 .filter(id=eventId)\
+                .annotate(startDateAtJp = ExpressionWrapper(F('startDate') + datetime.timedelta(hours=9),
+                    output_field=DateTimeField()
+                ))\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'startDate', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
                     )
 
         for info in infos:

@@ -36,7 +36,7 @@
                                     <div class="m-1 mt-3 CHEM_inline date_area">
                                         <div class="CHEM_icon time_icon"></div>
                                         <div class="content_subtitle">開催日時</div>
-                                        <datepicker class="vue-datepicker-box" v-model="startDate" :lower-limit="lowerLimitDate"/>
+                                        <datepicker class="vue-datepicker-box" v-model="startDate" :lower-limit="lowerLimitDate" :clearable="true"/>
                                     </div>
                                     <div class="m-1 mt-3 CHEM_inline time_area">
                                         <div class="time_area_weight"></div>
@@ -473,6 +473,7 @@ export default defineComponent({
             this.startDate.setHours(0);
             this.startDate.setMinutes(0);
             this.startDate.setSeconds(0);
+            this.startDate.setMilliseconds(0);
             this.startTime = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
             this.endTime = (now.getHours()+1).toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
             this.detail = "";
@@ -610,6 +611,7 @@ export default defineComponent({
             this.startDate?.setHours(0);
             this.startDate?.setMinutes(0);
             this.startDate?.setSeconds(0);
+            this.startDate?.setMilliseconds(0);
 
             return result;
         },
@@ -629,9 +631,8 @@ export default defineComponent({
 
             // 画面更新
             this.sendWebsocket(JSON.stringify({
-                "type": "changeEvent",
-                "houseId": this.$store.state.houseId,
-                "eventId": eventId
+                "type": "noticeChangeEvent",
+                "houseId": this.$store.state.houseId
             }));
 
             // 通知用

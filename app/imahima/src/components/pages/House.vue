@@ -31,7 +31,7 @@
             <HouseFriend :talks="talks" ref="houseFriend"/>
         </div>
         <div v-else-if="isEventMode" class="mt-4">
-            <HouseEvent />
+            <HouseEvent ref="houseEvent" />
         </div>
         <div class="mt-4 create_event">
             <button type="button" class="btn btn_primary btn_create_event content_center_inline" @click="openCreateEvent">
@@ -292,6 +292,8 @@ export default defineComponent({
             this.getHouseInfo();
             // 雑談の入れ替え
             this.requestTalks();
+            // イベントの入れ替え
+            this.refs.houseEvent.getEventList();
         },
         getHouseList():void{
             this.$http.get("/api/myhouses/" + this.$store.state.userId + "/").then((response)=>{
@@ -371,6 +373,10 @@ export default defineComponent({
             if(data.type == "someOneChangeStatus"){
                 // 画面更新
                 this.$store.dispatch("getHouseUsers");
+            }
+            if(data.type == "someOneChangeEvent"){
+                // 画面更新
+                this.refs.houseEvent.getEventList();
             }
         },
         addTalk(data:any):void{

@@ -24,3 +24,19 @@ export interface talk {
     date:string,
     time:string,
 }
+
+export interface event {
+    id:string,
+    eventName: string,
+    recruitmentNumbersLower: number,
+    recruitmentNumbersUpper: number|null,
+    location: string,
+    startDate: Date | null,
+    startTime: string | null,
+    endTime: string | null,
+    displayDay: string,
+    displayTime: string,
+    categoryId: string,
+    detail: string,
+    userIds: string[]
+}
