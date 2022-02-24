@@ -6,7 +6,14 @@
                 <div class="event_header_icon search_icon"></div>
                 <div class="event_header_word">検索</div>
             </div>
-            <div class="search_content"></div>
+            <div class="search_content">
+                <div class="search_title d-flex">開始日</div>
+                <div class="d-inline-flex search_inline">
+                    <datepicker class="vue-datepicker-box" v-model="searchStartDate" :clearable="true"/>
+                    <VueTimepicker input-class="time" format="HH:mm" v-model="searchStartTime" :key="refreshSearchStartTime" :minute-interval="10"></VueTimepicker>
+                    <div class="word">以降</div>
+                </div>
+            </div>
         </div>
         <!-- 開催中の部屋 -->
         <div class="insession_event mt-4">
@@ -15,7 +22,7 @@
                 <div class="event_header_word">誘い</div>
             </div>
             <div class="insession_content">
-                <div v-for="(event) in eventList" v-bind:key="event.id" class="event_content">
+                <div v-for="(event) in searchedEventList" v-bind:key="event.id" class="event_content">
                     <div class="members">
                         <div v-for="userId in event.userIds" v-bind:key="userId" class="icon_area">
                             <div><Icon :userId="userId" :hideStatus="true"/></div>
@@ -95,6 +102,39 @@
             height: 95px;
             background-color: var(--content-bg-color);
             border-radius: 0px 0px 8px 8px;
+            padding: 15px;
+            .search_title{
+                text-align: left;
+                align-items: center;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .search_inline{
+                align-items: center;
+                width: 100%;
+                .vue-datepicker-box{
+                    width: 120px;
+                    height: 40px;
+                    border: none;
+                    border-radius: 8px;
+                    font-family: "游ゴシック";
+                    margin-right: 15px;
+                    text-align: center;
+                }
+
+                .time{
+                    width: 80px;
+                    height: 40px;
+                    border: none;
+                    border-radius: 8px;
+                    font-family: "游ゴシック";
+                    text-align: center;
+                }
+
+                .word{
+                    margin-left: 10px;
+                }
+            }
         }
     }
     .insession_event{
@@ -209,7 +249,9 @@ import utils from '@/mixins/utils'
 import { event } from '@/mixins/interface'
 
 export type DataType = {
-    eventList: event[]
+    eventList: event[],
+    searchStartDateTime: Date | null,
+    refreshSearchStartTime: number,
 }
 
 export default defineComponent({
@@ -225,11 +267,81 @@ export default defineComponent({
     },
     data(): DataType {
         return {
-            eventList: []
+            eventList: [],
+            searchStartDateTime: null,
+            refreshSearchStartTime: 1,
         }
     },
     computed: {
+        searchStartDate:{
+            get: function ():Date | null {
+                if(!this.searchStartDateTime){
+                    return null;
+                }
+                const val:Date = new Date(this.searchStartDateTime.getTime());
+                val.setHours(0);
+                val.setMinutes(0);
+                val.setSeconds(0);
+                return val;
+            },
+            set: function (newVal:Date):void {
+                if(!newVal){
+                    this.searchStartDateTime = null;
+                    return;
+                }
+                const val:Date = new Date(newVal.getTime());
+                let HH = 0;
+                let mm = 0;
+                if(this.searchStartTime){
+                    HH = parseInt(this.searchStartTime.substring(0,2)) || 0;
+                    mm = parseInt(this.searchStartTime.substring(3,5)) || 0;
+                    val.setHours(HH);
+                    val.setMinutes(mm);
+                }
+                this.searchStartDateTime = val;
+            },
+        },
+        searchStartTime:{
+            get: function ():string | null {
+                if(!this.searchStartDateTime){
+                    return null;
+                }
+                return this.searchStartDateTime.getHours().toString().padStart(2,'0') + ":" + this.searchStartDateTime.getMinutes().toString().padStart(2,'0');
+            },
+            set: function (newVal:string):void {
+                if(this.searchStartDate){
+                    const val:Date = new Date(this.searchStartDate.getTime());
+                    const HH:number = parseInt(newVal.substring(0,2)) || 0;
+                    const mm:number = parseInt(newVal.substring(3,5)) || 0;
+                    val.setHours(HH);
+                    val.setMinutes(mm);
+                    this.searchStartDateTime = val;
+                }
+            },
+        },
+        // Dateの問題でevent[]をevent[]に入れることができないのでいったんanyで
+        searchedEventList():any[] {
+            if(!this.searchStartDateTime){
+                return this.eventList;
+            }
+            const searchedEventList:any[] = Object.values(this.eventList).filter((event:any)=>{
+                    const targetDay = new Date(event.startDate);
+                    const HH = parseInt(event.startTime.substring(0,2)) || 0;
+                    const mm = parseInt(event.startTime.substring(3,5)) || 0;
+                    targetDay.setHours(HH);
+                    targetDay.setMinutes(mm);
+                    targetDay.setSeconds(0);
+                    if(!this.searchStartDateTime){
+                        return true;
+                    }
+                    if(targetDay.getTime() > this.searchStartDateTime.getTime()){
+                        return true;
+                    }
+                    return false;
+                });
 
+            return searchedEventList;
+        },
     },
     mounted : function(){
         this.getEventList();
@@ -240,7 +352,7 @@ export default defineComponent({
             this.setEventList(eventsRes.data);
         },
         setEventList(data:any):void{
-            const tempData = [];
+            const tempData:event[] = [];
             for (const key in data) {
                 const targetData = data[key];
                 if(!this.checkEndTime(targetData.startDateAtJp, targetData.endTime)){
