@@ -255,8 +255,6 @@ export default defineComponent({
         isEventMode():boolean {
             return this.houseMode == "event";
         },
-        
-
     },
     mounted : function(){
         // 家一覧取得
@@ -293,7 +291,7 @@ export default defineComponent({
             // 雑談の入れ替え
             this.requestTalks();
             // イベントの入れ替え
-            this.refs.houseEvent.getEventList();
+            this.refs.houseEvent?.getEventList();
         },
         getHouseList():void{
             this.$http.get("/api/myhouses/" + this.$store.state.userId + "/").then((response)=>{
