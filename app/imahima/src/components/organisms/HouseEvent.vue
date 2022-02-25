@@ -1,6 +1,6 @@
 <template>
     <div class="container house_event_container">
-        <!-- 部屋検索 -->
+        <!-- 検索 -->
         <div class="search_event">
             <div class="event_header">
                 <div class="event_header_icon search_icon"></div>
@@ -15,13 +15,18 @@
                 </div>
             </div>
         </div>
-        <!-- 開催中の部屋 -->
+        <!-- 誘い -->
         <div class="insession_event mt-4">
             <div class="event_header">
                 <div class="event_header_icon insession_icon"></div>
                 <div class="event_header_word">誘い</div>
             </div>
             <div class="insession_content">
+                <div class="noevent" v-if="searchedEventList.length < 1">
+                    <div>誘いはありません</div>
+                    <div>ヒマつぶしに誘ってみましょう</div>
+                    <div class="noevent_icon"></div>
+                </div>
                 <div v-for="(event) in searchedEventList" v-bind:key="event.id" class="event_content">
                     <div class="members">
                         <div v-for="userId in event.userIds" v-bind:key="userId" class="icon_area">
@@ -51,12 +56,13 @@
                             
                         </div>
                     </div> 
-                    <button type="button" class="btn btn_imahima btn_detail_event content_center_inline" @click="openDetail" >
+                    <button type="button" class="btn btn_imahima btn_detail_event content_center_inline" @click="openDetail($event, event.id)" >
                         <div class="detail_event_word">詳しく</div>
                     </button>
                 </div>
             </div>
         </div>
+        <UpdateHouseEventModal ref="updateHouseEventModal" />
     </div>
 </template>
 
@@ -148,6 +154,20 @@
             padding: 15px;
             display: flex;
             overflow-x: auto;
+
+            .noevent{
+                width: 100%;
+                height: 100%;
+                .noevent_icon{
+                    background-image: url("../../assets/img/house/event/look_at_me.svg");
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    background-size: contain;
+                    height: 100px;
+                    margin-top: 30px;
+                }
+            }
+
 
             .event_content{
                 width: 106px;
@@ -247,6 +267,7 @@ import { defineComponent } from 'vue'
 import Icon from '@/components/molecules/Icon.vue'
 import utils from '@/mixins/utils'
 import { event } from '@/mixins/interface'
+import UpdateHouseEventModal from '@/components/organisms/UpdateHouseEventModal.vue'
 
 export type DataType = {
     eventList: event[],
@@ -258,6 +279,7 @@ export default defineComponent({
     name: "HouseEvent",
     components: {
         Icon,
+        UpdateHouseEventModal,
     },
     setup(): Record<string, any>{
         const { time2Date } = utils()
@@ -273,6 +295,9 @@ export default defineComponent({
         }
     },
     computed: {
+        refs():any {
+            return this.$refs;
+        },
         searchStartDate:{
             get: function ():Date | null {
                 if(!this.searchStartDateTime){
@@ -470,8 +495,9 @@ export default defineComponent({
 
             return res
         },
-        openDetail():void{
-            console.log("openDetail");
+        openDetail(e:Event, eventId:string):void{
+            e.stopPropagation();
+            this.refs.updateHouseEventModal.openModal(eventId);
         }
     }
 })
