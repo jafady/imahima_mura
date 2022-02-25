@@ -81,7 +81,7 @@
                                         <div class="content_subtitle">予定ではヒマ</div>
                                         <div class="housemate_area">
                                             <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
-                                                <div class="housemate">
+                                                <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
                                                     <div>{{value.name}}</div>
                                                     <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
@@ -94,13 +94,20 @@
                                         <div class="content_subtitle">ヒマじゃない</div>
                                         <div class="housemate_area">
                                             <div v-for="(value) in houseMateListBusy" v-bind:key="value.id">
-                                                <div class="housemate">
+                                                <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
                                                     <div>{{value.name}}</div>
                                                     <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    <div class="m-4 send_notice">
+                                        <button type="button" class="btn btn_primary_normal btn_send_notice content_center_inline" @click="sendManualNotice">
+                                            <div class="send_notice_icon_dummy"></div>
+                                            <div class="leave_event_word">追加通知</div>
+                                            <div class="send_notice_icon"></div>
+                                        </button>
                                     </div>
 
                                 </div>
@@ -330,16 +337,56 @@
                 display: flex;
                 overflow-x: auto;
                 text-align: center;
-                min-height: 100px;
+                min-height: 120px;
+                margin-top: 5px;
                 .housemate{
                     width: 80px;
                     margin-right: 10px;
                     font-size: 13px;
                     font-weight: bold;
+                    border-radius: 4px;
+                    padding-top: 5px;
+                    padding-bottom: 10px;
                     .icon_area{
                         height:60px;
                         width:60px;
                         margin: 0 auto;
+                    }
+                }
+                .noSelectedHousemate{
+                    border: solid;
+                    border-color: var(--no-selected-area);
+                    border-width: 1px;
+                }
+                .selectedHousemate{
+                    background-color: var(--selected-area);
+                    border: none;
+                }
+            }
+
+            .send_notice{
+                width: 90%;
+                margin: 0 auto;
+                text-align-last: center;
+                .btn_send_notice{
+                    width: 70%;
+                    height: 55px;
+                    font-size: 18px;
+                    font-weight: bold;                    
+
+                    .send_notice_icon{
+                        position: relative;
+                        right: 3%;
+                        width: 30px;
+                        height: 30px;
+                        background-image: url("../../assets/img/house/event/send_notice.svg");
+                        background-repeat: no-repeat;
+                        background-position-y: center;
+                        background-size: contain;
+                    }
+                    .send_notice_icon_dummy{
+                        width: 30px;
+                        height: 30px;
                     }
                 }
             }
@@ -439,7 +486,9 @@ export type DataType = {
 
     userIds: string[],
 
-    lowerLimitDate: Date
+    selectedHousemate: string[],
+
+    lowerLimitDate: Date,
 }
 
 export default defineComponent({
@@ -475,6 +524,8 @@ export default defineComponent({
 
             userIds: [],
 
+            selectedHousemate: [],
+
             lowerLimitDate: new Date(),
         }
     },
@@ -500,6 +551,7 @@ export default defineComponent({
             return this.getHouseMateList("busy");
         },
 
+        
         errorTitle():string{
             if(this.eventName){
                 return "";
@@ -607,6 +659,23 @@ export default defineComponent({
             });
             return houseMateList;
         },
+        
+        // 表示用計算
+        selectedHousemateCss(userId:string):string{
+            if(this.selectedHousemate.includes(userId)){
+                return "selectedHousemate";
+            }else{
+                return "noSelectedHousemate"
+            }
+        },
+        changeSelectedHousemate(userId:string):void{
+            if(this.selectedHousemate.includes(userId)){
+                this.selectedHousemate = this.selectedHousemate.filter((selectedUserId:string)=> selectedUserId != userId);
+            }else{
+                this.selectedHousemate.push(userId);
+            }
+        },
+
         getUserName(userId:string):string{
             return this.$store.state.houseMates[userId].name;
         },
@@ -747,8 +816,6 @@ export default defineComponent({
                 this.sendUpdateEvent();
             });
         },
-
-        
         saveUpdateEvent(data:any):void{
             this.$http.put("/api/update_event/" + this.eventId + "/", data)
             .then((response)=>{
@@ -756,12 +823,24 @@ export default defineComponent({
                 this.sendUpdateEvent();
             });
         },
-
         sendUpdateEvent():void{
             // 画面更新
             this.sendWebsocket(JSON.stringify({
                 "type": "noticeChangeEvent",
                 "houseId": this.$store.state.houseId
+            }));
+        },
+
+        sendManualNotice():void{
+            if(this.selectedHousemate.length < 1){
+                return;
+            }
+            // TODO 送信メッセージを聞く
+            this.sendWebsocket(JSON.stringify({
+                "type": "sendManualNotice",
+                "houseId": this.$store.state.houseId,
+                "eventId": this.eventId,
+                "targetUserIds": this.selectedHousemate,
             }));
         }
     }
