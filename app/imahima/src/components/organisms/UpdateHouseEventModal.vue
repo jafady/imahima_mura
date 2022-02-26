@@ -102,6 +102,12 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="mt-4 m-1" v-if="selectedHousemate.length > 0">
+                                        <div class="content_subtitle">なんて話しかけますか？</div>
+                                        <div class="manual_msg_area">
+                                            <textarea class="manual_msg" :class="errorManualMsg" v-model="manualMsg" placeholder="あそぼ"/>
+                                        </div>
+                                    </div>
                                     <div class="m-4 send_notice">
                                         <button type="button" class="btn btn_primary_normal btn_send_notice content_center_inline" @click="sendManualNotice">
                                             <div class="send_notice_icon_dummy"></div>
@@ -364,6 +370,17 @@
                 }
             }
 
+            .manual_msg_area{
+                display: flex;
+                justify-content: center;
+                .manual_msg{
+                    width: 100%;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 10px;
+                }
+            }
+
             .send_notice{
                 width: 90%;
                 margin: 0 auto;
@@ -487,6 +504,8 @@ export type DataType = {
     userIds: string[],
 
     selectedHousemate: string[],
+    manualMsg: string,
+    isErrorManualMsg: boolean,
 
     lowerLimitDate: Date,
 }
@@ -525,6 +544,8 @@ export default defineComponent({
             userIds: [],
 
             selectedHousemate: [],
+            manualMsg: "",
+            isErrorManualMsg: false,
 
             lowerLimitDate: new Date(),
         }
@@ -568,6 +589,13 @@ export default defineComponent({
         },
         errorDetail():string{
             if(this.detail){
+                return "";
+            }else{
+                return "error_border"
+            }
+        },
+        errorManualMsg():string{
+            if(this.manualMsg || !this.isErrorManualMsg){
                 return "";
             }else{
                 return "error_border"
@@ -835,12 +863,15 @@ export default defineComponent({
             if(this.selectedHousemate.length < 1){
                 return;
             }
-            // TODO 送信メッセージを聞く
+            if(!this.manualMsg){
+                this.isErrorManualMsg = true;
+            }
             this.sendWebsocket(JSON.stringify({
                 "type": "sendManualNotice",
                 "houseId": this.$store.state.houseId,
                 "eventId": this.eventId,
                 "targetUserIds": this.selectedHousemate,
+                "msg": this.manualMsg,
             }));
         }
     }
