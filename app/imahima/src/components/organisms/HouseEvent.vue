@@ -498,6 +498,10 @@ export default defineComponent({
         openDetail(e:Event, eventId:string):void{
             e.stopPropagation();
             this.refs.updateHouseEventModal.openModal(eventId);
+        },
+        async openEventModalFromUrl(eventId:string):Promise<void>{
+            await this.getEventList();
+            this.refs.updateHouseEventModal.openModal(eventId);
         }
     }
 })

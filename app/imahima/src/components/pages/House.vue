@@ -216,6 +216,9 @@ export type DataType = {
     talks: talk[],
     latestNoticeTimeOM: Date,
     latestNoticeHouseMatesNumOM: number,
+
+    paramHouseId: string | undefined,
+    paramEventId: string | undefined,
 }
 
 export default defineComponent({
@@ -229,10 +232,11 @@ export default defineComponent({
         CreateHouseEventModal,
     },
     setup(): Record<string, any>{
-        const { sendWebsocket, queryToString } = utils()
+        const { sendWebsocket, queryToString, sleep } = utils()
         return{
             sendWebsocket,
             queryToString,
+            sleep,
         }
     },
     data(): DataType {
@@ -243,6 +247,9 @@ export default defineComponent({
             talks:[],
             latestNoticeTimeOM: new Date(),
             latestNoticeHouseMatesNumOM: 0,
+
+            paramHouseId: "",
+            paramEventId: "",
         }
     },
     computed: {
@@ -257,6 +264,7 @@ export default defineComponent({
         },
     },
     mounted : function(){
+        this.setUrlParam();
         // 家一覧取得
         this.$http.get("/api/myhouses/" + this.$store.state.userId + "/").then((response)=>{
             this.setHouseList(response.data);
@@ -264,6 +272,7 @@ export default defineComponent({
             this.getHouseInfo();
             this.setWebSocketAction();
             this.requestTalks();
+            this.openEventModal();
         });
     },
     methods: {
@@ -298,6 +307,14 @@ export default defineComponent({
                 this.setHouseList(response.data);
             });
         },
+        setUrlParam():void{
+            this.paramHouseId = this.queryToString(this.$route.query.houseId);
+            this.paramEventId = this.queryToString(this.$route.query.eventId);
+
+            // パラメータは一回使用したら消す
+            const url = new URL(window.location.href);
+            history.replaceState('', '', url.href.replace(/\?.*$/,""));
+        },
         setHouseList(houses:any[]):void{
             const data:houseList = {};
             for (const key in houses) {
@@ -315,13 +332,9 @@ export default defineComponent({
                 let selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;
 
                 // パラメータがあるならパラメータを使う
-                const paramHouseId:string | undefined = this.queryToString(this.$route.query.houseId);
-                if(paramHouseId && this.houseList[paramHouseId]){
-                    // パラメータは一回使用したら消す
-                    const url = new URL(window.location.href);
-                    history.replaceState('', '', url.href.replace(/\?.*$/,""));
-
-                    selectedHouseId = paramHouseId;
+                // const paramHouseId:string | undefined = this.queryToString(this.$route.query.houseId);
+                if(this.paramHouseId && this.houseList[this.paramHouseId]){
+                    selectedHouseId = this.paramHouseId;
                 }
 
                 this.$store.dispatch("setHouseId", selectedHouseId);
@@ -341,6 +354,15 @@ export default defineComponent({
         },
         changeHouseInfo():void{
             this.getHouseList()
+        },
+        async openEventModal():Promise<void>{
+            // URLでイベントIDの指定があった場合はイベントを開く
+            if(!this.paramEventId){
+                return
+            }
+            this.houseMode = "event";
+            await this.sleep(2);
+            this.refs.houseEvent.openEventModalFromUrl(this.paramEventId);
         },
 
         

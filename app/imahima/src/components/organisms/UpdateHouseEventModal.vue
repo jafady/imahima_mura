@@ -870,6 +870,7 @@ export default defineComponent({
                 "type": "sendManualNotice",
                 "houseId": this.$store.state.houseId,
                 "eventId": this.eventId,
+                "eventName": this.eventName,
                 "targetUserIds": this.selectedHousemate,
                 "msg": this.manualMsg,
             }));

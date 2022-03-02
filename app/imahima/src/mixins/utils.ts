@@ -46,6 +46,10 @@ export default function utils():Record<string, any> {
     return Array.isArray(value) ? value[0] || undefined : value;
   }
 
+  const sleep = (sec:number) => {
+    return new Promise(resolve => setTimeout(resolve, sec*1000));
+  }
+
   const getStatusByName = function(data:string):string{
     const statuses:Record<string, unknown> = CONST.STATUS;
     const result = Object.keys(statuses).filter((key:string) => { 
@@ -101,6 +105,7 @@ export default function utils():Record<string, any> {
     getDisplayTime,
     sortTime,
     queryToString,
+    sleep,
     getStatusByName,
     cutSeconds,
     sendWebsocket,

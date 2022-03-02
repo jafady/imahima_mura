@@ -77,6 +77,9 @@ const connectWebsocket = (data) => {
       if(data.type == "someOneChangeStatus"){
         someOneChangeStatus(data);
       }
+      if(data.type == "receiveManualMessage"){
+        receiveManualMessage(data);
+      }
   }
   socket.onclose = (e) => {
       console.error("Chat socket closed unexpectedly");
@@ -211,4 +214,38 @@ const noticeOnlineMembers = async (data) => {
   
   // インターバルよりも少し多く待つ
   setTimeout(() =>{someOneChangeStatus({houseId: data.houseId, status:"hima"})}, state.noticeIntervalMinOM * 60 * 1000 + 1000);
+}
+
+const receiveManualMessage = async (data) => {
+  // 指名されての通知
+  // サーバ側で条件確認をしているのでここでは出すだけ。
+
+  // 通知許可チェック
+  const permission = await checkNoticePermission();
+  if(!permission) return;
+
+  // 人数と通知時間の記録(家ごとに)
+  state.latestNoticeData[data.houseId] = {
+    houseId: data.houseId,
+    latestNoticeTimeOM: new Date(),
+    latestNoticeHouseMatesNumOM: data.count
+  }
+
+  const img = "../img/serviceWorker/app_icon.png";
+  const title = data.userName + "  " + data.eventName;
+  const options = {
+      tag: "noticeManualMessage",
+      icon: img,
+      body: data.msg,
+      actions: [
+          {action: 'lookEvent', title: "イベントを確認する"}
+          ],
+      data: {
+          baseUrl: self.location.origin,
+          url: "/?#/House?houseId=" + data.houseId + "&eventId=" + data.eventId,
+      }
+  }
+  
+  // 通知時間まで待つ
+  setTimeout(() =>{registration.showNotification(title, options)}, data.noticeSecond * 1000);
 }
