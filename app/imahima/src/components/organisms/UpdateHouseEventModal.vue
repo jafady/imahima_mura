@@ -6,7 +6,7 @@
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content UHEM_modal">
                         <div class="UHEM_header">
-                            <div class="delete_event btn_imahima" v-if="mode=='in'" @click="deleteEvent"></div>
+                            <div class="delete_event btn_imahima" v-if="mode=='in'" @click="confirmDelete"></div>
                             <div class="title">
                                 <div class="title_word">誘いの詳細</div>
                             </div>
@@ -140,6 +140,7 @@
                     </div>
                 </div>
             </div>
+            <ConfirmModal ref="confirmModal" @ok="deleteEvent"/>
         </teleport>
     </div>
 </template>
@@ -482,6 +483,7 @@ import { houseMates, houseMate } from '@/mixins/interface'
 import utils from '@/mixins/utils'
 import { Modal } from 'bootstrap'
 import Icon from '@/components/molecules/Icon.vue'
+import ConfirmModal from '@/components/molecules/ConfirmModal.vue'
 
 interface category {id:string,name:string}
 
@@ -514,6 +516,7 @@ export default defineComponent({
     name: "UpdateHouseEventModal",
     components: {
         Icon,
+        ConfirmModal
     },
     setup(): Record<string, any>{
         const { sortTime,cutSeconds, sendWebsocket,getDisplayTime } = utils()
@@ -551,6 +554,9 @@ export default defineComponent({
         }
     },
     computed: {
+        refs():any {
+            return this.$refs;
+        },
         houseId():string {
             return this.$store.state.houseId;
         },
@@ -815,7 +821,9 @@ export default defineComponent({
             return !edited;
         },
 
-
+        confirmDelete():void{
+            this.refs.confirmModal.openModal("本当に消しますか？");
+        },
         deleteEvent():void{
             this.$http.delete("/api/delete_event/" + this.eventId + "/")
             .then((response)=>{
