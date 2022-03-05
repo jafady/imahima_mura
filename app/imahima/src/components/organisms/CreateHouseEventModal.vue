@@ -479,6 +479,10 @@ export default defineComponent({
             this.detail = "";
             this.error = false;
 
+            if(now.getHours()+1 > 23){
+                this.endTime = "23:59"
+            }
+
             this.refreshStartTime *= -1;
             this.refreshEndTime *= -1;
         },
