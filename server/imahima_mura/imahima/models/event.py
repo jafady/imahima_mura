@@ -34,6 +34,7 @@ class Event(MyBaseModel):
     recruitmentNumbersUpper = models.IntegerField(blank=True, default=0, null=True)
 
     location = models.TextField(blank=True)
+    locationUrl = models.TextField(blank=True)
 
     startDate = models.DateTimeField(null=True, default=timezone.now)
     startTime = models.TimeField(null=True, default='00:00')

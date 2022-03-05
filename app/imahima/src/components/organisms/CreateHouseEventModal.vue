@@ -33,6 +33,11 @@
                                         <div class="content_subtitle">場所</div>
                                         <input type="text" v-model="location" class="text_input" >
                                     </div>
+                                    <div class="m-1 mt-3 CHEM_inline location_url_area">
+                                        <div class="location_url_area_weight"></div>
+                                        <div class="content_subtitle"></div>
+                                        <input type="text" v-model="locationUrl" class="text_input" placeholder="https://discord.gg/">
+                                    </div>
                                     <div class="m-1 mt-3 CHEM_inline date_area">
                                         <div class="CHEM_icon time_icon"></div>
                                         <div class="content_subtitle">開催日時</div>
@@ -41,9 +46,9 @@
                                     <div class="m-1 mt-3 CHEM_inline time_area">
                                         <div class="time_area_weight"></div>
                                         <div class="content_subtitle"></div>
-                                        <VueTimepicker input-class="time" format="HH:mm" v-model="startTime" :key="refreshStartTime" :minute-interval="10" hide-clear-button @change="changeTime('start')"></VueTimepicker>
+                                        <VueTimepicker input-class="time" format="HH:mm" v-model="startTime" :key="refreshStartTime" :minute-interval="10" @change="changeTime('start')"></VueTimepicker>
                                         <div class="middle">～</div>
-                                        <VueTimepicker input-class="time" format="HH:mm" v-model="endTime" :key="refreshEndTime" :minute-interval="10" hide-clear-button @change="changeTime('end')"></VueTimepicker>
+                                        <VueTimepicker input-class="time" format="HH:mm" v-model="endTime" :key="refreshEndTime" :minute-interval="10" @change="changeTime('end')"></VueTimepicker>
                                     </div>
                                     <div class="m-1 mt-3 CHEM_inline category_area">
                                         <div class="CHEM_icon category_icon"></div>
@@ -234,6 +239,15 @@
                     width: 165px;
                 }
             }
+            .location_url_area{
+                .location_url_area_weight{
+                    width: 16px;
+                    margin-right: 10px;
+                }
+                .text_input{
+                    width: 65%;
+                }
+            }
             .date_area{
                 .time_icon{
                     background-image: url("../../assets/img/house/event/hourglass.svg");
@@ -356,6 +370,7 @@ export type DataType = {
     recruitmentNumbersLower: number,
     recruitmentNumbersUpper: number|null,
     location: string,
+    locationUrl: string,
     startDate: Date | null,
     startTime: string | null,
     endTime: string | null,
@@ -390,6 +405,7 @@ export default defineComponent({
             recruitmentNumbersLower: 1,
             recruitmentNumbersUpper: null,
             location: "discord",
+            locationUrl:"",
             startDate: new Date(),
             startTime: null,
             endTime: null,
@@ -480,8 +496,9 @@ export default defineComponent({
             this.error = false;
 
             if(now.getHours()+1 > 23){
-                this.endTime = "23:59"
+                this.endTime = "23:59";
             }
+            this.getDefaultUrl();
 
             this.refreshStartTime *= -1;
             this.refreshEndTime *= -1;
@@ -499,6 +516,10 @@ export default defineComponent({
                 });
             }
             this.categoryList=data;
+        },
+        async getDefaultUrl():Promise<void>{
+            const houseInfo = await this.$http.get("/api/house_info/"+ this.$store.state.houseId +"/");
+            this.locationUrl = houseInfo.data.discordUrl;
         },
         getHouseMateList(status:string):houseMate[]{
             // 計算量を減らすためにfilterで母数を減らす
@@ -584,6 +605,7 @@ export default defineComponent({
                 recruitmentNumbersLower: this.recruitmentNumbersLower,
                 recruitmentNumbersUpper: this.recruitmentNumbersUpper,
                 location: this.location,
+                locationUrl: this.locationUrl,
                 startDate: this.startDate,
                 startTime: this.getDisplayTime(this.startTime),
                 endTime: this.getDisplayTime(this.endTime),

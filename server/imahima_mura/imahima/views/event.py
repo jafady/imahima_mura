@@ -37,7 +37,7 @@ class EventList(APIView):
                 ))\
                 .order_by('startDate', 'startTime', 'endTime')\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
                     )
 
         for info in infos:
@@ -61,7 +61,7 @@ class EventInfo(APIView):
                     output_field=DateTimeField()
                 ))\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl','startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
                     )
 
         for info in infos:

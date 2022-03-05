@@ -14,7 +14,7 @@
                         </div>
                         <div class="modal-body UHEM_body">
                             <div class="mb-3 d-flex">
-                                <input type="text" v-model="eventName" class="eventName_input" :class="errorTitle" placeholder="タイトル" @change="changeEventName">
+                                <input type="text" v-model="eventName" class="eventName_input" :class="errorTitle" placeholder="タイトル" @change="changeEventName" :disabled="disabled">
                             </div>
                             <div class="mb-3">
                                 <div class="content_title">概要</div>
@@ -22,33 +22,39 @@
                                     <div class="m-1 UHEM_inline recruitment_area">
                                         <div class="UHEM_icon recruitment_icon"></div>
                                         <div class="content_subtitle">目標人数</div>
-                                        <input type="number" v-model="recruitmentNumbersLower" class="text_input" :class="errorRecruitmentNumbersLower" min="1" step="1" @change="changeRecruitmentNumbersLower">
+                                        <input type="number" v-model="recruitmentNumbersLower" class="text_input" :class="errorRecruitmentNumbersLower" min="1" step="1" @change="changeRecruitmentNumbersLower" :disabled="disabled">
                                         <div class="suffix">人</div>
                                         <div class="middle">～</div>
-                                        <input type="number" v-model="recruitmentNumbersUpper" class="text_input" min="1" step="1" @change="changeRecruitmentNumbersUpper">
+                                        <input type="number" v-model="recruitmentNumbersUpper" class="text_input" min="1" step="1" @change="changeRecruitmentNumbersUpper" :disabled="disabled">
                                         <div class="suffix">人</div>
                                     </div>
                                     <div class="m-1 mt-3 UHEM_inline location_area">
                                         <div class="UHEM_icon location_icon"></div>
                                         <div class="content_subtitle">場所</div>
-                                        <input type="text" v-model="location" class="text_input" @change="changeLocation">
+                                        <input type="text" v-model="location" class="text_input" @change="changeLocation" :disabled="disabled">
+                                        <div class="UHEM_icon location_url_icon btn_imahima" @click="enterLink"></div>
+                                    </div>
+                                    <div class="m-1 mt-3 UHEM_inline location_url_area">
+                                        <div class="location_url_area_weight"></div>
+                                        <div class="content_subtitle"></div>
+                                        <input type="text" v-model="locationUrl" class="text_input" placeholder="https://discord.gg/" @change="changeLocationUrl" :disabled="disabled">
                                     </div>
                                     <div class="m-1 mt-3 UHEM_inline date_area">
                                         <div class="UHEM_icon time_icon"></div>
                                         <div class="content_subtitle">開催日時</div>
-                                        <datepicker class="vue-datepicker-box" v-model="startDate" :lower-limit="lowerLimitDate" :clearable="true" @input="changeStartDate"/>
+                                        <datepicker class="vue-datepicker-box" v-model="startDate" :lower-limit="lowerLimitDate" :clearable="!disabled" @input="changeStartDate" :disabled="disabled"/>
                                     </div>
                                     <div class="m-1 mt-3 UHEM_inline time_area">
                                         <div class="time_area_weight"></div>
                                         <div class="content_subtitle"></div>
-                                        <VueTimepicker input-class="time" format="HH:mm" v-model="startTime" :key="refreshStartTime" :minute-interval="10" hide-clear-button @change="changeTime('start')"></VueTimepicker>
+                                        <VueTimepicker input-class="time" format="HH:mm" v-model="startTime" :key="refreshStartTime" :minute-interval="10" @change="changeTime('start')" :disabled="disabled"></VueTimepicker>
                                         <div class="middle">～</div>
-                                        <VueTimepicker input-class="time" format="HH:mm" v-model="endTime" :key="refreshEndTime" :minute-interval="10" hide-clear-button @change="changeTime('end')"></VueTimepicker>
+                                        <VueTimepicker input-class="time" format="HH:mm" v-model="endTime" :key="refreshEndTime" :minute-interval="10" @change="changeTime('end')" :disabled="disabled"></VueTimepicker>
                                     </div>
                                     <div class="m-1 mt-3 UHEM_inline category_area">
                                         <div class="UHEM_icon category_icon"></div>
                                         <div class="content_subtitle">カテゴリ</div>
-                                        <select class="category_select" v-model="selectedCategoryId" @change="changeSelectedCategoryId">
+                                        <select class="category_select" v-model="selectedCategoryId" @change="changeSelectedCategoryId" :disabled="disabled">
                                             <option v-for="value in categoryList" v-bind:key="value.id" v-bind:value="value.id">
                                                 {{ value.name }}
                                             </option>
@@ -59,7 +65,7 @@
                             <div class="mb-3">
                                 <div class="content_title">詳細</div>
                                 <div class="UHEM_content">
-                                    <textarea class="detail_input" :class="errorDetail" v-model="detail" @change="changeDetail"/>
+                                    <textarea class="detail_input" :class="errorDetail" v-model="detail" @change="changeDetail" :disabled="disabled"/>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -270,7 +276,22 @@
                     background-image: url("../../assets/img/house/event/pin.svg");
                 }
                 .text_input{
-                    width: 165px;
+                    width: 45%;
+                }
+                .location_url_icon{
+                    width: 26px;
+                    height: 30px;
+                    margin-left: 10px;
+                    background-image: url("../../assets/img/house/event/enter_url.svg");
+                }
+            }
+            .location_url_area{
+                .location_url_area_weight{
+                    width: 16px;
+                    margin-right: 10px;
+                }
+                .text_input{
+                    width: 65%;
                 }
             }
             .date_area{
@@ -312,6 +333,9 @@
                     background-position-x: 99%;
                     padding: 7px;
                     appearance: none;
+                }
+                .category_select:disabled{
+                    opacity: 0.5;
                 }
             }
 
@@ -493,6 +517,7 @@ export type DataType = {
     recruitmentNumbersLower: number,
     recruitmentNumbersUpper: number|null,
     location: string,
+    locationUrl: string,
     startDate: Date | null,
     startTime: string | null,
     endTime: string | null,
@@ -534,6 +559,7 @@ export default defineComponent({
             recruitmentNumbersLower: 1,
             recruitmentNumbersUpper: null,
             location: "discord",
+            locationUrl: "",
             startDate: new Date(),
             startTime: null,
             endTime: null,
@@ -566,6 +592,12 @@ export default defineComponent({
             }else{
                 return "out"
             }
+        },
+        disabled():boolean{
+            if(this.mode == "out"){
+                return true;
+            }
+            return false;
         },
 
         houseMates():houseMates {
@@ -651,6 +683,7 @@ export default defineComponent({
             this.recruitmentNumbersLower = targetData.recruitmentNumbersLower;
             this.recruitmentNumbersUpper = targetData.recruitmentNumbersUpper;
             this.location = targetData.location;
+            this.locationUrl = targetData.locationUrl;
 
             this.startDate = targetData.startDateAtJp? new Date(targetData.startDateAtJp):null;
             this.startTime = targetData.startTime;
@@ -726,6 +759,11 @@ export default defineComponent({
         changeLocation():void{
             const saveData:Record<string, unknown> = {};
             saveData["location"] = this.location;
+            this.saveUpdateEvent(saveData);
+        },
+        changeLocationUrl():void{
+            const saveData:Record<string, unknown> = {};
+            saveData["locationUrl"] = this.locationUrl;
             this.saveUpdateEvent(saveData);
         },
         changeStartDate():void{
@@ -821,6 +859,12 @@ export default defineComponent({
             return !edited;
         },
 
+        enterLink():void{
+            if(!this.locationUrl){
+                return;
+            }
+            window.open(this.locationUrl, '_blank');
+        },
         confirmDelete():void{
             this.refs.confirmModal.openModal("本当に消しますか？");
         },
