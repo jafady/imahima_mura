@@ -10,9 +10,10 @@ self.addEventListener('activate', () => {
 self.addEventListener('notificationclick', function(event) {
     event.notification.close();
     // アクションごとの個別処理
-    // if (event.action === 'archive') {
-    //   console.log('this is archive');
-    // } 
+    if (event.action === 'joinEvent') {
+      console.log('joinEvent receive');
+      joinEvent(event.notification.data);
+    } 
 
     // 指定URLへの遷移
     const host = location.host;

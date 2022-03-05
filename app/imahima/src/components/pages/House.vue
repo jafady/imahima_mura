@@ -396,7 +396,7 @@ export default defineComponent({
             }
             if(data.type == "someOneChangeEvent"){
                 // 画面更新
-                this.refs.houseEvent.getEventList();
+                this.refs.houseEvent?.getEventList();
             }
         },
         addTalk(data:any):void{

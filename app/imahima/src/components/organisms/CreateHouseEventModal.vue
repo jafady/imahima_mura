@@ -619,15 +619,12 @@ export default defineComponent({
         saveCreateEvent(data:any):void{
             this.$http.post("/api/create_event/", data)
             .then((response)=>{
-                // イベント情報再取得
-                // this.$emit("changeEvent")
                 // イベント作成の通知
-                this.sendCreateEvent(response.data.id);
+                this.sendCreateEvent(response.data);
             });
         },
-        sendCreateEvent(eventId:string):void{
+        sendCreateEvent(data:any):void{
             // 画面更新用と通知用で分けてもいいかもしれない
-            // 送信後の挙動は一覧表示作成後に行う
 
             // 画面更新
             this.sendWebsocket(JSON.stringify({
@@ -635,12 +632,18 @@ export default defineComponent({
                 "houseId": this.$store.state.houseId
             }));
 
+            // 時間ごとの人表示の実装までは固定で。
+            const targetUserIds = ["6b2acdfa","ec69970d"];
+
             // 通知用
-            // this.sendWebsocket(JSON.stringify({
-            //     "type": "inviteEvent",
-            //     "houseId": this.$store.state.houseId,
-            //     "eventId": this.inputText
-            // }));
+            this.sendWebsocket(JSON.stringify({
+                "type": "createEvent",
+                "houseId": this.$store.state.houseId,
+                "eventId": data.id,
+                "eventName": data.eventName,
+                "categoryId": data.categoryId,
+                "targetUserIds": targetUserIds,
+            }));
         }
     }
 })

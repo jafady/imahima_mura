@@ -8,7 +8,7 @@ import pytz
 
 from channels.db import database_sync_to_async
 
-from .models import House,HouseMate,User
+from .models import House,HouseMate,User,UserSetting,UserSelectCategory
 # websocketのリクエスト受信
 class ImahimaConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -105,6 +105,21 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 }
             )
         
+        if msg_type == 'createEvent':
+            await self.channel_layer.group_send(
+                room_group_name,
+                {
+                    'type': 'event.create',
+                    'houseId': data_json['houseId'],
+                    'userId': self.user.id,
+                    'userName': self.user.username,
+                    'eventId': data_json['eventId'],
+                    'eventName': data_json['eventName'],
+                    'categoryId': data_json['categoryId'],
+                    'targetUserIds': data_json['targetUserIds'],
+                }
+            )
+        
         if msg_type == 'sendManualNotice':
             await self.channel_layer.group_send(
                 room_group_name,
@@ -167,6 +182,43 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             'houseId': event['houseId'],
         }))
     
+    # イベント作成に伴う通知
+    async def event_create(self, event):
+        print('event_create')
+        # 自分には送らない
+        if self.user.id == event['userId']:
+            return
+        # ターゲットユーザに含まれていないならはじく
+        if self.user.id not in event['targetUserIds']:
+            return
+        # カテゴリが通知許可されていないならはじく
+        if not await self.check_category(userId=self.user.id, categoryId=event['categoryId']):
+            return
+        
+        # 時間がそろっているうちに何秒待つかもここで計算する
+        noticable_time = await self.get_noticable_time(userId=self.user.id)
+        print('noticable_time')
+        print(noticable_time)
+        if noticable_time is None:
+            return
+        # 通知秒
+        notice_second = 0
+        if noticable_time == 0:
+            notice_second = 0
+        else:
+            diff_time = noticable_time - datetime.datetime.now()
+            notice_second = diff_time.seconds
+
+
+        await self.send(text_data=json.dumps({
+            'type': 'receiveCreateEvent',
+            'houseId': event['houseId'],
+            'eventId': event['eventId'],
+            'eventName': event['eventName'],
+            'userId': self.user.id,
+            'noticeSecond': notice_second,
+        }))
+    
     # イベントに紐づく手動メッセージを受領する
     async def event_manual_notice(self, event):
         print('手動メッセージ受領')
@@ -215,6 +267,26 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         result = House.objects.prefetch_related('HouseMate').filter(housemate__userId=self.scope["user"].id,housemate__isApproved=True).values('id', 'houseName')
         houseId = [str(data['id']) for data in result]
         return houseId
+
+    # カテゴリの通知許可を確認
+    @database_sync_to_async
+    def check_category(self,userId,categoryId):
+        user_setting = UserSetting.objects\
+                        .filter(userId=userId)\
+                        .values('isAllCategorySelected')
+        isAllCategorySelected = [data['isAllCategorySelected'] for data in user_setting][0]
+
+        if isAllCategorySelected == True:
+            return True
+        
+        user_category = UserSelectCategory.objects\
+                        .filter(userId=userId, categoryId=categoryId)\
+                        .values('categoryId')
+        
+        if len(user_category) > 0:
+            return True
+
+        return False
     
     # 通知する時間取得
     # ステータス関係なく送るとき、指定時間まで待つのが必要
@@ -249,7 +321,6 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         now = datetime.datetime.now()
         
         userSetting__statusValidDateTime = datetime.datetime.strptime(userSetting__statusValidDateTime_str, '%Y-%m-%d %H:%M:%S%z')
-        
         userSetting__statusValidDateTime = datetime.datetime.today().replace(year=userSetting__statusValidDateTime.year, month=userSetting__statusValidDateTime.month, day=userSetting__statusValidDateTime.day,
                                                                             hour=userSetting__statusValidDateTime.hour, minute=userSetting__statusValidDateTime.minute, second=userSetting__statusValidDateTime.second)
         

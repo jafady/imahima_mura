@@ -57,6 +57,25 @@ async function fetchGetData(url = "", data = {}) {
   })
   return response.json(); // JSON のレスポンスをネイティブの JavaScript オブジェクトに解釈
 }
+async function fetchPostData(url = "", data = {}) {
+  // 既定のオプションには * が付いています
+  const baseURL = VUE_APP_API_ENDPOINT_PROTOCOL +"://"+ VUE_APP_API_ENDPOINT_HOST+"/";
+  const response = await fetch(baseURL + url, {
+    method: "POST", // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': "Token " + state.userToken
+    },
+    // redirect: 'follow', // manual, *follow, error
+    // referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify(data) // 本文のデータ型は "Content-Type" ヘッダーと一致させる必要があります
+  })
+  return response.json(); // JSON のレスポンスをネイティブの JavaScript オブジェクトに解釈
+}
+
 
 
 // websocket接続
@@ -76,6 +95,9 @@ const connectWebsocket = (data) => {
       const data = JSON.parse(e.data);
       if(data.type == "someOneChangeStatus"){
         someOneChangeStatus(data);
+      }
+      if(data.type == "receiveCreateEvent"){
+        receiveCreateEvent(data);
       }
       if(data.type == "receiveManualMessage"){
         receiveManualMessage(data);
@@ -216,7 +238,7 @@ const noticeOnlineMembers = async (data) => {
   setTimeout(() =>{someOneChangeStatus({houseId: data.houseId, status:"hima"})}, state.noticeIntervalMinOM * 60 * 1000 + 1000);
 }
 
-const receiveManualMessage = async (data) => {
+const receiveCreateEvent = async (data) => {
   // 指名されての通知
   // サーバ側で条件確認をしているのでここでは出すだけ。
 
@@ -224,12 +246,36 @@ const receiveManualMessage = async (data) => {
   const permission = await checkNoticePermission();
   if(!permission) return;
 
-  // 人数と通知時間の記録(家ごとに)
-  state.latestNoticeData[data.houseId] = {
-    houseId: data.houseId,
-    latestNoticeTimeOM: new Date(),
-    latestNoticeHouseMatesNumOM: data.count
+  const img = "../img/serviceWorker/app_icon.png";
+  const title = "新しいお誘い";
+  const msg = data.eventName + "  のお誘いが来ました";
+  const options = {
+      tag: "noticeCreateEvent",
+      icon: img,
+      body: msg,
+      actions: [
+          {action: 'lookEvent', title: "イベントを確認する"},
+          {action: 'joinEvent', title: "参加する!"}
+          ],
+      data: {
+          baseUrl: self.location.origin,
+          url: "/?#/House?houseId=" + data.houseId + "&eventId=" + data.eventId,
+          eventId: data.eventId,
+          userId: data.userId,
+      }
   }
+  
+  // 通知時間まで待つ
+  setTimeout(() =>{registration.showNotification(title, options)}, data.noticeSecond * 1000);
+}
+
+const receiveManualMessage = async (data) => {
+  // 指名されての通知
+  // サーバ側で条件確認をしているのでここでは出すだけ。
+
+  // 通知許可チェック
+  const permission = await checkNoticePermission();
+  if(!permission) return;
 
   const img = "../img/serviceWorker/app_icon.png";
   const title = data.userName + "  " + data.eventName;
@@ -248,4 +294,18 @@ const receiveManualMessage = async (data) => {
   
   // 通知時間まで待つ
   setTimeout(() =>{registration.showNotification(title, options)}, data.noticeSecond * 1000);
+}
+
+
+
+
+
+// 受信時
+const joinEvent = async (data) => {
+  // イベント参加
+  const sendData = {
+    eventId: data.eventId,
+    userId: data.userId,
+  }
+  await fetchPostData("api/join_event/",sendData);
 }
