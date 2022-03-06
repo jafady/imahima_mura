@@ -25,7 +25,7 @@
                                 {{ value.name }}
                             </option>
                         </select>
-                        <span>Selected: {{ searchCategoryId }}</span>
+                        <!-- <span>Selected: {{ searchCategoryId }}</span> -->
                     </div>
                 </details>
 
