@@ -503,13 +503,11 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { houseMates, houseMate } from '@/mixins/interface'
+import { houseMates, houseMate, category } from '@/mixins/interface'
 import utils from '@/mixins/utils'
 import { Modal } from 'bootstrap'
 import Icon from '@/components/molecules/Icon.vue'
 import ConfirmModal from '@/components/molecules/ConfirmModal.vue'
-
-interface category {id:string,name:string}
 
 export type DataType = {
     eventId: string,

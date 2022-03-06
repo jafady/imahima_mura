@@ -7,12 +7,28 @@
                 <div class="event_header_word">検索</div>
             </div>
             <div class="search_content">
-                <div class="search_title d-flex">開始日</div>
-                <div class="d-inline-flex search_inline">
-                    <datepicker class="vue-datepicker-box" v-model="searchStartDate" :clearable="true"/>
-                    <VueTimepicker input-class="time" format="HH:mm" v-model="searchStartTime" :key="refreshSearchStartTime" :minute-interval="10"></VueTimepicker>
-                    <div class="word">以降</div>
+                <div>
+                    <div class="search_title_time d-flex">開始日</div>
+                    <div class="d-inline-flex search_inline_time">
+                        <datepicker class="vue-datepicker-box" v-model="searchStartDate" :clearable="true"/>
+                        <VueTimepicker input-class="time" format="HH:mm" v-model="searchStartTime" :key="refreshSearchStartTime" :minute-interval="10"></VueTimepicker>
+                        <div class="word">以降</div>
+                    </div>
                 </div>
+                <details class = "details_title">
+                    <summary>さらに検索条件を表示</summary>
+                    <div class="search_title_category d-flex">カテゴリ</div>
+                    <div class="category_area">
+                        <div class="category_icon"></div>
+                        <select class="category_select" v-model="searchCategoryId">
+                            <option v-for="value in categoryList" v-bind:key="value.id" v-bind:value="value.id">
+                                {{ value.name }}
+                            </option>
+                        </select>
+                        <span>Selected: {{ searchCategoryId }}</span>
+                    </div>
+                </details>
+
             </div>
         </div>
         <!-- 誘い -->
@@ -105,17 +121,17 @@
         width: 90%;
         margin: 0 auto;
         .search_content{
-            height: 95px;
+            // height: 95px;
             background-color: var(--content-bg-color);
             border-radius: 0px 0px 8px 8px;
             padding: 15px;
-            .search_title{
+            .search_title_time{
                 text-align: left;
                 align-items: center;
                 font-size: 14px;
                 font-weight: 500;
             }
-            .search_inline{
+            .search_inline_time{
                 align-items: center;
                 width: 100%;
                 .vue-datepicker-box{
@@ -139,6 +155,35 @@
 
                 .word{
                     margin-left: 10px;
+                }
+            }
+            .details_title{
+                text-align: right;
+                align-items: center;
+                font-size: 14px;
+                padding-top: 10px;
+            }
+            .search_title_category{
+                text-align: left;
+                align-items: center;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .category_area{
+                align-items: left;
+                text-align: left;
+                .category_icon{
+                    background-image: url("../../assets/img/house/event/books.svg");
+                }
+                .category_select{
+                    width: 165px;
+                    height: 40px;
+                    border-radius: 8px;
+                    border: none;
+                    background-color: white;
+                    background-position-x: 99%;
+                    padding: 7px;
+                    appearance: none;
                 }
             }
         }
@@ -266,13 +311,15 @@
 import { defineComponent } from 'vue'
 import Icon from '@/components/molecules/Icon.vue'
 import utils from '@/mixins/utils'
-import { event } from '@/mixins/interface'
+import { event, category } from '@/mixins/interface'
 import UpdateHouseEventModal from '@/components/organisms/UpdateHouseEventModal.vue'
 
 export type DataType = {
     eventList: event[],
     searchStartDateTime: Date | null,
     refreshSearchStartTime: number,
+    searchCategoryId: string,
+    categoryList: category[],
 }
 
 export default defineComponent({
@@ -292,6 +339,8 @@ export default defineComponent({
             eventList: [],
             searchStartDateTime: null,
             refreshSearchStartTime: 1,
+            searchCategoryId: "",
+            categoryList: [],
         }
     },
     computed: {
@@ -346,7 +395,7 @@ export default defineComponent({
         },
         // Dateの問題でevent[]をevent[]に入れることができないのでいったんanyで
         searchedEventList():any[] {
-            if(!this.searchStartDateTime){
+            if(!this.searchStartDateTime && !this.searchCategoryId){
                 return this.eventList;
             }
             const searchedEventList:any[] = Object.values(this.eventList).filter((event:any)=>{
@@ -363,6 +412,14 @@ export default defineComponent({
                         return true;
                     }
                     return false;
+                }).filter((event:any)=>{
+                    if(this.searchCategoryId == ""){
+                        return true;
+                    }
+                    if(event.categoryId == this.searchCategoryId){
+                        return true;
+                    }
+                    return false;
                 });
 
             return searchedEventList;
@@ -370,8 +427,25 @@ export default defineComponent({
     },
     mounted : function(){
         this.getEventList();
+        this.getCategoryList();
     },
     methods: {
+        async getCategoryList():Promise<void>{
+            const categoryRes = await this.$http.get("/api/categorys/");
+            const data = [];
+            data.push({
+                id: "",
+                name: "",
+            });
+            for (const key in categoryRes.data) {
+                data.push({
+                    id: categoryRes.data[key].id,
+                    name: categoryRes.data[key].categoryName,
+                });
+            }
+            this.searchCategoryId = "";
+            this.categoryList=data;
+        },
         async getEventList():Promise<void>{
             const eventsRes = await this.$http.get("/api/events/" + this.$store.state.houseId + "/");
             this.setEventList(eventsRes.data);

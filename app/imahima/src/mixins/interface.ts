@@ -40,3 +40,8 @@ export interface event {
     detail: string,
     userIds: string[]
 }
+
+export interface category {
+    id:string,
+    name:string
+}
