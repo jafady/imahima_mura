@@ -90,21 +90,14 @@ class UserInfoFuture(APIView):
                     'userselectcategory__categoryId','userselectcategory__categoryId__categoryName',
                     )
 
-
-        # logger.warning(f'info:{info} type:{type(info)}')
-        # logger.warning(f'list info:{list(info)} type:{type(list(info))}')
-        # logger.warning(f'single_user_info:{list(info)[0]} type:{type(list(info)[0])}')
-
         is_future_valid = False
         # URLから招待された日時を取得
         invited_datetime = datetime.datetime.strptime(f'{dateTime}','%Y%m%d%H%M%S').replace(tzinfo=local_tz).astimezone(local_tz)
-        logger.warning(f'invited_datetime:{invited_datetime} type:{type(invited_datetime)}')
 
         # 招待された日時が今以降で、手動設定の今ヒマより前ならtrue
         now = datetime.datetime.now().replace(tzinfo=local_tz).astimezone(local_tz)
         currently_valid_datetime = list(info)[0]['userSetting__statusValidDateTime'] #TODO 要素取得。汚い
         if currently_valid_datetime: # None の場合はfalse
-            logger.warning(f'currently_valid_datetime:{currently_valid_datetime} type:{type(currently_valid_datetime)}')
             is_future_valid = (now <= invited_datetime) and (invited_datetime < currently_valid_datetime)
 
         # 招待された日時が予定ヒマに入っていればtrueを返す
@@ -112,9 +105,6 @@ class UserInfoFuture(APIView):
 
         future_valid_start_datetime = list(info)[0][f'userSetting__noticable{week_str}TimeStart']#TODO 要素取得。汚い
         future_valid_end_datetime = list(info)[0][f'userSetting__noticable{week_str}TimeEnd']#TODO 要素取得。汚い
-
-        # logger.warning(future_valid_start_datetime)
-        # logger.warning(future_valid_end_datetime)
 
         if ((future_valid_start_datetime) and (future_valid_end_datetime)): # Noneの場合処理しない TODO ネストが長い      
             future_valid_start_datetime = invited_datetime.replace(
@@ -125,9 +115,6 @@ class UserInfoFuture(APIView):
                 hour=future_valid_end_datetime.hour,
                 minute=future_valid_end_datetime.minute
             )#TODO この当たりもパイプラインしたい
-
-            logger.warning(future_valid_start_datetime)
-            logger.warning(future_valid_end_datetime)
 
             is_future_valid = (
                 (is_future_valid) # ひとつ前の処理でtrueならtrue
@@ -140,18 +127,13 @@ class UserInfoFuture(APIView):
                     (future_valid_start_datetime<future_valid_end_datetime) # 未設定の時は招待しない。
                 )
             )
-            # logger.warning(is_future_valid)
-
         
         future_status_name = ('予定ではヒマ' if is_future_valid else 'ヒマじゃない')
-        logger.warning(f'future_status_name: {future_status_name}')
         
-        # infoに取得すべき情報の一覧を抽出、追加。将来暇かどうかはfutureStatusNameでstrで指定
-        info_list = list(info)
-        single_user_info = info_list[0]
-        # logger.warning(single_user_info)
+        # infoに取得すべき情報の一覧を抽出、追加。将来ヒマかどうかはfutureStatusNameでstrで指定
+        single_user_info = list(info)[0]
 
-        ###TODO このあたり、こんな書き方しかなかったか？
+        ###TODO このあたり、もっといい書き方があるはず
         target_item_list = [
             'id',
             'username',
@@ -163,8 +145,6 @@ class UserInfoFuture(APIView):
             {key:single_user_info[key] for key in target_item_list}
         )
         single_user_info_out['futureStatusName']=future_status_name
-        # logger.warning(f'single_user_info_out:{(single_user_info_out)}')
-        # logger.warning(f'list(info):{list(info)}')
         ###
     
         res_json = json.dumps(single_user_info_out, cls=DjangoJSONEncoder)
