@@ -90,9 +90,9 @@
                             <input type="checkbox" v-model="item.selected" :id="index" disabled="disabled">
                             <label class="btn_week" :for="index">{{item.name}}</label>
                             <div class="d-inline-flex mypage_inline_noticable">
-                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.startTime" :key="refresh" :minute-interval="10" hide-clear-button @change="changeWeekTime(item)"></VueTimepicker>
+                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.startTime" :key="refresh" :minute-interval="10" @change="changeWeekTime(item)"></VueTimepicker>
                                 <div class="hyphen">~</div>
-                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.endTime" :key="refresh" :minute-interval="10" hide-clear-button @change="changeWeekTime(item)"></VueTimepicker>
+                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.endTime" :key="refresh" :minute-interval="10" @change="changeWeekTime(item)"></VueTimepicker>
                             </div>
                         </div>
                     </div>
@@ -326,12 +326,12 @@
                     width: calc(100% - 60px);
 
                     .time{
-                        width: 70px;
+                        width: 80px;
                         height: 40px;
                         border: none;
                         border-radius: 8px;
                         font-family: "游ゴシック";
-                        text-align: center;
+                        text-align: left;
                     }
                     .hyphen{
                         width: 30px;

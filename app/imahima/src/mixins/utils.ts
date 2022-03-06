@@ -20,6 +20,16 @@ export default function utils():Record<string, any> {
     return day;
   }
 
+  const getDisplayTime = (data:any):string => {
+    if(!data){
+        return "00:00"
+    }
+    if(!data.HH || !data.mm){
+        return data;
+    }
+    return data.HH + ":" + data.mm;
+  }
+
   const sortTime = (a:string, b:string):number => {
     const aTime = time2Date(a);
     const bTime = time2Date(b);
@@ -34,6 +44,10 @@ export default function utils():Record<string, any> {
   
   const queryToString = (value: string | (string | null)[] | undefined): string | undefined => {
     return Array.isArray(value) ? value[0] || undefined : value;
+  }
+
+  const sleep = (sec:number) => {
+    return new Promise(resolve => setTimeout(resolve, sec*1000));
   }
 
   const getStatusByName = function(data:string):string{
@@ -88,8 +102,10 @@ export default function utils():Record<string, any> {
   return {
     dateTimeToString,
     time2Date,
+    getDisplayTime,
     sortTime,
     queryToString,
+    sleep,
     getStatusByName,
     cutSeconds,
     sendWebsocket,
