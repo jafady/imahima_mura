@@ -17,6 +17,18 @@ from rest_framework.decorators import api_view, permission_classes
 from django.db.models import F, Q, Case, When, Value, CharField
 import datetime
 import calendar
+import pytz 
+local_tz = jst = pytz.timezone('Asia/Tokyo')#TODO取り扱い
+
+import logging
+logger = logging.getLogger(__name__)
+streamhandler = logging.StreamHandler()
+logger.addHandler(streamhandler)
+logger.setLevel(logging.WARN)
+logger.warn('warntest')
+
+
+
 
 # ログアウト
 class Logout(APIView):
@@ -57,6 +69,107 @@ class UserInfo(APIView):
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
 
+class UserInfoFuture(APIView):
+    """ 一連のユーザ情報取得 """
+    """UserInfoをコピーして編集。urlに日時を入力した場合、その時点が今ヒマに含まれていればtrue、将来ヒマに含まれていればtrue、含まれていなければfalse"""
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, userId, dateTime):
+        userQuerySet = User.objects\
+                .select_related('UserSetting').select_related('UserSetting__statusId__StatusMaster')\
+                .prefetch_related('UserSelectCategory').select_related('UserSelectCategory__categoryId__CategoryMaster')\
+                .filter(id=userId)
+        info = userQuerySet.values('id','username',
+                    # 'userSetting__icon',
+                    'userSetting__isAllCategorySelected',
+                    'userSetting__noticableMonTimeStart','userSetting__noticableMonTimeEnd','userSetting__noticableTueTimeStart','userSetting__noticableTueTimeEnd',
+                    'userSetting__noticableWedTimeStart','userSetting__noticableWedTimeEnd','userSetting__noticableThuTimeStart','userSetting__noticableThuTimeEnd',
+                    'userSetting__noticableFriTimeStart','userSetting__noticableFriTimeEnd','userSetting__noticableSatTimeStart','userSetting__noticableSatTimeEnd',
+                    'userSetting__noticableSunTimeStart','userSetting__noticableSunTimeEnd',
+                    'userSetting__statusValidDateTime','userSetting__statusId__statusName',
+                    'userselectcategory__categoryId','userselectcategory__categoryId__categoryName',
+                    )
+
+
+        # logger.warning(f'info:{info} type:{type(info)}')
+        # logger.warning(f'list info:{list(info)} type:{type(list(info))}')
+        # logger.warning(f'single_user_info:{list(info)[0]} type:{type(list(info)[0])}')
+
+        is_future_valid = False
+        # URLから招待された日時を取得
+        invited_datetime = datetime.datetime.strptime(f'{dateTime}','%Y%m%d%H%M%S').replace(tzinfo=local_tz).astimezone(local_tz)
+        logger.warning(f'invited_datetime:{invited_datetime} type:{type(invited_datetime)}')
+
+        # 招待された日時が今以降で、手動設定の今ヒマより前ならtrue
+        now = datetime.datetime.now().replace(tzinfo=local_tz).astimezone(local_tz)
+        currently_valid_datetime = list(info)[0]['userSetting__statusValidDateTime'] #TODO 要素取得。汚い
+        if currently_valid_datetime: # None の場合はfalse
+            logger.warning(f'currently_valid_datetime:{currently_valid_datetime} type:{type(currently_valid_datetime)}')
+            is_future_valid = (now <= invited_datetime) and (invited_datetime < currently_valid_datetime)
+
+        # 招待された日時が予定ヒマに入っていればtrueを返す
+        week_str = invited_datetime.strftime('%a')
+
+        future_valid_start_datetime = list(info)[0][f'userSetting__noticable{week_str}TimeStart']#TODO 要素取得。汚い
+        future_valid_end_datetime = list(info)[0][f'userSetting__noticable{week_str}TimeEnd']#TODO 要素取得。汚い
+
+        # logger.warning(future_valid_start_datetime)
+        # logger.warning(future_valid_end_datetime)
+
+        if ((future_valid_start_datetime) and (future_valid_end_datetime)): # Noneの場合処理しない TODO ネストが長い      
+            future_valid_start_datetime = invited_datetime.replace(
+                hour=future_valid_start_datetime.hour,
+                minute=future_valid_start_datetime.minute
+            )
+            future_valid_end_datetime = invited_datetime.replace(
+                hour=future_valid_end_datetime.hour,
+                minute=future_valid_end_datetime.minute
+            )#TODO この当たりもパイプラインしたい
+
+            logger.warning(future_valid_start_datetime)
+            logger.warning(future_valid_end_datetime)
+
+            is_future_valid = (
+                (is_future_valid) # ひとつ前の処理でtrueならtrue
+                or
+                (
+                    (future_valid_start_datetime<=invited_datetime) 
+                    and 
+                    (invited_datetime<future_valid_end_datetime)
+                    and
+                    (future_valid_start_datetime<future_valid_end_datetime) # 未設定の時は招待しない。
+                )
+            )
+            # logger.warning(is_future_valid)
+
+        
+        future_status_name = ('予定ではヒマ' if is_future_valid else 'ヒマじゃない')
+        logger.warning(f'future_status_name: {future_status_name}')
+        
+        # infoに取得すべき情報の一覧を抽出、追加。将来暇かどうかはfutureStatusNameでstrで指定
+        info_list = list(info)
+        single_user_info = info_list[0]
+        # logger.warning(single_user_info)
+
+        ###TODO このあたり、こんな書き方しかなかったか？
+        target_item_list = [
+            'id',
+            'username',
+            'userSetting__statusId__statusName',
+            "userselectcategory__categoryId",
+            "userselectcategory__categoryId__categoryName"
+        ] 
+        single_user_info_out = (
+            {key:single_user_info[key] for key in target_item_list}
+        )
+        single_user_info_out['futureStatusName']=future_status_name
+        # logger.warning(f'single_user_info_out:{(single_user_info_out)}')
+        # logger.warning(f'list(info):{list(info)}')
+        ###
+    
+        res_json = json.dumps(single_user_info_out, cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
+
 
 class UserBaseInfo(APIView):
     """ ユーザ基本情報取得用 """
@@ -71,9 +184,10 @@ class UserBaseInfo(APIView):
                     'todayStartTime','todayEndTime','nowStatus'
                     )
         
-                
+        
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
+        
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """
