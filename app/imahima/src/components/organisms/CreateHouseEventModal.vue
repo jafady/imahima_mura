@@ -381,6 +381,8 @@ export type DataType = {
 
     detail: string,
 
+    houseMatesFuture:houseMate[],
+
     error: boolean,
     lowerLimitDate: Date
 }
@@ -391,12 +393,14 @@ export default defineComponent({
         Icon,
     },
     setup(): Record<string, any>{
-        const { sortTime,cutSeconds, sendWebsocket,getDisplayTime } = utils()
+        const { sortTime,cutSeconds, sendWebsocket, getDisplayTime, dateTimeToUrlString, getStatusByName } = utils()
         return{
             sortTime,
             cutSeconds,
             sendWebsocket,
-            getDisplayTime
+            getDisplayTime,
+            dateTimeToUrlString,
+            getStatusByName
         }
     },
     data(): DataType {
@@ -416,8 +420,9 @@ export default defineComponent({
 
             detail: "",
 
-            error: false,
+            houseMatesFuture: [],
 
+            error: false,
             lowerLimitDate: new Date(),
         }
     },
@@ -457,11 +462,17 @@ export default defineComponent({
             }
         },
     },
+    watch: {
+        startDate: function(oldVal,newVal):void {
+            this.getHouseMateFuture();
+        }
+    },
     methods: {
         openModal():void{
             // データ初期化
             this.initData();
             this.getCategoryList();
+            this.getHouseMateFuture();
             
             // モーダル開く
             const target = document.getElementById('create_event_modal');
@@ -521,12 +532,40 @@ export default defineComponent({
             const houseInfo = await this.$http.get("/api/house_info/"+ this.$store.state.houseId +"/");
             this.locationUrl = houseInfo.data.discordUrl;
         },
+        async getHouseMateFuture():Promise<void>{
+            // 開催日時を選んだ時点のユーザ一覧を取得する
+            if(!this.startDate || !this.startTime){
+                this.houseMatesFuture = [];
+                return;
+            }
+            const targetDay = this.startDate;
+            const HH = parseInt(this.startTime.substring(0,2)) || 0;
+            const mm = parseInt(this.startTime.substring(3,5)) || 0;
+            targetDay.setHours(HH);
+            targetDay.setMinutes(mm);
+            targetDay.setSeconds(0);
+            const searchDateTime = this.dateTimeToUrlString(targetDay);
+            const houseMatesFutureRes = await this.$http.get("/api/users_future/" + this.$store.state.houseId + "/" + searchDateTime + "/");
+            const data:houseMate[] = [];
+            const res = houseMatesFutureRes.data;
+            for (const key in res) {
+                data.push({
+                    id: res[key].id,
+                    name: res[key].username,
+                    icon: "",
+                    noticableStartTime: res[key].todayStartTime,
+                    noticableEndTime: res[key].todayEndTime,
+                    nowStatus: this.getStatusByName(res[key].nowStatus),
+                    statusValidDateTime: res[key].userSetting__statusValidDateTime,
+                })
+            }
+            this.houseMatesFuture=data;
+        },
         getHouseMateList(status:string):houseMate[]{
             // 計算量を減らすためにfilterで母数を減らす
             // ソート順 ステータス＞ヒマ終了時間＞ヒマ開始時間
-            const houseMates:houseMates = this.$store.state.houseMates;
-            const houseMateList:houseMate[] = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == status)
-            .sort((a:houseMate, b:houseMate)=>{
+            const houseMateList:any[] = this.houseMatesFuture.filter((houseMate:any)=>houseMate.nowStatus == status)
+            .sort((a:any, b:any)=>{
                 // 時間
                 const end = this.sortTime(a.noticableEndTime, b.noticableEndTime);
                 if(end == 0){
@@ -585,6 +624,8 @@ export default defineComponent({
                     this.refreshStartTime *= -1;
                 }
             }
+
+            this.getHouseMateFuture();
         },
         checkEditing(data:any):boolean{
             const blankHour = data?.HH == "";
@@ -659,7 +700,12 @@ export default defineComponent({
             }));
 
             // 時間ごとの人表示の実装までは固定で。
-            const targetUserIds = ["6b2acdfa","ec69970d"];
+            if(this.houseMateListMaybe.length < 1){
+                return;
+            }
+            const targetUserIds = this.houseMateListMaybe.map((housemate:any)=>{
+                return housemate.id
+            })
 
             // 通知用
             this.sendWebsocket(JSON.stringify({

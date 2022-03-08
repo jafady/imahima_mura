@@ -21,6 +21,11 @@ herokku postgresは1GB 1万行までがfreeらしい。。
 appやserviceと同じ階層で実行
 ```
 docker-compose up -d --build
+‐‐‐
+
+立ち下げ
+---
+docker-compose down
 ```
 
 ### docker立ち上げ時のTips
@@ -57,14 +62,13 @@ http://localhost:8000/swagger
 ## django実行メモ
 - 接続先
   - http://localhost:8000/
-- Djangoの起動
-  - python manage.py runserver
 - DBの反映
   - python manage.py makemigrations
     - どう変更するかを作成
   - python manage.py migrate
     - 変更をDBに適応
-
+- Djangoの起動
+  - python manage.py runserver
 ## vue
 http://localhost:8080/
 

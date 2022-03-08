@@ -10,6 +10,9 @@ urlpatterns = [
     path('create_user/', UserCreate.as_view()),
     path('user_info/<userId>/', UserInfo.as_view()),
     path('user_base_info/<userId>/', UserBaseInfo.as_view()),
+    path('users_future/<houseId>/<dateTime>/', UsersFuture.as_view()),
+
+
     path('update_user/<pk>/', UserRetrieveUpdate.as_view()),
     path('user_setting/<userId>/', UserSettingRetrieveUpdate.as_view()),
     path('user_select_category/', UserSelectCategoryCreate.as_view()),

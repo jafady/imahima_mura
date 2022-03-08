@@ -17,6 +17,18 @@ from rest_framework.decorators import api_view, permission_classes
 from django.db.models import F, Q, Case, When, Value, CharField
 import datetime
 import calendar
+import pytz 
+local_tz = jst = pytz.timezone('Asia/Tokyo')#TODO取り扱い
+
+import logging
+logger = logging.getLogger(__name__)
+streamhandler = logging.StreamHandler()
+logger.addHandler(streamhandler)
+logger.setLevel(logging.WARN)
+logger.warn('warntest')
+
+
+
 
 # ログアウト
 class Logout(APIView):
@@ -57,6 +69,30 @@ class UserInfo(APIView):
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
 
+class UsersFuture(APIView):
+    """ 未来時点のユーザ一覧取得 """
+    """ 未来時点なのでステータスの読み替えを行う """
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, houseId, dateTime):
+        invited_datetime = datetime.datetime.strptime(f'{dateTime}','%Y-%m-%dT%H:%M:%S').replace(tzinfo=local_tz).astimezone(local_tz)
+
+        infos = User.objects.get_base_info(target_day=invited_datetime)\
+                .filter(housemate__houseId=houseId,housemate__isApproved=True)\
+                .values('id','username',
+                    'userSetting__statusValidDateTime','userSetting__statusId__statusName',
+                    'todayStartTime','todayEndTime','nowStatus'
+                    )
+        
+        for info in infos:
+            if info['nowStatus'] == 'ヒマ':
+                info['nowStatus'] = '予定ではヒマ'
+            if info['nowStatus'] == 'ゲーム中':
+                info['nowStatus'] = 'ヒマじゃない'
+                
+        res_json = json.dumps(list(infos), cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
+
 
 class UserBaseInfo(APIView):
     """ ユーザ基本情報取得用 """
@@ -71,9 +107,10 @@ class UserBaseInfo(APIView):
                     'todayStartTime','todayEndTime','nowStatus'
                     )
         
-                
+        
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
+        
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """

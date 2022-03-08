@@ -11,6 +11,13 @@ export default function utils():Record<string, any> {
     return stringVal;
   }
 
+  const dateTimeToUrlString = function(data:Date):string{
+    const date:Date = new Date(data.getTime());
+    const stringVal:string = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + "T"
+                              + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+    return stringVal;
+  }
+
   const time2Date = (time:string):Date => {
     const day = new Date();
     const HH = parseInt(time.substring(0,2)) || 0;
@@ -101,6 +108,7 @@ export default function utils():Record<string, any> {
 
   return {
     dateTimeToString,
+    dateTimeToUrlString,
     time2Date,
     getDisplayTime,
     sortTime,
