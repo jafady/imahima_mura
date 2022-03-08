@@ -10,11 +10,8 @@ urlpatterns = [
     path('create_user/', UserCreate.as_view()),
     path('user_info/<userId>/', UserInfo.as_view()),
     path('user_base_info/<userId>/', UserBaseInfo.as_view()),
-    ### UserInfo, UserBaseInfoを時点も取得する形で取得。プログラムはコピペ###
-    path('user_info_future/<userId>/<dateTime>/', UserInfoFuture.as_view()), #TODO 時刻そのまま渡せるか、確認
-    # path('user_base_info_future/<userId>/<dateTime>/', UserBaseInfoFuture.as_view()),
+    path('users_future/<houseId>/<dateTime>/', UsersFuture.as_view()),
 
-    ######
 
     path('update_user/<pk>/', UserRetrieveUpdate.as_view()),
     path('user_setting/<userId>/', UserSettingRetrieveUpdate.as_view()),
