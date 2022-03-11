@@ -90,7 +90,9 @@ router.beforeEach((to, from, next) => {
     }
   } else {
     // websocket疎通確認&接続
-    Store.dispatch("connectWebsocket");
+    if(localStorage.getItem("token")){
+      Store.dispatch("connectWebsocket");
+    }
     next();
   }
 });
