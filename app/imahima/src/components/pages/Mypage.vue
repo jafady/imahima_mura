@@ -361,7 +361,7 @@ import IconUploadModal from '@/components/organisms/IconUploadModal.vue'
 import utils from '@/mixins/utils'
 interface category {id:string,name:string,selected:boolean}
 interface weekContent {id:string,name:string,selected:boolean,startTime:any,endTime:any}
-interface invitation {id:string,houseName:string}
+interface invitation {id:string,houseId:string,houseName:string}
 
 export type DataType = {
     userId: string,
@@ -395,9 +395,10 @@ export default defineComponent({
         IconUploadModal,
     },
     setup(): Record<string, any>{
-        const { dateTimeToString } = utils()
+        const { dateTimeToString,sendWebsocket } = utils()
         return{
-            dateTimeToString
+            dateTimeToString,
+            sendWebsocket
         }
     },
     data(): DataType {
@@ -574,6 +575,7 @@ export default defineComponent({
             for (const key in data) {
                 tempData.push({
                     id: data[key].id,
+                    houseId: data[key].houseId,
                     houseName: data[key].houseId__houseName
                 });
             }
@@ -598,6 +600,9 @@ export default defineComponent({
             this.$http.put("/api/accept_invitation/" + item.id + "/")
             .then(()=>{
                 // 承認した。
+                // WebSocketの接続を増やす
+                this.addConnectWebsocket(item.houseId);
+
                 // 招待の更新
                 this.updateInvitations();
 
@@ -611,6 +616,26 @@ export default defineComponent({
         async updateInvitations():Promise<void>{
             const myInvitationRes = await this.$http.get("/api/get_myinvitation/" + this.$store.state.userId + "/");
             this.setInvitation(myInvitationRes.data);
+        },
+        addConnectWebsocket(houseId:string):void{
+            // 新しい家のwebsocketに入る
+            this.sendWebsocket(JSON.stringify({
+                "type": "addConnect",
+                "houseId": houseId,
+            }));
+
+            // 入ったことをブロードキャスト
+            this.sendWebsocket(JSON.stringify({
+                "type": "joinHouse",
+                "houseId": houseId,
+            }));
+
+            navigator.serviceWorker.ready.then( registration => {
+                registration.active?.postMessage({
+                    type: "addConnect",
+                    "houseId": houseId,
+                });
+            });
         },
 
         changeUserName():void{

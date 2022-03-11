@@ -42,6 +42,9 @@ export default createStore<State>({
       state.userIcon = require("../assets/img/default_icon.png");
       state.userStatus = "hima";
     },
+    disconnectWebsocket(state){
+      state.websocket = null;
+    },
     loginUser(state, user) {
       state.userId = user.userId;
       state.userToken = user.userToken;
@@ -86,6 +89,7 @@ export default createStore<State>({
   actions: {
     clear(context) {
       context.commit('clear');
+      context.dispatch('disconnectWebsocket');
     },
     auth(context, user) {
       context.commit('loginUser', user);
@@ -182,7 +186,19 @@ export default createStore<State>({
 
       context.commit('setWebsocket', socket);
     },
-    
+    disconnectWebsocket(context){
+      navigator.serviceWorker.ready.then( registration => {
+        registration.active?.postMessage({
+          type: "disconnectWebsocket",
+        });
+      });
+      if(context.state.websocket == null) {
+        return;
+      }
+      context.state.websocket.close();
+      context.commit('disconnectWebsocket');
+
+    },
   },
   modules: {
   }

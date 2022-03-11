@@ -48,6 +48,15 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 room_group_name,
                 self.channel_name
             )
+        
+        if msg_type == 'joinHouse':
+            await self.channel_layer.group_send(
+                room_group_name,
+                {
+                    'type': 'join.house',
+                    'houseId': data_json['houseId'],
+                }
+            )
 
         if msg_type == 'talk':
             message = data_json['message']
@@ -135,8 +144,15 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 }
             )
         
-
     # Receive message from room group
+    # 誰かが家に参加した
+    async def join_house(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'someOneJoinHouse',
+            'houseId': event['houseId'],
+        }))
+
+    # 雑談を受け取る
     async def talk_receive(self, event):
         await self.send(text_data=json.dumps({
             'type': 'talk',

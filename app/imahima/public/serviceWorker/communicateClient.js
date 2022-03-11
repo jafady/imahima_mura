@@ -26,6 +26,12 @@ self.addEventListener('message', event => {
     state.userId = event.data.userId || state.userId;
     connectWebsocket(event.data);
   }
+  if(event.data.type == "addConnect" ){
+    addConnect(event.data.houseId);
+  }
+  if(event.data.type == "disconnectWebsocket" ){
+    state.websocket.close();
+  }
 });
 
 
@@ -76,6 +82,25 @@ async function fetchPostData(url = "", data = {}) {
   return response.json(); // JSON のレスポンスをネイティブの JavaScript オブジェクトに解釈
 }
 
+const waitWSConnection = (callback, interval) => {
+  const ws = state.websocket;
+  if (!ws) return;
+  if (ws.readyState === 1) {
+    callback();
+  } else {
+      // optional: implement backoff for interval here
+      setTimeout(function () {
+        waitWSConnection(callback, interval);
+      }, interval);
+  }
+}
+
+const sendWebsocket = (message) => {
+  waitWSConnection(()=>{
+    state.websocket?.send(message);
+  }, 1000);
+}
+
 
 
 // websocket接続
@@ -108,6 +133,13 @@ const connectWebsocket = (data) => {
       connectWebsocket();
   }
   state.websocket = socket;
+}
+
+const addConnect = (houseId) =>{
+  sendWebsocket(JSON.stringify({
+    "type": "addConnect",
+    "houseId": houseId,
+  }));
 }
 
 

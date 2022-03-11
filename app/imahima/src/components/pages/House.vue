@@ -398,6 +398,10 @@ export default defineComponent({
                 // 画面更新
                 this.refs.houseEvent?.getEventList();
             }
+            if(data.type == "someOneJoinHouse"){
+                // 画面更新
+                this.$store.dispatch("getHouseUsers");
+            }
         },
         addTalk(data:any):void{
             this.talks.push({
