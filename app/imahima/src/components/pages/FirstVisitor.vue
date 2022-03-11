@@ -28,7 +28,7 @@
                                 <button type="button" class="fv_close_eye" id="changePwdDisplay" @click="changePwdDisplay"></button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn_primary btn_create_user" @click="createUser">ID発行</button>
+                        <button type="button" class="btn btn_primary btn_create_user" @click="createUser">ID発行</button>
                     </form>
                 </div>
                 <div v-if="userId" class="fv_display_id">
@@ -47,7 +47,7 @@
                         <div class="mb-3 text-start">
                             <input class="form-control" placeholder="家の名前" id="houseName" v-model="houseName" readonly="readonly">
                         </div>
-                        <button type="submit" class="btn btn_primary btn_approve_house" @click="approveHouse">承諾してスタート</button>
+                        <button type="button" class="btn btn_primary btn_approve_house" @click="approveHouse">承諾してスタート</button>
                     </form>
                 </div>
             </div>
@@ -163,6 +163,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import utils from '@/mixins/utils'
+
 export type DataType = {
     user: {
         username:string,
@@ -178,6 +180,12 @@ export type DataType = {
 
 export default defineComponent({
     name: "FirstVisitor",
+    setup(): Record<string, any>{
+        const { sendWebsocket } = utils()
+        return{
+            sendWebsocket
+        }
+    },
     data(): DataType {
         return {
             user: {
@@ -194,7 +202,7 @@ export default defineComponent({
     },
     mounted : function(){
         if(localStorage.getItem("token")){
-            let next = this.$route.query.redirect;
+            let next:any = this.$route.query.redirect;
             if(!this.$route.query.redirect){
                 next = "House"
             }
@@ -202,15 +210,19 @@ export default defineComponent({
         }
     },
     methods: {
-        changePwdDisplay(e) {
-            const inputPwd = document.getElementById("password");
+        changePwdDisplay() {
+            const inputPwd:HTMLInputElement = document.getElementById("password") as HTMLInputElement;
             const pwdEye = document.getElementById("changePwdDisplay");
             if( inputPwd.type === 'password' ) {
                 inputPwd.type = 'text';
-                pwdEye.className = "fv_open_eye";
+                if(pwdEye){
+                    pwdEye.className = "fv_open_eye";
+                }
             } else {
                 inputPwd.type = 'password';
-                pwdEye.className = "fv_close_eye";
+                if(pwdEye){
+                    pwdEye.className = "fv_close_eye";
+                }
             }
         },
         createUser() {
@@ -227,7 +239,7 @@ export default defineComponent({
             });
         },
         copyId() {
-            const id = document.getElementById("userId");
+            const id:HTMLInputElement = document.getElementById("userId") as HTMLInputElement;
             id.select();
             document.execCommand("copy");
         },
@@ -244,10 +256,11 @@ export default defineComponent({
                 });
                 localStorage.setItem("userId", that.userId);
                 localStorage.setItem("token", response.data.token);
-                this.$router.push(this.$route.query.redirect);
+                let next:any = this.$route.query.redirect;
+                this.$router.push(next);
             }).catch(e => {
-                    this.loading = false;
-                    this.isError = true;
+                this.loading = false;
+                this.isError = true;
             });
 
         },
@@ -280,12 +293,23 @@ export default defineComponent({
             }
             this.$http.put("api/accept_invitation/" + this.inviteId + "/").then(response => {
                 console.log("家承認成功");
+                // websocketの開始手続き
+                this.startWebsocket(response.data[0].houseId_id);
                 this.$router.push("House");
             }).catch(e => {
                 this.loading = false;
                 this.isError = true;
             });
-        }
+        },
+        startWebsocket(houseId:string){
+            this.$store.dispatch("connectWebsocket");
+
+            // 入ったことをブロードキャスト
+            this.sendWebsocket(JSON.stringify({
+                "type": "joinHouse",
+                "houseId": houseId,
+            }));
+        },
     }
 })
 </script>

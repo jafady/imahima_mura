@@ -123,14 +123,15 @@ export default defineComponent({
     },
     mounted : function(){
         if(localStorage.getItem("token")){
-            let next = this.$route.query.redirect;
+            let next:any = this.$route.query.redirect;
             if(!this.$route.query.redirect){
                 next = "House"
             }
             this.$router.push(next);
         }
-        if(localStorage.getItem("userId")){
-            this.credentials.username = localStorage.getItem("userId");
+        let userId = localStorage.getItem("userId");
+        if(userId){
+            this.credentials.username = userId;
         }
     },
     methods: {
@@ -144,7 +145,7 @@ export default defineComponent({
                 });
                 localStorage.setItem("userId", userId);
                 localStorage.setItem("token", response.data.token);
-                let next = this.$route.query.redirect;
+                let next:any = this.$route.query.redirect;
                 if(!this.$route.query.redirect){
                     next = "House"
                 }
