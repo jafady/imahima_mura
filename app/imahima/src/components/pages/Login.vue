@@ -109,7 +109,6 @@ export type DataType = {
     valid:boolean,
     loading:boolean,
     isError: boolean,
-
 }
 
 export default defineComponent({
@@ -123,6 +122,13 @@ export default defineComponent({
         }
     },
     mounted : function(){
+        if(localStorage.getItem("token")){
+            let next = this.$route.query.redirect;
+            if(!this.$route.query.redirect){
+                next = "House"
+            }
+            this.$router.push(next);
+        }
         if(localStorage.getItem("userId")){
             this.credentials.username = localStorage.getItem("userId");
         }

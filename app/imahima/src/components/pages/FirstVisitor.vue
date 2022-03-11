@@ -161,10 +161,25 @@
 }
 </style>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+export type DataType = {
+    user: {
+        username:string,
+        password:string
+    },
+    userId:string,
+    inviteId:string,
+    houseName:string,
+    valid:boolean,
+    loading:boolean,
+    isError: boolean,
+}
+
+export default defineComponent({
     name: "FirstVisitor",
-    data: () => ({
+    data(): DataType {
+        return {
             user: {
                 username:"",
                 password:""
@@ -176,7 +191,16 @@ export default {
             loading:false,
             isError: false,
         }
-    ),
+    },
+    mounted : function(){
+        if(localStorage.getItem("token")){
+            let next = this.$route.query.redirect;
+            if(!this.$route.query.redirect){
+                next = "House"
+            }
+            this.$router.push(next);
+        }
+    },
     methods: {
         changePwdDisplay(e) {
             const inputPwd = document.getElementById("password");
@@ -263,7 +287,7 @@ export default {
             });
         }
     }
-}
+})
 </script>
 
 
