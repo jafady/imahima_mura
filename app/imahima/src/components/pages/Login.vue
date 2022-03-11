@@ -11,7 +11,7 @@
                     <div class="mb-3 text-start">
                         <input type="password" class="form-control" placeholder="パスワード" id="password" v-model="credentials.password">
                     </div>
-                    <button type="submit" class="btn btn_primary btn_login" @click="login">ログイン</button>
+                    <button type="button" class="btn btn_primary btn_login" @click="login">ログイン</button>
                 </form>
                 <span class="d-flex mb-3">
                     <div class="login_dash_box login_dash_box_left"></div>
@@ -100,16 +100,28 @@
 }
 </style>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+
+interface credentials {username:string,password:string}
+export type DataType = {
+    credentials: credentials,
+    valid:boolean,
+    loading:boolean,
+    isError: boolean,
+
+}
+
+export default defineComponent({
     name: "Login",
-    data: () => ({
-            credentials: {},
+    data(): DataType {
+        return {
+            credentials: {username:"",password:""},
             valid:true,
             loading:false,
             isError: false,
         }
-    ),
+    },
     mounted : function(){
         if(localStorage.getItem("userId")){
             this.credentials.username = localStorage.getItem("userId");
@@ -140,7 +152,7 @@ export default {
             this.$router.push("FirstVisitor");
         }
     }
-}
+})
 </script>
 
 

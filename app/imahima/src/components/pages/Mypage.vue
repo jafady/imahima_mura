@@ -10,7 +10,7 @@
                     </div>
                 </div>
                 <div>
-                    <IconUploadModal />
+                    <IconUploadModal class="maypage_icon_upload"/>
                     <input type="text" v-model="userName" class="mypage_username" placeholder="名前" @change="changeUserName">
                     <div class="mypage_id d-inline-flex">
                         <div class="mypage_id_weight"></div>
@@ -145,6 +145,9 @@
                     font-size:10px
                 }
             }
+        }
+        .maypage_icon_upload{
+            width:80%;
         }
         .mypage_username{
             font-size: 35px;
