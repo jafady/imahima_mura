@@ -6,8 +6,14 @@
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-body SSM_body">
-                            <div>こんにちは。</div>
-                            <div>今日のご予定はいかがでしょうか？</div>
+                            <div v-if="!isToHimaView">
+                                <div>こんにちは。</div>
+                                <div>今日のご予定はいかがでしょうか？</div>
+                            </div>
+                            <div v-else>
+                                <div>ヒマな人のための画面を出そうとしています。</div>
+                                <div>いつまでヒマですか？</div>
+                            </div>
                             <div class="SSM_content">
                                 <div class="d-inline-flex mt-2 SSM_inline">
                                     <div class="display">
@@ -143,6 +149,8 @@ export type DataType = {
     statusBusy: boolean,
     statusValidDateTime: Date | null,
     refreshStatusTime: number,
+
+    isToHimaView: boolean,
 }
 
 export default defineComponent({
@@ -162,6 +170,8 @@ export default defineComponent({
             statusBusy: false,
             statusValidDateTime: null,
             refreshStatusTime: 1,
+
+            isToHimaView: false,
         }
     },
     computed: {
@@ -209,7 +219,8 @@ export default defineComponent({
         },
     },
     methods: {
-        openModal():void{
+        openModal(isToHimaView:boolean):void{
+            this.isToHimaView = isToHimaView;
             // データ読み込み
             const userData = this.$store.state.houseMates[this.$store.state.userId];
             // 予定ではヒマなときに出すので基本ヒマで
@@ -277,6 +288,9 @@ export default defineComponent({
             .then(async ()=>{
                 await this.$store.dispatch("getUserInfo");
                 this.$emit("noticeChangeStatus")
+                if(this.isToHimaView){
+                    this.$emit("changeStatusToHimaView")
+                }
             });
         }
     }

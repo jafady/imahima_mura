@@ -16,11 +16,11 @@
         </div>
         <!-- メニュータブ -->
         <div class="mt-3 house_tab">
-            <div class="friend" :class={friend_active:isFriendMode} @click="houseMode = 'friend'">
+            <div class="friend" :class={friend_active:isFriendMode} @click="changeHouseModeToFriend">
                 <div class="friend_icon"></div>
                 <div class="friend_word">友達に会う</div>
             </div>
-            <div class="event" :class={event_active:isEventMode} @click="houseMode = 'event'">
+            <div class="event" :class={event_active:isEventMode} @click="changeHouseModeToEvent">
                 <div class="event_word">誘いを探す</div>
                 <div class="event_icon"></div>
             </div>
@@ -41,7 +41,7 @@
             </button>
         </div>
         <div class="mt-3 blank_content" />
-        <StatusSettingModal ref="statusSettingModal" @noticeChangeStatus="noticeChangeStatus" />
+        <StatusSettingModal ref="statusSettingModal" @noticeChangeStatus="noticeChangeStatus" @changeStatusToHimaView="changeStatusToHimaView"/>
         <HouseSettingModal ref="houseSettingModal" @changeHouseInfo="changeHouseInfo"/>
         <CreateHouseEventModal ref="createHouseEventModal" />
     </div>
@@ -272,6 +272,7 @@ export default defineComponent({
             this.getHouseInfo();
             this.setWebSocketAction();
             this.requestTalks();
+            this.initialDisplay();
             this.openEventModal();
         });
     },
@@ -280,6 +281,13 @@ export default defineComponent({
             // ステータスを確認し、意思表示有効期間が過ぎていたら、ステータスを教えてもらう。
             if(new Date(this.$store.state.houseMates[this.$store.state.userId].statusValidDateTime) < new Date()){
                 this.refs.statusSettingModal.openModal();
+            }
+        },
+        initialDisplay():void{
+            if(this.$store.state.userStatus == "hima" || this.$store.state.userStatus == "ongame"){
+                this.houseMode = "friend";
+            }else{
+                this.houseMode = "event";
             }
         },
         openHouseSetting():void{
@@ -354,6 +362,21 @@ export default defineComponent({
         },
         changeHouseInfo():void{
             this.getHouseList()
+        },
+        changeHouseModeToFriend():void{
+            // this.houseMode = "friend";
+            if(this.$store.state.userStatus == "hima" || this.$store.state.userStatus == "ongame"){
+                this.houseMode = "friend";
+            }else{
+                this.houseMode = "event";
+                this.refs.statusSettingModal.openModal(true);
+            }
+        },
+        changeHouseModeToEvent():void{
+            this.houseMode = "event";
+        },
+        changeStatusToHimaView():void{
+            this.initialDisplay();
         },
         async openEventModal():Promise<void>{
             // URLでイベントIDの指定があった場合はイベントを開く
@@ -439,12 +462,14 @@ export default defineComponent({
         },
         noticeChangeStatus():void{
             // ステータス変更の周知
-            console.log("noticeChangeStatus");
             this.sendWebsocket(JSON.stringify({
                 "type": "noticeChangeStatus",
                 "houseId": this.$store.state.houseId,
                 "status": this.$store.state.userStatus
             }));
+
+            // 変更後の値によっては画面を切り替える
+            this.initialDisplay();
         },
     }
 })
