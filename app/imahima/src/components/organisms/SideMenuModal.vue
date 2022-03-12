@@ -2,8 +2,8 @@
     <div class="container SMM_container">
         <!-- Modal -->
         <teleport to="body">
-            <div class="modal fade" id="side_menu_modal" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal fade left" id="side_menu_modal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable side-modal">
                     <div class="modal-content SMM_modal">
                         <div class="SMM_header">
                             <svg class="header_house_logo" />
@@ -31,14 +31,14 @@
 </template>
 
 <style lang="scss">
-.modal.fade .modal-dialog {
+.modal.left.fade .side-modal {
     transition: transform .3s ease-out;
     transform: translate(-50px,0px) !important;
 }
-.modal.show .modal-dialog {
+.modal.left.show .side-modal {
     transform: none !important;
 }
-.modal-dialog{
+.side-modal{
     margin: unset!important;
 }
 .SMM_modal{

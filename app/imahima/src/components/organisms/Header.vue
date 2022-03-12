@@ -89,7 +89,8 @@ export default defineComponent({
 
     },
     methods: {
-        displaySideMenu():void {
+        displaySideMenu(e:Event):void {
+            e.stopPropagation();
             this.refs.sideMenuModal.openModal();
         },
         goHouse():void {
