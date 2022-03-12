@@ -673,12 +673,17 @@ export default defineComponent({
             }
             this.saveUserSetting(saveData);
             
+            // ステータス変更の周知
+            this.noticeChangeStatus();
         },
         changeStatusValidTime():void{
             const saveData = {
                 statusValidDateTime: this.statusValidDateTime
             };
             this.saveUserSetting(saveData);
+
+            // ステータス変更の周知
+            this.noticeChangeStatus();
         },
         changeIsAllCategorySelected(val:any):void{
             const saveData = {
@@ -750,7 +755,20 @@ export default defineComponent({
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data).then(()=>{
                 this.$store.dispatch("getUserInfo");
             });
-        }
+        },
+        async noticeChangeStatus():Promise<void>{
+            // ステータス変更の周知
+            // 所属する全部の家に届ける
+            const housesRes = await this.$http.get("/api/myhouses/" + this.$store.state.userId + "/");
+            
+            for (const key in housesRes.data) {
+                this.sendWebsocket(JSON.stringify({
+                    "type": "noticeChangeStatus",
+                    "houseId": housesRes.data[key].id,
+                    "status": this.$store.state.userStatus
+                }));
+            }
+        },
     }
 })
 
