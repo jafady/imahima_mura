@@ -1,14 +1,14 @@
 <template>
     <div class="header d-flex">
         <div class="header_info">
-            <div class="header_info_icon">?</div>
-            <div class="header_info_word">ご案内</div>
+            <div class="header_info_icon" @click="displaySideMenu"></div>
         </div>
         <svg class="header_house_logo" @click="goHouse"/>
         <div class="header_mypage" :class="statusCss" @click="goMyPage">
             <img :src="myIcon" class="icon_image" />
         </div>
     </div>
+    <SideMenuModal ref="sideMenuModal" />
 </template>
 
 <style  lang="scss">
@@ -24,14 +24,14 @@
         height: 50px;
         width: 50px;
         .header_info_icon{
-            font-size: 28px;
-            font-weight: bold;
-            transform: translateY(-5px);
-        }
-        .header_info_word{
-            font-size: 11px;
-            font-weight: bold;
-            transform: translateY(-10px);
+            background-image: url("../../assets/img/hamburger_menu.svg");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            height: 25px;
+            width: 30px;
+            margin: 0 auto;
+            margin-top: 13px;
         }
     }
 
@@ -60,17 +60,23 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-
+import SideMenuModal from '@/components/organisms/SideMenuModal.vue'
 export type DataType = {
 }
 
 export default defineComponent({
     name: "Header",
+    components: {
+        SideMenuModal,
+    },
     data(): DataType {
         return{
         }
     },
     computed: {
+        refs():any {
+            return this.$refs;
+        },
         statusCss(): string{
             return "icon_bg_" + this.$store.state.userStatus
         },
@@ -83,10 +89,13 @@ export default defineComponent({
 
     },
     methods: {
-        goHouse() {
+        displaySideMenu():void {
+            this.refs.sideMenuModal.openModal();
+        },
+        goHouse():void {
             this.$router.push('House');
         },
-        goMyPage(e:Event) {
+        goMyPage(e:Event):void {
             e.stopPropagation();
             this.$router.push('MyPage');
         }
