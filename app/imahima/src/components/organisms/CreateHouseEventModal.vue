@@ -549,12 +549,13 @@ export default defineComponent({
             const data:houseMate[] = [];
             const res = houseMatesFutureRes.data;
             for (const key in res) {
+                const todayEndTime = res[key].todayEndTime == "00:00:00"?"24:00:00":res[key].todayEndTime;
                 data.push({
                     id: res[key].id,
                     name: res[key].username,
                     icon: "",
                     noticableStartTime: res[key].todayStartTime,
-                    noticableEndTime: res[key].todayEndTime,
+                    noticableEndTime: todayEndTime,
                     nowStatus: this.getStatusByName(res[key].nowStatus),
                     statusValidDateTime: res[key].userSetting__statusValidDateTime,
                 })

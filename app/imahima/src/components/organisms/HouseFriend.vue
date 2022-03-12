@@ -21,14 +21,15 @@
                         <div>~{{cutSeconds(value.noticableEndTime)}}</div>
                     </div>
                 </div>
-                <div v-for="(value) in houseMateListOngame" v-bind:key="value.id">
+                
+                <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
                     <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
                         <div class="icon_area"><Icon :userId="value.id" /></div>
                         <div>{{value.name}}</div>
                         <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
                     </div>
                 </div>
-                <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
+                <div v-for="(value) in houseMateListOngame" v-bind:key="value.id">
                     <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
                         <div class="icon_area"><Icon :userId="value.id" /></div>
                         <div>{{value.name}}</div>
@@ -336,11 +337,9 @@ export default defineComponent({
 
 
     },
-    // mounted : function(){
-    // },
     methods: {
         isHouseMateDisplay(nowStatus:string):boolean {
-            if(nowStatus == "hima" || nowStatus == "ongame"){
+            if(nowStatus == "hima"){
                 return this.isHimaMode;
             }else{
                 return this.isMaybeMode;
