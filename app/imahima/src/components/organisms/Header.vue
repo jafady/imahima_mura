@@ -86,7 +86,8 @@ export default defineComponent({
         goHouse() {
             this.$router.push('House');
         },
-        goMyPage() {
+        goMyPage(e:Event) {
+            e.stopPropagation();
             this.$router.push('MyPage');
         }
     }
