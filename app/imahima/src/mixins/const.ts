@@ -17,5 +17,7 @@ export default Object.freeze({
     },
     BASE64 : {
         header: "data:image/png;base64,"
-    }
+    },
+    baseUrl: location.origin + "/#/",
+
 });

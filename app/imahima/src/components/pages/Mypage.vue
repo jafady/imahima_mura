@@ -384,6 +384,8 @@ export type DataType = {
     alertMsg: string,
     alertDisplayTime: number,
 
+    paramInviteToken: string,
+
 }
 
 export default defineComponent({
@@ -395,10 +397,11 @@ export default defineComponent({
         IconUploadModal,
     },
     setup(): Record<string, any>{
-        const { dateTimeToString,sendWebsocket } = utils()
+        const { dateTimeToString,sendWebsocket,queryToString } = utils()
         return{
             dateTimeToString,
-            sendWebsocket
+            sendWebsocket,
+            queryToString
         }
     },
     data(): DataType {
@@ -432,6 +435,8 @@ export default defineComponent({
             alertCss: "alert-success",
             alertMsg: "",
             alertDisplayTime: 2000,
+
+            paramInviteToken: "",
         }
     },
     computed: {
@@ -499,7 +504,8 @@ export default defineComponent({
         },
 
     },
-    created: function():void{
+    mounted: function():void{
+        this.setUrlParam();
         this.$store.dispatch("getUserInfo").then(()=>{
             this.getUserFromStore();
         });
@@ -507,6 +513,16 @@ export default defineComponent({
         this.getUserInfo();
     },
     methods: {
+        setUrlParam():void{
+            this.paramInviteToken = this.queryToString(this.$route.query.inviteToken);
+            if(this.paramInviteToken){
+                this.useInviteToken();
+            }
+
+            // パラメータは一回使用したら消す
+            const url = new URL(window.location.href);
+            history.replaceState('', '', url.href.replace(/\?.*$/,""));
+        },
         getUserFromStore():void{
             this.userId = this.$store.state.userId;
             this.userName = this.$store.state.userName;
@@ -580,6 +596,21 @@ export default defineComponent({
                 });
             }
             this.invitations = tempData;
+        },
+
+        async useInviteToken():Promise<void>{
+            // 招待用URLがあれば、使用して招待手続きを行う
+            const res = await this.$http.put("/api/use_invitetoken/" + this.$store.state.userId + "/" + this.paramInviteToken)
+            if(res.data.msg){
+                this.alertCss = "alert-danger";
+                this.alertMsg = res.data.msg;
+                this.alertDisplayTime = 2000;
+                this.refs.alert.open();
+            }else{
+                const myInvitationRes = await this.$http.get("/api/get_myinvitation/" + this.$store.state.userId + "/");
+                this.setInvitation(myInvitationRes.data);
+            }
+
         },
         logout():void{
             this.$http.get("/api/logout/").then(()=>{

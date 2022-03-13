@@ -29,8 +29,22 @@
                             <div class="mb-3">
                                 <div class="content_title">友達を招待する</div>
                                 <div class="HSM_content">
+                                    <div class="mb-4">
+                                        <div class="m-1">
+                                            <button type="button" class="btn_primary_normal invite_btn" @click="createInviteUrl">招待用URLの発行</button>
+                                        </div>
+                                        <div v-if = "inviteUrl" class="m-1 mt-3">
+                                            <div class="content_subtitle d-flex">このURLを招待したい人へ送ってください</div>
+                                            <div class="mb-3 text-start d-flex">
+                                                <input class="text_input inviteUrl_text" id="inviteUrl" v-model="inviteUrl" readonly>
+                                                <div class="HSM_flex_dummy_body">
+                                                    <button type="button" class="HSM_copy_url" id="copyUrl" @click="copyUrl"></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="m-1">
-                                        <div class="content_subtitle d-flex">IDを入力してください</div>
+                                        <div class="content_subtitle d-flex">IDで招待</div>
                                         <input type="text" v-model="friendId" class="text_input" placeholder="ID" @input="changeFriendId">
                                     </div>
                                     <div v-if = "friendName" class="m-1 mt-3">
@@ -62,8 +76,10 @@
                     </div>
                 </div>
             </div>
+            <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
         </teleport>
     </div>
+    
 </template>
 
 <style lang="scss">
@@ -145,6 +161,32 @@
                 font-size: 18px;
             }
 
+            .inviteUrl_text{
+                padding-right: 15%;
+            }
+
+            .HSM_flex_dummy_body {
+                width: 85%;
+                height: 20px;
+                position: absolute;
+                align-self: center;
+                text-align: end;
+                padding-right: 5px;
+                pointer-events: none;
+                .HSM_copy_url {
+                    background-image: url("../../assets/img/login/copy.svg");
+                    background-color: rgba(0,0,0,0);
+                    background-repeat: no-repeat;
+                    width: 30px;
+                    height: 20px;
+                    border: none;
+                    pointer-events: all;
+                }
+                .HSM_copy_url:active {
+                    transform: var(--btn-active-trans);
+                }
+            }
+
             .invite_btn{
                 border: none;
                 width: 100%;
@@ -176,33 +218,49 @@
 import { defineComponent } from 'vue'
 import {houseMates} from '@/mixins/interface'
 import { Modal } from 'bootstrap'
+import CONST from '@/mixins/const'
 import Icon from '@/components/molecules/Icon.vue'
+import Alert from '@/components/molecules/Alert.vue'
 
 export type DataType = {
     houseName: string,
     discordUrl: string,
+    inviteUrl: string,
     friendId: string,
     friendName: string,
     alreadyRegistered: boolean,
     registered: boolean,
+
+    alertCss: string,
+    alertMsg: string,
+    alertDisplayTime: number,
 }
 
 export default defineComponent({
     name: "HouseSettingModal",
     components: {
         Icon,
+        Alert,
     },
     data(): DataType {
         return{
             houseName: "",
             discordUrl: "",
+            inviteUrl: "",
             friendId: "",
             friendName: "",
             alreadyRegistered: false,
             registered: false,
+
+            alertCss: "alert-success",
+            alertMsg: "",
+            alertDisplayTime: 2000,
         }
     },
     computed: {
+        refs():any {
+            return this.$refs;
+        },
         houseId():string {
             return this.$store.state.houseId;
         },
@@ -247,6 +305,23 @@ export default defineComponent({
                 discordUrl: this.discordUrl
             };
             this.saveHouseInfo(saveData);
+        },
+        async createInviteUrl():Promise<void>{
+            const sendData = {
+                "houseId": this.houseId
+            }
+            const inviteId = await this.$http.post("/api/create_invitetoken/",sendData);
+            this.inviteUrl = CONST.baseUrl + "MyPage" + "?inviteToken=" + inviteId.data.id;
+        },
+        copyUrl():void{
+            const inviteUrl:HTMLInputElement = document.getElementById("inviteUrl") as HTMLInputElement;
+            inviteUrl.select();
+            document.execCommand("copy");
+
+            this.alertCss = "alert-success";
+            this.alertMsg = "コピーしました";
+            this.alertDisplayTime = 5000;
+            this.refs.alert.open();
         },
         async changeFriendId():Promise<void>{
             try{

@@ -332,9 +332,16 @@ export default defineComponent({
                 }
             }
             this.houseList = data;
+            if(houses.length < 1){
+                this.$router.push("MyPage");
+            }
         },
         setHouseInfo():void{
             // storeにあるということは選んでいるので使う
+            // 家がなければ何もしない
+            if(Object.keys(this.houseList).length < 1){
+                return
+            }
             if(!this.$store.state.houseId){
                 // 選択されたものがなければlistから取得する(任意のもので良いのでobjectで良い)
                 let selectedHouseId = localStorage.getItem("houseId") || Object.entries(this.houseList)[0][1].id;

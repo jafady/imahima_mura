@@ -102,6 +102,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import utils from '@/mixins/utils'
 
 interface credentials {username:string,password:string}
 export type DataType = {
@@ -113,6 +114,12 @@ export type DataType = {
 
 export default defineComponent({
     name: "Login",
+    setup(): Record<string, any>{
+        const { queryToString } = utils()
+        return{
+            queryToString
+        }
+    },
     data(): DataType {
         return {
             credentials: {username:"",password:""},
@@ -156,7 +163,8 @@ export default defineComponent({
             });
         },
         firstvisitor() {
-            this.$router.push("FirstVisitor");
+            const paramInviteToken = this.queryToString(this.$route.query.inviteToken);
+            this.$router.push({path: "FirstVisitor",query:{"inviteToken":paramInviteToken}});
         }
     }
 })

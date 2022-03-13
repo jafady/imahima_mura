@@ -53,6 +53,7 @@
             </div>
         </div>
     </div>
+    <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
 </template>
 
 <style  lang="scss">
@@ -164,6 +165,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import utils from '@/mixins/utils'
+import Alert from '@/components/molecules/Alert.vue'
 
 export type DataType = {
     user: {
@@ -176,14 +178,22 @@ export type DataType = {
     valid:boolean,
     loading:boolean,
     isError: boolean,
+
+    alertCss: string,
+    alertMsg: string,
+    alertDisplayTime: number,
 }
 
 export default defineComponent({
     name: "FirstVisitor",
+    components: {
+        Alert,
+    },
     setup(): Record<string, any>{
-        const { sendWebsocket } = utils()
+        const { sendWebsocket,queryToString } = utils()
         return{
-            sendWebsocket
+            sendWebsocket,
+            queryToString
         }
     },
     data(): DataType {
@@ -198,6 +208,10 @@ export default defineComponent({
             valid:true,
             loading:false,
             isError: false,
+
+            alertCss: "alert-success",
+            alertMsg: "",
+            alertDisplayTime: 2000,
         }
     },
     mounted : function(){
@@ -227,12 +241,11 @@ export default defineComponent({
         },
         createUser() {
             console.log("ユーザ作成");
-            const that = this;
             this.$http.post("api/create_user/", this.user).then(response => {
                 console.log("ユーザ作成成功");
-                that.userId =  response.data.id;
-                that.login();
-                that.gettingInvitation();
+                this.userId =  response.data.id;
+                this.login();
+                this.gettingInvitation();
             }).catch(e => {
                 this.loading = false;
                 this.isError = true;
@@ -248,31 +261,47 @@ export default defineComponent({
                 "username":this.userId,
                 "password":this.user.password
             }
-            const that = this;
             this.$http.post("auth/", data).then(response => {
                 this.$store.dispatch("auth", {
-                    userId: that.userId,
+                    userId: this.userId,
                     userToken: response.data.token
                 });
-                localStorage.setItem("userId", that.userId);
+                localStorage.setItem("userId", this.userId);
                 localStorage.setItem("token", response.data.token);
-                let next:any = this.$route.query.redirect;
-                this.$router.push(next);
+                this.setUrlParam();
             }).catch(e => {
                 this.loading = false;
                 this.isError = true;
             });
+        },
+        setUrlParam():void{
+            this.paramInviteToken = this.queryToString(this.$route.query.inviteToken);
+            if(this.paramInviteToken){
+                this.useInviteToken();
+            }
 
+            // パラメータは一回使用したら消す
+            const url = new URL(window.location.href);
+            history.replaceState('', '', url.href.replace(/\?.*$/,""));
+        },
+        async useInviteToken():Promise<void>{
+            // 招待用URLがあれば、使用して招待手続きを行う
+            const res = await this.$http.put("/api/use_invitetoken/" + this.$store.state.userId + "/" + this.paramInviteToken)
+            if(res.data.msg){
+                this.alertCss = "alert-danger";
+                this.alertMsg = res.data.msg;
+                this.alertDisplayTime = 2000;
+                this.refs.alert.open();
+            }
         },
         gettingInvitation() {
-            const that = this;
             const getInvitation = () =>{
                 // 招待問い合わせ
                 console.log("招待問い合わせ");
                 this.$http.get("api/get_myinvitation/" + this.userId +"/").then(response => {
                     console.log("招待取得成功");
-                    that.inviteId = response.data[0].id;
-                    that.houseName = response.data[0].houseId__houseName;
+                    this.inviteId = response.data[0].id;
+                    this.houseName = response.data[0].houseId__houseName;
                 }).catch(e => {
                     this.loading = false;
                     this.isError = true;
@@ -281,7 +310,7 @@ export default defineComponent({
             const intervalId = setInterval(
                 ()=>{
                     getInvitation();
-                    if(that.houseName){
+                    if(this.houseName){
                         clearInterval(intervalId);
                     }
                 }, 5000

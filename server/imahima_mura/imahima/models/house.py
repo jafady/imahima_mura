@@ -1,5 +1,6 @@
 from django.db import models
 from .mixin import MyBaseModel
+import datetime
 
 class HouseManager(models.Manager):
     def create_house(self, user, houseName, **extra_fields):
@@ -41,23 +42,23 @@ class HouseMateManager(models.Manager):
         """
         Creates and saves a HouseMate
         """
-        house = self.model(
+        housemate = self.model(
             houseId = houseId,
             userId = userId,
             create_user = user.username,
             update_user = user.username
         )
 
-        house.save(using=self._db)
-        return house
+        housemate.save(using=self._db)
+        return housemate
     
     def accept_invitation(self, user, **extra_fields):
-        house = self.model(
+        housemate = self.model(
             isApproved = True,
             update_user = user.username
         )
-        house.save(using=self._db)
-        return house
+        housemate.save(using=self._db)
+        return housemate
 
 
 class HouseMate(MyBaseModel):
@@ -74,6 +75,32 @@ class HouseMate(MyBaseModel):
                 name="housemate_unique"
             ),
         ]
+
+    def __str__(self):
+        return id
+
+
+class InviteHouseTokenManager(models.Manager):
+    def create_inviteHouseToken(self, user, houseId, **extra_fields):
+        """
+        Creates and saves a HouseMate
+        """
+        inviteHouse = self.model(
+            houseId = houseId,
+            validDateTime = datetime.datetime.now() + datetime.timedelta(days=7),
+            create_user = user.username,
+            update_user = user.username
+        )
+
+        inviteHouse.save(using=self._db)
+        return inviteHouse
+
+
+class InviteHouseToken(MyBaseModel):
+    houseId = models.ForeignKey('House', to_field='id', on_delete=models.CASCADE, null=False)
+    validDateTime = models.DateTimeField(blank=True)
+
+    objects = InviteHouseTokenManager()
 
     def __str__(self):
         return id

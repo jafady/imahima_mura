@@ -41,6 +41,8 @@ export default createStore<State>({
       state.userName = "";
       state.userIcon = require("../assets/img/default_icon.png");
       state.userStatus = "hima";
+      state.houseId = "";
+      state.houseMates = {};
     },
     disconnectWebsocket(state){
       state.websocket = null;

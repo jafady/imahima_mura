@@ -27,6 +27,8 @@ urlpatterns = [
     path('house_info/<pk>/', HouseInfo.as_view()),
     path('check_housemate/<houseId>/<userId>/', CheckHouseMate.as_view()),
 
+    path('create_invitetoken/', InviteHouseTokenCreate.as_view()),
+    path('use_invitetoken/<userId>/<inviteToken>', InviteHouseTokenUse.as_view()),
 
     path('create_event/', EventCreate.as_view()),
     path('event_info/<eventId>/', EventInfo.as_view()),

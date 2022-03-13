@@ -203,12 +203,6 @@ def setOngameAtUsers(users,target_datetime = datetime.datetime.now()):
                 continue
             if user['todayStartTime'] < event['startTime']:
                 # 対象時点より後ろを採用する
-                print('対象時点より後ろを採用する')
-                print(target_datetime.time())
-                print(user['todayStartTime'])
-                print(event['startTime'])
-                print(user['todayEndTime'])
-                print(event['endTime'])
                 if event['startTime'] < target_datetime.time() and \
                     (user['todayEndTime'] == time0 or
                     (user['todayEndTime'] != time0 and event['endTime'] < user['todayEndTime'])):

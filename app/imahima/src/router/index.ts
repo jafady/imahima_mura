@@ -7,8 +7,6 @@ import FirstVisitor from '@/components/pages/FirstVisitor.vue'
 import House from '@/components/pages/House.vue'
 import Mypage from '@/components/pages/Mypage.vue'
 
-import PushTest from '@/components/pages/PushTest.vue'
-
 // store
 import Store from '@/store/index'
 
@@ -83,10 +81,10 @@ router.beforeEach((to, from, next) => {
       }).catch(()=>{
         Store.dispatch("clear");
         localStorage.setItem("token", "");
-        next({ path: '/login', query: { redirect: to.fullPath } });
+        next({ path: '/login', query: { redirect: to.fullPath, inviteToken: to.query.inviteToken } });
       })
     } else {
-      next({ path: '/login', query: { redirect: to.fullPath } });
+      next({ path: '/login', query: { redirect: to.fullPath, inviteToken: to.query.inviteToken } });
     }
   } else {
     // websocket疎通確認&接続
