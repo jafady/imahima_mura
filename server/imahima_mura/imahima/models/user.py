@@ -47,12 +47,12 @@ class UserManager(BaseUserManager):
         instance.save(using=self._db)
         return instance
     
-    def get_base_info(self):
+    def get_base_info(self, target_day=datetime.datetime.now()):
         """
         ユーザ基本情報取得
         """
         # 曜日から取り出すカラムを特定する
-        weekday = datetime.date.today().weekday()
+        weekday = target_day.weekday()
         weekday_name = calendar.day_name[weekday][0:3]
         todayStart = 'userSetting__noticable'+weekday_name+'TimeStart'
         todayEnd = 'userSetting__noticable'+weekday_name+'TimeEnd'
@@ -64,29 +64,29 @@ class UserManager(BaseUserManager):
                     output_field=DateTimeField()
                 ))\
                 .annotate(todayStartTime = Case(
-                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now()), 
+                    When(Q(userSetting__statusValidDateTime__gte = target_day), 
                         then=Value('00:00:00')),
                     default=F(todayStart),
                     output_field=TimeField()
                 ))\
                 .annotate(todayEndTime = Case(
-                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now(), userSetting__statusValidDateTime__lt = datetime.date.today() + datetime.timedelta(days=1)), 
+                    When(Q(userSetting__statusValidDateTime__gte = target_day, userSetting__statusValidDateTime__lt = target_day.today() + datetime.timedelta(days=1)), 
                         then=Cast('statusValidDateTime', output_field=TimeField())),
-                    When(Q(userSetting__statusValidDateTime__gte = datetime.date.today() + datetime.timedelta(days=1)), 
+                    When(Q(userSetting__statusValidDateTime__gte = target_day.today() + datetime.timedelta(days=1)), 
                         then=Value('00:00:00')),
                     default=F(todayEnd),
                     output_field=TimeField()
                 ))\
                 .annotate(nowStatus = Case(
-                    When(Q(userSetting__statusValidDateTime__lt = datetime.datetime.now(), todayStartTime__lt = datetime.datetime.now().time(), todayEndTime__gte = datetime.datetime.now().time()), 
+                    When(Q(userSetting__statusValidDateTime__lt = target_day, todayStartTime__lt = target_day.time(), todayEndTime__gte = target_day.time()), 
                         then=Value('予定ではヒマ')),
-                    When(Q(userSetting__statusValidDateTime__lt = datetime.datetime.now(), todayStartTime__gte = datetime.datetime.now().time()), 
+                    When(Q(userSetting__statusValidDateTime__lt = target_day, todayStartTime__gte = target_day.time()), 
                         then=Value('ヒマじゃない')),
-                    When(Q(userSetting__statusValidDateTime__lt = datetime.datetime.now(), todayEndTime__lt = datetime.datetime.now().time()), 
+                    When(Q(userSetting__statusValidDateTime__lt = target_day, todayEndTime__lt = target_day.time()), 
                         then=Value('ヒマじゃない')),
-                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now(), userSetting__statusId__statusName = 'ヒマじゃない'), 
+                    When(Q(userSetting__statusValidDateTime__gte = target_day, userSetting__statusId__statusName = 'ヒマじゃない'), 
                         then=Value('ヒマじゃない')),
-                    When(Q(userSetting__statusValidDateTime__gte = datetime.datetime.now(), userSetting__statusId__statusName = 'ヒマ'), 
+                    When(Q(userSetting__statusValidDateTime__gte = target_day, userSetting__statusId__statusName = 'ヒマ'), 
                         then=Value('ヒマ')),
                     default=Value('ヒマ'),
                     output_field=CharField()

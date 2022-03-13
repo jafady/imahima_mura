@@ -21,14 +21,15 @@
                         <div>~{{cutSeconds(value.noticableEndTime)}}</div>
                     </div>
                 </div>
-                <div v-for="(value) in houseMateListOngame" v-bind:key="value.id">
+                
+                <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
                     <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
                         <div class="icon_area"><Icon :userId="value.id" /></div>
                         <div>{{value.name}}</div>
                         <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
                     </div>
                 </div>
-                <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
+                <div v-for="(value) in houseMateListOngame" v-bind:key="value.id">
                     <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
                         <div class="icon_area"><Icon :userId="value.id" /></div>
                         <div>{{value.name}}</div>
@@ -80,13 +81,6 @@
                 </div>
                 <input type="text" v-model="inputText" v-on:keyup.enter="sendTalk" class="talk_input" placeholder="話す">
             </div>
-        </div>
-        <!-- 部屋を作るボタン -->
-        <div class="mt-4 make_house">
-            <button type="button" class="btn btn_primary btn_make_room content_center_inline" @click="makeRoom">
-                <div class="make_room_icon"></div>
-                <div class="make_room_word">部屋を作る</div>
-            </button>
         </div>
     </div>
 </template>
@@ -284,27 +278,6 @@
         }
     }
 
-    .make_house{
-        width: 90%;
-        height: 55px;
-        margin: 0 auto;
-        .btn_make_room{
-            width: 80%;
-            height: 55px;
-            font-size: 18px;
-            font-weight: bold;
-            background-position-x: 80%;
-
-            .make_room_icon{
-                position: absolute;
-                left: 23%;
-                width: 46px;
-                height: 55px;
-                background-image: url("../../assets/img/house/make_room.svg");
-            }
-        }
-    }
-
 }
 </style>
 
@@ -364,11 +337,9 @@ export default defineComponent({
 
 
     },
-    // mounted : function(){
-    // },
     methods: {
         isHouseMateDisplay(nowStatus:string):boolean {
-            if(nowStatus == "hima" || nowStatus == "ongame"){
+            if(nowStatus == "hima"){
                 return this.isHimaMode;
             }else{
                 return this.isMaybeMode;
@@ -420,13 +391,6 @@ export default defineComponent({
             });
             return houseMateList;
         },
-        makeRoom():void{
-            console.log("makeRoom");
-            // this.sendWebsocket(JSON.stringify({
-            //     "type": "addConnect",
-            //     "houseId": this.$store.state.houseId
-            // }));
-        }
     }
 })
 </script>

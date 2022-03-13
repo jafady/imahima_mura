@@ -28,7 +28,7 @@
                                 <button type="button" class="fv_close_eye" id="changePwdDisplay" @click="changePwdDisplay"></button>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn_primary btn_create_user" @click="createUser">ID発行</button>
+                        <button type="button" class="btn btn_primary btn_create_user" @click="createUser">ID発行</button>
                     </form>
                 </div>
                 <div v-if="userId" class="fv_display_id">
@@ -47,12 +47,13 @@
                         <div class="mb-3 text-start">
                             <input class="form-control" placeholder="家の名前" id="houseName" v-model="houseName" readonly="readonly">
                         </div>
-                        <button type="submit" class="btn btn_primary btn_approve_house" @click="approveHouse">承諾してスタート</button>
+                        <button type="button" class="btn btn_primary btn_approve_house" @click="approveHouse">承諾してスタート</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+    <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
 </template>
 
 <style  lang="scss">
@@ -161,10 +162,42 @@
 }
 </style>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+import utils from '@/mixins/utils'
+import Alert from '@/components/molecules/Alert.vue'
+
+export type DataType = {
+    user: {
+        username:string,
+        password:string
+    },
+    userId:string,
+    inviteId:string,
+    houseName:string,
+    valid:boolean,
+    loading:boolean,
+    isError: boolean,
+
+    alertCss: string,
+    alertMsg: string,
+    alertDisplayTime: number,
+}
+
+export default defineComponent({
     name: "FirstVisitor",
-    data: () => ({
+    components: {
+        Alert,
+    },
+    setup(): Record<string, any>{
+        const { sendWebsocket,queryToString } = utils()
+        return{
+            sendWebsocket,
+            queryToString
+        }
+    },
+    data(): DataType {
+        return {
             user: {
                 username:"",
                 password:""
@@ -175,35 +208,51 @@ export default {
             valid:true,
             loading:false,
             isError: false,
+
+            alertCss: "alert-success",
+            alertMsg: "",
+            alertDisplayTime: 2000,
         }
-    ),
+    },
+    mounted : function(){
+        if(localStorage.getItem("token")){
+            let next:any = this.$route.query.redirect;
+            if(!this.$route.query.redirect){
+                next = "House"
+            }
+            this.$router.push(next);
+        }
+    },
     methods: {
-        changePwdDisplay(e) {
-            const inputPwd = document.getElementById("password");
+        changePwdDisplay() {
+            const inputPwd:HTMLInputElement = document.getElementById("password") as HTMLInputElement;
             const pwdEye = document.getElementById("changePwdDisplay");
             if( inputPwd.type === 'password' ) {
                 inputPwd.type = 'text';
-                pwdEye.className = "fv_open_eye";
+                if(pwdEye){
+                    pwdEye.className = "fv_open_eye";
+                }
             } else {
                 inputPwd.type = 'password';
-                pwdEye.className = "fv_close_eye";
+                if(pwdEye){
+                    pwdEye.className = "fv_close_eye";
+                }
             }
         },
         createUser() {
             console.log("ユーザ作成");
-            const that = this;
             this.$http.post("api/create_user/", this.user).then(response => {
                 console.log("ユーザ作成成功");
-                that.userId =  response.data.id;
-                that.login();
-                that.gettingInvitation();
+                this.userId =  response.data.id;
+                this.login();
+                this.gettingInvitation();
             }).catch(e => {
                 this.loading = false;
                 this.isError = true;
             });
         },
         copyId() {
-            const id = document.getElementById("userId");
+            const id:HTMLInputElement = document.getElementById("userId") as HTMLInputElement;
             id.select();
             document.execCommand("copy");
         },
@@ -212,30 +261,47 @@ export default {
                 "username":this.userId,
                 "password":this.user.password
             }
-            const that = this;
             this.$http.post("auth/", data).then(response => {
                 this.$store.dispatch("auth", {
-                    userId: that.userId,
+                    userId: this.userId,
                     userToken: response.data.token
                 });
-                localStorage.setItem("userId", that.userId);
+                localStorage.setItem("userId", this.userId);
                 localStorage.setItem("token", response.data.token);
-                this.$router.push(this.$route.query.redirect);
+                this.setUrlParam();
             }).catch(e => {
-                    this.loading = false;
-                    this.isError = true;
+                this.loading = false;
+                this.isError = true;
             });
+        },
+        setUrlParam():void{
+            this.paramInviteToken = this.queryToString(this.$route.query.inviteToken);
+            if(this.paramInviteToken){
+                this.useInviteToken();
+            }
 
+            // パラメータは一回使用したら消す
+            const url = new URL(window.location.href);
+            history.replaceState('', '', url.href.replace(/\?.*$/,""));
+        },
+        async useInviteToken():Promise<void>{
+            // 招待用URLがあれば、使用して招待手続きを行う
+            const res = await this.$http.put("/api/use_invitetoken/" + this.$store.state.userId + "/" + this.paramInviteToken)
+            if(res.data.msg){
+                this.alertCss = "alert-danger";
+                this.alertMsg = res.data.msg;
+                this.alertDisplayTime = 2000;
+                this.refs.alert.open();
+            }
         },
         gettingInvitation() {
-            const that = this;
             const getInvitation = () =>{
                 // 招待問い合わせ
                 console.log("招待問い合わせ");
                 this.$http.get("api/get_myinvitation/" + this.userId +"/").then(response => {
                     console.log("招待取得成功");
-                    that.inviteId = response.data[0].id;
-                    that.houseName = response.data[0].houseId__houseName;
+                    this.inviteId = response.data[0].id;
+                    this.houseName = response.data[0].houseId__houseName;
                 }).catch(e => {
                     this.loading = false;
                     this.isError = true;
@@ -244,7 +310,7 @@ export default {
             const intervalId = setInterval(
                 ()=>{
                     getInvitation();
-                    if(that.houseName){
+                    if(this.houseName){
                         clearInterval(intervalId);
                     }
                 }, 5000
@@ -256,14 +322,25 @@ export default {
             }
             this.$http.put("api/accept_invitation/" + this.inviteId + "/").then(response => {
                 console.log("家承認成功");
+                // websocketの開始手続き
+                this.startWebsocket(response.data[0].houseId_id);
                 this.$router.push("House");
             }).catch(e => {
                 this.loading = false;
                 this.isError = true;
             });
-        }
+        },
+        startWebsocket(houseId:string){
+            this.$store.dispatch("connectWebsocket");
+
+            // 入ったことをブロードキャスト
+            this.sendWebsocket(JSON.stringify({
+                "type": "joinHouse",
+                "houseId": houseId,
+            }));
+        },
     }
-}
+})
 </script>
 
 

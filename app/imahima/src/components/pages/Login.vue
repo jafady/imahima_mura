@@ -11,7 +11,7 @@
                     <div class="mb-3 text-start">
                         <input type="password" class="form-control" placeholder="パスワード" id="password" v-model="credentials.password">
                     </div>
-                    <button type="submit" class="btn btn_primary btn_login" @click="login">ログイン</button>
+                    <button type="button" class="btn btn_primary btn_login" @click="login">ログイン</button>
                 </form>
                 <span class="d-flex mb-3">
                     <div class="login_dash_box login_dash_box_left"></div>
@@ -100,19 +100,45 @@
 }
 </style>
 
-<script>
-export default {
+<script lang="ts">
+import { defineComponent } from 'vue'
+import utils from '@/mixins/utils'
+
+interface credentials {username:string,password:string}
+export type DataType = {
+    credentials: credentials,
+    valid:boolean,
+    loading:boolean,
+    isError: boolean,
+}
+
+export default defineComponent({
     name: "Login",
-    data: () => ({
-            credentials: {},
+    setup(): Record<string, any>{
+        const { queryToString } = utils()
+        return{
+            queryToString
+        }
+    },
+    data(): DataType {
+        return {
+            credentials: {username:"",password:""},
             valid:true,
             loading:false,
             isError: false,
         }
-    ),
+    },
     mounted : function(){
-        if(localStorage.getItem("userId")){
-            this.credentials.username = localStorage.getItem("userId");
+        if(localStorage.getItem("token")){
+            let next:any = this.$route.query.redirect;
+            if(!this.$route.query.redirect){
+                next = "House"
+            }
+            this.$router.push(next);
+        }
+        let userId = localStorage.getItem("userId");
+        if(userId){
+            this.credentials.username = userId;
         }
     },
     methods: {
@@ -126,7 +152,7 @@ export default {
                 });
                 localStorage.setItem("userId", userId);
                 localStorage.setItem("token", response.data.token);
-                let next = this.$route.query.redirect;
+                let next:any = this.$route.query.redirect;
                 if(!this.$route.query.redirect){
                     next = "House"
                 }
@@ -137,10 +163,11 @@ export default {
             });
         },
         firstvisitor() {
-            this.$router.push("FirstVisitor");
+            const paramInviteToken = this.queryToString(this.$route.query.inviteToken);
+            this.$router.push({path: "FirstVisitor",query:{"inviteToken":paramInviteToken}});
         }
     }
-}
+})
 </script>
 
 

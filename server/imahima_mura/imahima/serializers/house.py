@@ -1,4 +1,4 @@
-from ..models import House,HouseMate
+from ..models import House,HouseMate,InviteHouseToken
 
 from rest_framework import serializers
 
@@ -26,4 +26,14 @@ class HouseMateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         return HouseMate.objects.create_housemate(self.context["request"].user, **validated_data)
+
+
+class InviteHouseTokenSerializer(serializers.ModelSerializer):
+    """ A serializer class for the HouseMate model """
+    class Meta:
+        model = InviteHouseToken
+        fields = ('id', 'houseId', 'validDateTime')
+    
+    def create(self, validated_data):
+        return InviteHouseToken.objects.create_inviteHouseToken(self.context["request"].user, **validated_data)
     

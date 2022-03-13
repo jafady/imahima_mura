@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from ..models import User,UserSetting,UserSelectCategory,HouseMate
+from ..models import User,UserSetting,UserSelectCategory,HouseMate,Event,EventMembers
 from ..serializers import UserSerializer,UserNameSerializer,UserSettingSerializer,UserSelectCategorySerializer
 from rest_framework import generics, permissions, status
 from .mixin import MultipleFieldLookupMixin
@@ -14,9 +14,21 @@ from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 
 
-from django.db.models import F, Q, Case, When, Value, CharField
+from django.db.models import F, Q, Case, When, Value, CharField, DateTimeField, ExpressionWrapper
 import datetime
 import calendar
+import pytz 
+local_tz = jst = pytz.timezone('Asia/Tokyo')#TODO取り扱い
+
+import logging
+logger = logging.getLogger(__name__)
+streamhandler = logging.StreamHandler()
+logger.addHandler(streamhandler)
+logger.setLevel(logging.WARN)
+logger.warn('warntest')
+
+
+
 
 # ログアウト
 class Logout(APIView):
@@ -57,6 +69,31 @@ class UserInfo(APIView):
         res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
 
+class UsersFuture(APIView):
+    """ 未来時点のユーザ一覧取得 """
+    """ 未来時点なのでステータスの読み替えを行う """
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    def get(self, request, houseId, dateTime):
+        invited_datetime = datetime.datetime.strptime(f'{dateTime}','%Y-%m-%dT%H:%M:%S').replace(tzinfo=local_tz).astimezone(local_tz)
+
+        infos = User.objects.get_base_info(target_day=invited_datetime)\
+                .filter(housemate__houseId=houseId,housemate__isApproved=True)\
+                .values('id','username',
+                    'userSetting__statusValidDateTime','userSetting__statusId__statusName',
+                    'todayStartTime','todayEndTime','nowStatus'
+                    )
+        info_with_ongame = setOngameAtUsers(users = infos)
+        
+        for info in info_with_ongame:
+            if info['nowStatus'] == 'ヒマ':
+                info['nowStatus'] = '予定ではヒマ'
+            if info['nowStatus'] == 'ゲーム中':
+                info['nowStatus'] = 'ヒマじゃない'
+                
+        res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
+
 
 class UserBaseInfo(APIView):
     """ ユーザ基本情報取得用 """
@@ -70,10 +107,12 @@ class UserBaseInfo(APIView):
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
                     'todayStartTime','todayEndTime','nowStatus'
                     )
+
+        info_with_ongame = setOngameAtUsers(users = info)
         
-                
-        res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
+        res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
+        
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """
@@ -113,8 +152,66 @@ class UserList(APIView):
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
                     'todayStartTime','todayEndTime','nowStatus'
                     )
+        
+        
+        info_with_ongame = setOngameAtUsers(users = info)
                 
-        res_json = json.dumps(list(info), cls=DjangoJSONEncoder)
+        res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
 
+# 対象日時のまだ終わっていないイベント一覧
+def getEvent(target_datetime = datetime.datetime.now()):
+    target_day = target_datetime.date()
+    infos = Event.objects\
+                .select_related('EventMembers')\
+                .filter(
+                    Q(startDate__gte=target_day), Q(startDate__lt=target_day + datetime.timedelta(days=1)), 
+                    Q(endTime__gte = target_datetime.time()) )\
+                .annotate(startDateAtJp = ExpressionWrapper(F('startDate') + datetime.timedelta(hours=9),
+                    output_field=DateTimeField()
+                ))\
+                .order_by('startDate', 'startTime', 'endTime')\
+                .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
+                    'location', 'locationUrl', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
+                    )
 
+    for info in infos:
+        userIds = EventMembers.objects\
+            .filter(eventId=info.get('id'))\
+            .values_list('userId', flat=True)
+        info['userIds'] = [data for data in userIds]
+    
+    return infos
+
+# ユーザ一覧にゲーム中かどうかの情報を足す
+def setOngameAtUsers(users,target_datetime = datetime.datetime.now()):
+    events = getEvent(target_datetime=target_datetime)
+    for user in users:
+        for event in events:
+            # イベント参加予定か確認
+            if user['id'] not in event['userIds']:
+                continue
+            # 現時点がイベント中であれば、ステータスをゲーム中に変更する
+            if event['startTime'] < target_datetime.time() and  target_datetime.time() < event['endTime']:
+                user['nowStatus'] = 'ゲーム中'
+            
+            # ヒマ時間から差し引く
+            time0 = datetime.time(0, 0, 0, 0)
+            if user['todayEndTime'] != time0 and user['todayEndTime'] < event['startTime']:
+                continue
+            if event['endTime'] !=time0 and event['endTime'] < user['todayStartTime']:
+                continue
+            if user['todayStartTime'] < event['startTime']:
+                # 対象時点より後ろを採用する
+                if event['startTime'] < target_datetime.time() and \
+                    (user['todayEndTime'] == time0 or
+                    (user['todayEndTime'] != time0 and event['endTime'] < user['todayEndTime'])):
+                    user['todayStartTime'] = event['endTime']
+                else:
+                    user['todayEndTime'] = event['startTime']
+
+            elif user['todayEndTime'] == time0 or \
+                    (user['todayEndTime'] != time0 and event['endTime'] < user['todayEndTime']):
+                user['todayStartTime'] = event['endTime']
+
+    return users

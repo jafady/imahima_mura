@@ -19,16 +19,30 @@ herokku postgresは1GB 1万行までがfreeらしい。。
 
 ### docker環境の立ち上げ方
 appやserviceと同じ階層で実行
----
+```
 docker-compose up -d --build
+‐‐‐
+
+立ち下げ
 ---
+docker-compose down
+```
 
 ### docker立ち上げ時のTips
 - starting container process caused: exec: "/usr/src/server/entrypoint.sh": permission denied: unknown
-  - chmod +x server/imahima_mura/entrypoint.sh server/imahima_mura/manage.py
-
+  - 実行権限を付与する
+    - chmod +x server/imahima_mura/entrypoint.sh server/imahima_mura/manage.py
 
 ### docker環境への入り方
+リモートエクスプローラー
+1. docker環境を立ち上げる
+2. vscodeのリモートエクスプローラーを開いて、appとserverでAttach to Containerを選択する
+3. 開くを選択し、以下のディレクトリを指定してOKを押す
+  - app: /usr/src/app/
+  - server: /usr/src/server/
+4. これで実行中のdockerの中に入れるので作業を開始する
+
+execコマンド
 ```
 docker exec -it imahima_server_dev bash
 ```
@@ -48,11 +62,13 @@ http://localhost:8000/swagger
 ## django実行メモ
 - 接続先
   - http://localhost:8000/
+- DBの反映
+  - python manage.py makemigrations
+    - どう変更するかを作成
+  - python manage.py migrate
+    - 変更をDBに適応
 - Djangoの起動
   - python manage.py runserver
-- DBの反映
-  - python manage.py migrate
-
 ## vue
 http://localhost:8080/
 

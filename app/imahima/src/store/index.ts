@@ -41,6 +41,11 @@ export default createStore<State>({
       state.userName = "";
       state.userIcon = require("../assets/img/default_icon.png");
       state.userStatus = "hima";
+      state.houseId = "";
+      state.houseMates = {};
+    },
+    disconnectWebsocket(state){
+      state.websocket = null;
     },
     loginUser(state, user) {
       state.userId = user.userId;
@@ -86,6 +91,7 @@ export default createStore<State>({
   actions: {
     clear(context) {
       context.commit('clear');
+      context.dispatch('disconnectWebsocket');
     },
     auth(context, user) {
       context.commit('loginUser', user);
@@ -103,13 +109,15 @@ export default createStore<State>({
         }
         context.commit('userInfo', userInfo);
 
+        const todayEndTime = res.todayEndTime == "00:00:00"?"24:00:00":res.todayEndTime;
+
         // ユーザ一覧中の情報も更新する
         const data = {
           id: res.id,
           name: res.username,
           icon: userIcon,
           noticableStartTime: res.todayStartTime,
-          noticableEndTime: res.todayEndTime,
+          noticableEndTime: todayEndTime,
           nowStatus: getStatusByName(res.nowStatus),
           statusValidDateTime: res.userSetting__statusValidDateTime
         }
@@ -134,14 +142,16 @@ export default createStore<State>({
         const { getStatusByName } = utils();
         const data:any = {};
         const res = response.data
+        
         for (const key in res) {
           const userIcon = res[key].userSetting__icon? CONST.BASE64.header + res[key].userSetting__icon: null;
+          const todayEndTime = res[key].todayEndTime == "00:00:00"?"24:00:00":res[key].todayEndTime;
           data[res[key].id] = {
             id: res[key].id,
             name: res[key].username,
             icon: userIcon,
             noticableStartTime: res[key].todayStartTime,
-            noticableEndTime: res[key].todayEndTime,
+            noticableEndTime: todayEndTime,
             nowStatus: getStatusByName(res[key].nowStatus),
             statusValidDateTime: res[key].userSetting__statusValidDateTime,
           }
@@ -182,7 +192,19 @@ export default createStore<State>({
 
       context.commit('setWebsocket', socket);
     },
-    
+    disconnectWebsocket(context){
+      navigator.serviceWorker.ready.then( registration => {
+        registration.active?.postMessage({
+          type: "disconnectWebsocket",
+        });
+      });
+      if(context.state.websocket == null) {
+        return;
+      }
+      context.state.websocket.close();
+      context.commit('disconnectWebsocket');
+
+    },
   },
   modules: {
   }

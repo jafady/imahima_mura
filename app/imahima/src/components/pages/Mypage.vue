@@ -10,7 +10,7 @@
                     </div>
                 </div>
                 <div>
-                    <IconUploadModal />
+                    <IconUploadModal class="maypage_icon_upload"/>
                     <input type="text" v-model="userName" class="mypage_username" placeholder="名前" @change="changeUserName">
                     <div class="mypage_id d-inline-flex">
                         <div class="mypage_id_weight"></div>
@@ -90,9 +90,9 @@
                             <input type="checkbox" v-model="item.selected" :id="index" disabled="disabled">
                             <label class="btn_week" :for="index">{{item.name}}</label>
                             <div class="d-inline-flex mypage_inline_noticable">
-                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.startTime" :key="refresh" :minute-interval="10" hide-clear-button @change="changeWeekTime(item)"></VueTimepicker>
+                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.startTime" :key="refresh" :minute-interval="10" @change="changeWeekTime(item)"></VueTimepicker>
                                 <div class="hyphen">~</div>
-                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.endTime" :key="refresh" :minute-interval="10" hide-clear-button @change="changeWeekTime(item)"></VueTimepicker>
+                                <VueTimepicker input-class="time" format="HH:mm" v-model="item.endTime" :key="refresh" :minute-interval="10" @change="changeWeekTime(item)"></VueTimepicker>
                             </div>
                         </div>
                     </div>
@@ -145,6 +145,9 @@
                     font-size:10px
                 }
             }
+        }
+        .maypage_icon_upload{
+            width:80%;
         }
         .mypage_username{
             font-size: 35px;
@@ -326,12 +329,12 @@
                     width: calc(100% - 60px);
 
                     .time{
-                        width: 70px;
+                        width: 80px;
                         height: 40px;
                         border: none;
                         border-radius: 8px;
                         font-family: "游ゴシック";
-                        text-align: center;
+                        text-align: left;
                     }
                     .hyphen{
                         width: 30px;
@@ -358,7 +361,7 @@ import IconUploadModal from '@/components/organisms/IconUploadModal.vue'
 import utils from '@/mixins/utils'
 interface category {id:string,name:string,selected:boolean}
 interface weekContent {id:string,name:string,selected:boolean,startTime:any,endTime:any}
-interface invitation {id:string,houseName:string}
+interface invitation {id:string,houseId:string,houseName:string}
 
 export type DataType = {
     userId: string,
@@ -381,6 +384,8 @@ export type DataType = {
     alertMsg: string,
     alertDisplayTime: number,
 
+    paramInviteToken: string,
+
 }
 
 export default defineComponent({
@@ -392,9 +397,11 @@ export default defineComponent({
         IconUploadModal,
     },
     setup(): Record<string, any>{
-        const { dateTimeToString } = utils()
+        const { dateTimeToString,sendWebsocket,queryToString } = utils()
         return{
-            dateTimeToString
+            dateTimeToString,
+            sendWebsocket,
+            queryToString
         }
     },
     data(): DataType {
@@ -428,6 +435,8 @@ export default defineComponent({
             alertCss: "alert-success",
             alertMsg: "",
             alertDisplayTime: 2000,
+
+            paramInviteToken: "",
         }
     },
     computed: {
@@ -495,7 +504,8 @@ export default defineComponent({
         },
 
     },
-    created: function():void{
+    mounted: function():void{
+        this.setUrlParam();
         this.$store.dispatch("getUserInfo").then(()=>{
             this.getUserFromStore();
         });
@@ -503,6 +513,16 @@ export default defineComponent({
         this.getUserInfo();
     },
     methods: {
+        setUrlParam():void{
+            this.paramInviteToken = this.queryToString(this.$route.query.inviteToken);
+            if(this.paramInviteToken){
+                this.useInviteToken();
+            }
+
+            // パラメータは一回使用したら消す
+            const url = new URL(window.location.href);
+            history.replaceState('', '', url.href.replace(/\?.*$/,""));
+        },
         getUserFromStore():void{
             this.userId = this.$store.state.userId;
             this.userName = this.$store.state.userName;
@@ -571,10 +591,26 @@ export default defineComponent({
             for (const key in data) {
                 tempData.push({
                     id: data[key].id,
+                    houseId: data[key].houseId,
                     houseName: data[key].houseId__houseName
                 });
             }
             this.invitations = tempData;
+        },
+
+        async useInviteToken():Promise<void>{
+            // 招待用URLがあれば、使用して招待手続きを行う
+            const res = await this.$http.put("/api/use_invitetoken/" + this.$store.state.userId + "/" + this.paramInviteToken)
+            if(res.data.msg){
+                this.alertCss = "alert-danger";
+                this.alertMsg = res.data.msg;
+                this.alertDisplayTime = 2000;
+                this.refs.alert.open();
+            }else{
+                const myInvitationRes = await this.$http.get("/api/get_myinvitation/" + this.$store.state.userId + "/");
+                this.setInvitation(myInvitationRes.data);
+            }
+
         },
         logout():void{
             this.$http.get("/api/logout/").then(()=>{
@@ -595,6 +631,9 @@ export default defineComponent({
             this.$http.put("/api/accept_invitation/" + item.id + "/")
             .then(()=>{
                 // 承認した。
+                // WebSocketの接続を増やす
+                this.addConnectWebsocket(item.houseId);
+
                 // 招待の更新
                 this.updateInvitations();
 
@@ -608,6 +647,26 @@ export default defineComponent({
         async updateInvitations():Promise<void>{
             const myInvitationRes = await this.$http.get("/api/get_myinvitation/" + this.$store.state.userId + "/");
             this.setInvitation(myInvitationRes.data);
+        },
+        addConnectWebsocket(houseId:string):void{
+            // 新しい家のwebsocketに入る
+            this.sendWebsocket(JSON.stringify({
+                "type": "addConnect",
+                "houseId": houseId,
+            }));
+
+            // 入ったことをブロードキャスト
+            this.sendWebsocket(JSON.stringify({
+                "type": "joinHouse",
+                "houseId": houseId,
+            }));
+
+            navigator.serviceWorker.ready.then( registration => {
+                registration.active?.postMessage({
+                    type: "addConnect",
+                    "houseId": houseId,
+                });
+            });
         },
 
         changeUserName():void{
@@ -645,12 +704,17 @@ export default defineComponent({
             }
             this.saveUserSetting(saveData);
             
+            // ステータス変更の周知
+            this.noticeChangeStatus();
         },
         changeStatusValidTime():void{
             const saveData = {
                 statusValidDateTime: this.statusValidDateTime
             };
             this.saveUserSetting(saveData);
+
+            // ステータス変更の周知
+            this.noticeChangeStatus();
         },
         changeIsAllCategorySelected(val:any):void{
             const saveData = {
@@ -722,7 +786,20 @@ export default defineComponent({
             this.$http.put("/api/user_setting/" + this.$store.state.userId + "/",data).then(()=>{
                 this.$store.dispatch("getUserInfo");
             });
-        }
+        },
+        async noticeChangeStatus():Promise<void>{
+            // ステータス変更の周知
+            // 所属する全部の家に届ける
+            const housesRes = await this.$http.get("/api/myhouses/" + this.$store.state.userId + "/");
+            
+            for (const key in housesRes.data) {
+                this.sendWebsocket(JSON.stringify({
+                    "type": "noticeChangeStatus",
+                    "houseId": housesRes.data[key].id,
+                    "status": this.$store.state.userStatus
+                }));
+            }
+        },
     }
 })
 
