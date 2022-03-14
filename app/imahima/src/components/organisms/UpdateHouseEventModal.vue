@@ -103,7 +103,10 @@
                                                 <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
                                                     <div>{{value.name}}</div>
-                                                    <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
+                                                    <div v-if="isDisplayTime(value.noticableStartTime,value.noticableEndTime)">
+                                                        {{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}
+                                                    </div>
+                                                    <div v-else>ヒマなし</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -780,6 +783,13 @@ export default defineComponent({
 
         getUserName(userId:string):string{
             return this.$store.state.houseMates[userId].name;
+        },
+        isDisplayTime(startTime:string,endTime:string):boolean{
+            if(this.cutSeconds(startTime) == '00:00' && this.cutSeconds(endTime)=='24:00'){
+                return false
+            }else{
+                return true
+            }
         },
 
         // 変更
