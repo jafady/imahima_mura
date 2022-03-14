@@ -78,7 +78,7 @@ class UserManager(BaseUserManager):
                     output_field=TimeField()
                 ))\
                 .annotate(nowStatus = Case(
-                    When(Q(userSetting__statusValidDateTime__lt = target_day, todayStartTime__lt = target_day.time(), todayEndTime__gte = target_day.time()), 
+                    When(Q(userSetting__statusValidDateTime__lt = target_day, todayStartTime__lte = target_day.time(), todayEndTime__gt = target_day.time()), 
                         then=Value('予定ではヒマ')),
                     When(Q(userSetting__statusValidDateTime__lt = target_day, todayStartTime__gte = target_day.time()), 
                         then=Value('ヒマじゃない')),
