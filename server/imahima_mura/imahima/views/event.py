@@ -26,18 +26,14 @@ class EventList(APIView):
     permission_classes = (permissions.IsAuthenticated, )
     def get(self, request, houseId):
 
-        # target_day = datetime.datetime.now()
         target_day = datetime.date.today()
 
         infos = Event.objects\
                 .select_related('EventMembers')\
                 .filter(Q(houseId=houseId), (Q(startDate__gte=target_day) | Q(startDate__isnull=True)))\
-                .annotate(startDateAtJp = ExpressionWrapper(F('startDate') + datetime.timedelta(hours=9),
-                    output_field=DateTimeField()
-                ))\
                 .order_by('startDate', 'startTime', 'endTime')\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'locationUrl', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl', 'startDate', 'startTime', 'endTime', 'categoryId', 'detail'
                     )
 
         for info in infos:
@@ -57,11 +53,8 @@ class EventInfo(APIView):
         infos = Event.objects\
                 .select_related('EventMembers')\
                 .filter(id=eventId)\
-                .annotate(startDateAtJp = ExpressionWrapper(F('startDate') + datetime.timedelta(hours=9),
-                    output_field=DateTimeField()
-                ))\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'locationUrl','startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl', 'startDate', 'startTime', 'endTime', 'categoryId', 'detail'
                     )
 
         for info in infos:

@@ -694,7 +694,7 @@ export default defineComponent({
             this.location = targetData.location;
             this.locationUrl = targetData.locationUrl;
 
-            this.startDate = targetData.startDateAtJp? new Date(targetData.startDateAtJp):null;
+            this.startDate = targetData.startDate? new Date(targetData.startDate):null;
             this.startTime = targetData.startTime;
             this.endTime = targetData.endTime;
             this.selectedCategoryId = targetData.categoryId;
