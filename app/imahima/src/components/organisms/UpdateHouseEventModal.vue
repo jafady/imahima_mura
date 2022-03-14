@@ -528,6 +528,7 @@ export type DataType = {
 
     detail: string,
 
+    houseMatesFuture:houseMate[],
     userIds: string[],
 
     selectedHousemate: string[],
@@ -544,12 +545,14 @@ export default defineComponent({
         ConfirmModal
     },
     setup(): Record<string, any>{
-        const { sortTime,cutSeconds, sendWebsocket,getDisplayTime } = utils()
+        const { sortTime,cutSeconds, sendWebsocket,getDisplayTime,dateTimeToUrlString,getStatusByName } = utils()
         return{
             sortTime,
             cutSeconds,
             sendWebsocket,
-            getDisplayTime
+            getDisplayTime,
+            dateTimeToUrlString,
+            getStatusByName
         }
     },
     data(): DataType {
@@ -570,6 +573,7 @@ export default defineComponent({
 
             detail: "",
 
+            houseMatesFuture: [],
             userIds: [],
 
             selectedHousemate: [],
@@ -649,6 +653,7 @@ export default defineComponent({
             const saveData:Record<string, unknown> = {};
             saveData["startDate"] = this.startDate;
             this.saveUpdateEvent(saveData);
+            this.getHouseMateFuture();
         }
     },
     methods: {
@@ -660,6 +665,7 @@ export default defineComponent({
             // データ初期化
             this.getCategoryList();
             this.initData();
+            this.getHouseMateFuture();
             
             // モーダル開く
             const target = document.getElementById('update_event_modal');
@@ -710,12 +716,41 @@ export default defineComponent({
             }
             this.categoryList=data;
         },
+        async getHouseMateFuture():Promise<void>{
+            // 開催日時を選んだ時点のユーザ一覧を取得する
+            if(!this.startDate || !this.startTime){
+                this.houseMatesFuture = [];
+                return;
+            }
+            const targetDay = this.startDate;
+            const HH = parseInt(this.startTime.substring(0,2)) || 0;
+            const mm = parseInt(this.startTime.substring(3,5)) || 0;
+            targetDay.setHours(HH);
+            targetDay.setMinutes(mm);
+            targetDay.setSeconds(0);
+            const searchDateTime = this.dateTimeToUrlString(targetDay);
+            const houseMatesFutureRes = await this.$http.get("/api/users_future/" + this.$store.state.houseId + "/" + searchDateTime + "/");
+            const data:houseMate[] = [];
+            const res = houseMatesFutureRes.data;
+            for (const key in res) {
+                const todayEndTime = res[key].todayEndTime == "00:00:00"?"24:00:00":res[key].todayEndTime;
+                data.push({
+                    id: res[key].id,
+                    name: res[key].username,
+                    icon: "",
+                    noticableStartTime: res[key].todayStartTime,
+                    noticableEndTime: todayEndTime,
+                    nowStatus: this.getStatusByName(res[key].nowStatus),
+                    statusValidDateTime: res[key].userSetting__statusValidDateTime,
+                })
+            }
+            this.houseMatesFuture=data;
+        },
         getHouseMateList(status:string):houseMate[]{
             // 計算量を減らすためにfilterで母数を減らす
             // ソート順 ステータス＞ヒマ終了時間＞ヒマ開始時間
-            const houseMates:houseMates = this.$store.state.houseMates;
-            const houseMateList:houseMate[] = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == status)
-            .sort((a:houseMate, b:houseMate)=>{
+            const houseMateList:any[] = this.houseMatesFuture.filter((houseMate:any)=>houseMate.nowStatus == status)
+            .sort((a:any, b:any)=>{
                 // 時間
                 const end = this.sortTime(a.noticableEndTime, b.noticableEndTime);
                 if(end == 0){
@@ -774,6 +809,7 @@ export default defineComponent({
             const saveData:Record<string, unknown> = {};
             saveData["startDate"] = this.startDate;
             this.saveUpdateEvent(saveData);
+            this.getHouseMateFuture();
         },
         changeSelectedCategoryId():void{
             const saveData:Record<string, unknown> = {};
@@ -850,6 +886,7 @@ export default defineComponent({
             saveData["startTime"] = this.startTime;
             saveData["endTime"] = this.endTime;
             this.saveUpdateEvent(saveData);
+            this.getHouseMateFuture();
         },
         checkEditing(data:any):boolean{
             const blankHour = data?.HH == "";
