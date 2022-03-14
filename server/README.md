@@ -3,6 +3,8 @@
 docker:動作環境閉じ込めたい  
 python3.10:現時点の最新だった  
 django:ログイン画面とか色々やってくれるというので
+postgresql:herokuで無償提供してくれてたので
+redis:websocketのセッション管理用
 
 ## アプリの動作環境について 
 Herokuで無料範囲の環境を使用する  
@@ -69,21 +71,9 @@ http://localhost:8000/swagger
     - 変更をDBに適応
 - Djangoの起動
   - python manage.py runserver
-## vue
-http://localhost:8080/
 
-# 公開環境へのデプロイ
-## 使用環境
-- heroku
-## デプロイ方法
-- herokuのコンテナレジストリに公開してそこからリリース
-  - github連携だといちいちコミットが必要になってきてしまうので気軽に試すのが難しくなりそうだったので。
-  - serverとappでレポジトリを分けるのが面倒だったというのもある。
-- server側をRestAPIとして作るつもりで、バックグラウンド処理ではなかったのでHeroku上1サーバにするのは無理だった
-- デプロイにはheroku cliが必要
-## 環境変数
-- docker-compose内で定義する。
-  - 開発環境と公開環境でcomposeの形自体もどうせ違うので環境変数だけ切り出さなくても良いかなと。
+## vueへのアクセス(参考)
+http://localhost:8080/
 
 
 # ディレクトリ構成
@@ -99,7 +89,20 @@ http://localhost:8080/
   - ユーザだけは人目に触れやすいので桁数を減らして使用する
 
 # 本番デプロイ
-## デプロイ
+## 使用環境
+- heroku
+## デプロイ方法
+- herokuのコンテナレジストリに公開してそこからリリース
+  - github連携だといちいちコミットが必要になってきてしまうので気軽に試すのが難しくなりそうだったので。
+  - serverとappでレポジトリを分けるのが面倒だったというのもある。
+- server側をRestAPIとして作るつもりで、バックグラウンド処理ではなかったのでHeroku上1サーバにするのは無理だった
+- デプロイにはheroku cliが必要
+## 環境変数
+- docker-compose内で定義する。
+  - 開発環境と公開環境でcomposeの形自体もどうせ違うので環境変数だけ切り出さなくても良いかなと。
+  - herokuで設定されている環境変数もある
+
+## デプロイ手順
 以下のコマンドでデプロイできる
 ### herokuにCLIでログイン
 heroku login
@@ -135,3 +138,9 @@ docker tag imahima_mura_django registry.heroku.com/imahima-mura-server/web
 docker push registry.heroku.com/imahima-mura-server/web
 
 heroku container:release web
+
+## 接続
+### web
+https://imahima-mura.herokuapp.com/#/
+### サーバー
+https://imahima-mura-server.herokuapp.com/
