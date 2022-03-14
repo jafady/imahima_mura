@@ -370,8 +370,8 @@ export default defineComponent({
         changeHouseInfo():void{
             this.getHouseList()
         },
-        changeHouseModeToFriend():void{
-            // this.houseMode = "friend";
+        changeHouseModeToFriend(e:Event):void{
+            e.stopPropagation();
             if(this.$store.state.userStatus == "hima" || this.$store.state.userStatus == "ongame"){
                 this.houseMode = "friend";
             }else{
@@ -476,7 +476,9 @@ export default defineComponent({
             }));
 
             // 変更後の値によっては画面を切り替える
-            this.initialDisplay();
+            if(this.$store.state.userStatus == "busy" || this.$store.state.userStatus == "maybe"){
+                this.houseMode = "event";
+            }
         },
     }
 })
