@@ -97,3 +97,41 @@ http://localhost:8080/
 - ID形式：uuid
   - APIでIDをキーに操作することもあるので予測しづらいIDにする
   - ユーザだけは人目に触れやすいので桁数を減らして使用する
+
+# 本番デプロイ
+## デプロイ
+以下のコマンドでデプロイできる
+### herokuにCLIでログイン
+heroku login
+heroku container:login
+
+### 本番用資材ビルド
+docker-compose -f docker-compose.prod.yml up -d --build
+
+### webデプロイ
+<!-- gitログイン -->
+heroku git:remote -a imahima-mura
+
+<!-- 再ビルド -->
+docker-compose down
+docker-compose -f docker-compose.prod.yml up -d --build
+
+<!-- タグ付け&プッシュ&リリース -->
+docker tag imahima_mura_vue registry.heroku.com/imahima-mura/web
+docker push registry.heroku.com/imahima-mura/web
+
+heroku container:release web
+
+### サーバーデプロイ
+<!-- gitログイン -->
+heroku git:remote -a imahima-mura-server
+
+<!-- 再ビルド -->
+docker-compose down
+docker-compose -f docker-compose.prod.yml up -d --build
+
+<!-- タグ付け&プッシュ&リリース -->
+docker tag imahima_mura_django registry.heroku.com/imahima-mura-server/web
+docker push registry.heroku.com/imahima-mura-server/web
+
+heroku container:release web

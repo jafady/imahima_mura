@@ -14,6 +14,7 @@ services:
     environment:
       - VUE_APP_API_ENDPOINT_PROTOCOL=http
       - VUE_APP_API_ENDPOINT_HOST=localhost:8000
+      - VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL=ws
 
   django:
     container_name: imahima_server_dev
@@ -36,8 +37,7 @@ services:
         - DATABASE_PASSWORD=password1234
         - DATABASE_HOST=postgres
         - DATABASE_PORT=5432
-        - REDIS_HOST=redis
-        - REDIS_PORT=6379
+        - REDIS_URL=redis://redis:6379
     depends_on:
         - postgres
         - redis

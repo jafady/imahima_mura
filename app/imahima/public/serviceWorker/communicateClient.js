@@ -110,7 +110,8 @@ const connectWebsocket = (data) => {
   }
   const token = data.token;
   const socket = new WebSocket(
-      "ws://"
+      VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL
+      + "://"
       + VUE_APP_API_ENDPOINT_HOST
       + "/ws/imahima/"
       + "?token="

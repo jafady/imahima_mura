@@ -176,7 +176,8 @@ export default createStore<State>({
       }
       const token = localStorage.getItem("token");
       const socket = new WebSocket(
-          "ws://"
+          process.env.VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL
+          +"://"
           + process.env.VUE_APP_API_ENDPOINT_HOST
           + "/ws/imahima/"
           + "?token="

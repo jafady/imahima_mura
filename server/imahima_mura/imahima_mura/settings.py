@@ -117,14 +117,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'imahima_mura.wsgi.application'
 # websocket
 ASGI_APPLICATION = "imahima_mura.asgi.application"
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer",
+#     },
+# }
+
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
         'CONFIG': {
-            "hosts": [(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))],
+            "hosts": [os.environ.get('REDIS_URL')]
         },
     },
 }
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))],
+#         },
+#     },
+# }
 
 # カスタムユーザ
 AUTH_USER_MODEL = 'imahima.User'
