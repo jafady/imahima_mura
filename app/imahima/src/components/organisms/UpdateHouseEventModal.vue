@@ -150,6 +150,7 @@
                 </div>
             </div>
             <ConfirmModal ref="confirmModal" @ok="deleteEvent"/>
+            <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
         </teleport>
     </div>
 </template>
@@ -511,6 +512,7 @@ import utils from '@/mixins/utils'
 import { Modal } from 'bootstrap'
 import Icon from '@/components/molecules/Icon.vue'
 import ConfirmModal from '@/components/molecules/ConfirmModal.vue'
+import Alert from '@/components/molecules/Alert.vue'
 
 interface category {id:string,name:string}
 
@@ -539,13 +541,18 @@ export type DataType = {
     isErrorManualMsg: boolean,
 
     lowerLimitDate: Date,
+
+    alertCss: string,
+    alertMsg: string,
+    alertDisplayTime: number,
 }
 
 export default defineComponent({
     name: "UpdateHouseEventModal",
     components: {
         Icon,
-        ConfirmModal
+        ConfirmModal,
+        Alert
     },
     setup(): Record<string, any>{
         const { sortTime,cutSeconds, sendWebsocket,getDisplayTime,dateTimeToUrlString,getStatusByName } = utils()
@@ -584,6 +591,9 @@ export default defineComponent({
             isErrorManualMsg: false,
 
             lowerLimitDate: new Date(),
+            alertCss: "alert-success",
+            alertMsg: "",
+            alertDisplayTime: 2000,
         }
     },
     computed: {
@@ -973,6 +983,11 @@ export default defineComponent({
                 "targetUserIds": this.selectedHousemate,
                 "msg": this.manualMsg,
             }));
+            // 通知送ったよのメッセージを出す
+            this.alertCss = "alert-success";
+            this.alertMsg = "追加通知を送りました。";
+            this.alertDisplayTime = 5000;
+            this.refs.alert.open();
         }
     }
 })
