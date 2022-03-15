@@ -150,9 +150,8 @@ const checkNoticePermission =  async () =>{
   if (Notification.permission === "granted") {
       return true;
   }else{
-      // 許可されてないので許可を依頼する
-      const result = await Notification.requestPermission();
-      return result === "granted";
+      // 許可はserviceworkerでは聞けないので、諦める
+      return false;
   }
 }
 
