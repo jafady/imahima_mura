@@ -103,7 +103,10 @@
                                                 <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
                                                     <div>{{value.name}}</div>
-                                                    <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
+                                                    <div v-if="isDisplayTime(value.noticableStartTime,value.noticableEndTime)">
+                                                        {{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}
+                                                    </div>
+                                                    <div v-else>ヒマなし</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -147,6 +150,7 @@
                 </div>
             </div>
             <ConfirmModal ref="confirmModal" @ok="deleteEvent"/>
+            <Alert :css="alertCss" :alertMsg="alertMsg" :displayTime="alertDisplayTime" ref="alert" />
         </teleport>
     </div>
 </template>
@@ -508,6 +512,7 @@ import utils from '@/mixins/utils'
 import { Modal } from 'bootstrap'
 import Icon from '@/components/molecules/Icon.vue'
 import ConfirmModal from '@/components/molecules/ConfirmModal.vue'
+import Alert from '@/components/molecules/Alert.vue'
 
 interface category {id:string,name:string}
 
@@ -528,6 +533,7 @@ export type DataType = {
 
     detail: string,
 
+    houseMatesFuture:houseMate[],
     userIds: string[],
 
     selectedHousemate: string[],
@@ -535,21 +541,28 @@ export type DataType = {
     isErrorManualMsg: boolean,
 
     lowerLimitDate: Date,
+
+    alertCss: string,
+    alertMsg: string,
+    alertDisplayTime: number,
 }
 
 export default defineComponent({
     name: "UpdateHouseEventModal",
     components: {
         Icon,
-        ConfirmModal
+        ConfirmModal,
+        Alert
     },
     setup(): Record<string, any>{
-        const { sortTime,cutSeconds, sendWebsocket,getDisplayTime } = utils()
+        const { sortTime,cutSeconds, sendWebsocket,getDisplayTime,dateTimeToUrlString,getStatusByName } = utils()
         return{
             sortTime,
             cutSeconds,
             sendWebsocket,
-            getDisplayTime
+            getDisplayTime,
+            dateTimeToUrlString,
+            getStatusByName
         }
     },
     data(): DataType {
@@ -570,6 +583,7 @@ export default defineComponent({
 
             detail: "",
 
+            houseMatesFuture: [],
             userIds: [],
 
             selectedHousemate: [],
@@ -577,6 +591,9 @@ export default defineComponent({
             isErrorManualMsg: false,
 
             lowerLimitDate: new Date(),
+            alertCss: "alert-success",
+            alertMsg: "",
+            alertDisplayTime: 2000,
         }
     },
     computed: {
@@ -649,6 +666,7 @@ export default defineComponent({
             const saveData:Record<string, unknown> = {};
             saveData["startDate"] = this.startDate;
             this.saveUpdateEvent(saveData);
+            this.getHouseMateFuture();
         }
     },
     methods: {
@@ -660,6 +678,7 @@ export default defineComponent({
             // データ初期化
             this.getCategoryList();
             this.initData();
+            this.getHouseMateFuture();
             
             // モーダル開く
             const target = document.getElementById('update_event_modal');
@@ -685,7 +704,7 @@ export default defineComponent({
             this.location = targetData.location;
             this.locationUrl = targetData.locationUrl;
 
-            this.startDate = targetData.startDateAtJp? new Date(targetData.startDateAtJp):null;
+            this.startDate = targetData.startDate? new Date(targetData.startDate):null;
             this.startTime = targetData.startTime;
             this.endTime = targetData.endTime;
             this.selectedCategoryId = targetData.categoryId;
@@ -710,12 +729,41 @@ export default defineComponent({
             }
             this.categoryList=data;
         },
+        async getHouseMateFuture():Promise<void>{
+            // 開催日時を選んだ時点のユーザ一覧を取得する
+            if(!this.startDate || !this.startTime){
+                this.houseMatesFuture = [];
+                return;
+            }
+            const targetDay = this.startDate;
+            const HH = parseInt(this.startTime.substring(0,2)) || 0;
+            const mm = parseInt(this.startTime.substring(3,5)) || 0;
+            targetDay.setHours(HH);
+            targetDay.setMinutes(mm);
+            targetDay.setSeconds(0);
+            const searchDateTime = this.dateTimeToUrlString(targetDay);
+            const houseMatesFutureRes = await this.$http.get("/api/users_future/" + this.$store.state.houseId + "/" + searchDateTime + "/");
+            const data:houseMate[] = [];
+            const res = houseMatesFutureRes.data;
+            for (const key in res) {
+                const todayEndTime = res[key].todayEndTime == "00:00:00"?"24:00:00":res[key].todayEndTime;
+                data.push({
+                    id: res[key].id,
+                    name: res[key].username,
+                    icon: "",
+                    noticableStartTime: res[key].todayStartTime,
+                    noticableEndTime: todayEndTime,
+                    nowStatus: this.getStatusByName(res[key].nowStatus),
+                    statusValidDateTime: res[key].userSetting__statusValidDateTime,
+                })
+            }
+            this.houseMatesFuture=data;
+        },
         getHouseMateList(status:string):houseMate[]{
             // 計算量を減らすためにfilterで母数を減らす
             // ソート順 ステータス＞ヒマ終了時間＞ヒマ開始時間
-            const houseMates:houseMates = this.$store.state.houseMates;
-            const houseMateList:houseMate[] = Object.values(houseMates).filter((houseMate:houseMate)=>houseMate.nowStatus == status)
-            .sort((a:houseMate, b:houseMate)=>{
+            const houseMateList:any[] = this.houseMatesFuture.filter((houseMate:any)=>houseMate.nowStatus == status)
+            .sort((a:any, b:any)=>{
                 // 時間
                 const end = this.sortTime(a.noticableEndTime, b.noticableEndTime);
                 if(end == 0){
@@ -746,6 +794,13 @@ export default defineComponent({
         getUserName(userId:string):string{
             return this.$store.state.houseMates[userId].name;
         },
+        isDisplayTime(startTime:string,endTime:string):boolean{
+            if(this.cutSeconds(startTime) == '00:00' && this.cutSeconds(endTime)=='24:00'){
+                return false
+            }else{
+                return true
+            }
+        },
 
         // 変更
         changeEventName():void{
@@ -774,6 +829,7 @@ export default defineComponent({
             const saveData:Record<string, unknown> = {};
             saveData["startDate"] = this.startDate;
             this.saveUpdateEvent(saveData);
+            this.getHouseMateFuture();
         },
         changeSelectedCategoryId():void{
             const saveData:Record<string, unknown> = {};
@@ -850,6 +906,7 @@ export default defineComponent({
             saveData["startTime"] = this.startTime;
             saveData["endTime"] = this.endTime;
             this.saveUpdateEvent(saveData);
+            this.getHouseMateFuture();
         },
         checkEditing(data:any):boolean{
             const blankHour = data?.HH == "";
@@ -926,6 +983,11 @@ export default defineComponent({
                 "targetUserIds": this.selectedHousemate,
                 "msg": this.manualMsg,
             }));
+            // 通知送ったよのメッセージを出す
+            this.alertCss = "alert-success";
+            this.alertMsg = "追加通知を送りました。";
+            this.alertDisplayTime = 5000;
+            this.refs.alert.open();
         }
     }
 })

@@ -380,7 +380,7 @@ export default defineComponent({
             const tempData:event[] = [];
             for (const key in data) {
                 const targetData = data[key];
-                if(!this.checkEndTime(targetData.startDateAtJp, targetData.endTime)){
+                if(!this.checkEndTime(targetData.startDate, targetData.endTime)){
                     continue;
                 }
 
@@ -390,11 +390,11 @@ export default defineComponent({
                     recruitmentNumbersLower: targetData.recruitmentNumbersLower,
                     recruitmentNumbersUpper: targetData.recruitmentNumbersUpper,
                     location: targetData.location,
-                    startDate: targetData.startDateAtJp,
+                    startDate: targetData.startDate,
                     startTime: targetData.startTime,
                     endTime: targetData.endTime,
-                    displayDay: this.setDisplayDay(targetData.startDateAtJp),
-                    displayTime: this.setDisplayTime(targetData.startDateAtJp, targetData.startTime, targetData.endTime),
+                    displayDay: this.setDisplayDay(targetData.startDate),
+                    displayTime: this.setDisplayTime(targetData.startDate, targetData.startTime, targetData.endTime),
                     categoryId: targetData.categoryId,
                     detail: targetData.detail,
                     userIds: targetData.userIds

@@ -162,14 +162,19 @@ export default createStore<State>({
     setWebsocket(context, websocket){
       context.commit('setWebsocket', websocket);
     },
-    connectWebsocket(context){
-      navigator.serviceWorker.ready.then( registration => {
-        registration.active?.postMessage({
-          type: "connectWebsocket",
-          token: localStorage.getItem("token"),
-          userId: context.state.userId
+    async connectWebsocket(context){
+      const { checkNoticePermission } = utils();
+      const permission = await checkNoticePermission();
+      if(permission){
+        navigator.serviceWorker.ready.then( registration => {
+          registration.active?.postMessage({
+            type: "connectWebsocket",
+            token: localStorage.getItem("token"),
+            userId: context.state.userId
+          });
         });
-      });
+      }
+      
 
       if(context.state.websocket != null) {
         return;

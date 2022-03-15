@@ -40,7 +40,10 @@
                     <div v-if = "isHouseMateDisplay(value.nowStatus)" class="housemate">
                         <div class="icon_area"><Icon :userId="value.id" /></div>
                         <div>{{value.name}}</div>
-                        <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
+                        <div v-if="isDisplayTime(value.noticableStartTime,value.noticableEndTime)">
+                            {{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}
+                        </div>
+                        <div v-else>ヒマなし</div>
                     </div>
                 </div>
             </div>
@@ -390,6 +393,13 @@ export default defineComponent({
                 }
             });
             return houseMateList;
+        },
+        isDisplayTime(startTime:string,endTime:string):boolean{
+            if(this.cutSeconds(startTime) == '00:00' && this.cutSeconds(endTime)=='24:00'){
+                return false
+            }else{
+                return true
+            }
         },
     }
 })

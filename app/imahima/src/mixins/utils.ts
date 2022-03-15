@@ -99,8 +99,10 @@ export default function utils():Record<string, any> {
       }
       if (Notification.permission === "granted") {
           return true;
+      }else if(Notification.permission === "denied"){
+          return false;
       }else{
-          // 許可されてないので許可を依頼する
+          // 意思表示前なので許可を依頼する
           const result = await Notification.requestPermission();
           return result === "granted";
       }
