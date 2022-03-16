@@ -220,7 +220,7 @@
             
         }
         .talk_content{
-            height: 150px;
+            height: 260px;
             background-color: var(--content-bg-color);
             border-radius: 0px 0px 8px 8px;
             .talk_field{
@@ -349,6 +349,9 @@ export default defineComponent({
             }
         },
         sendTalk():void{
+            if(!this.inputText){
+                return
+            }
             this.sendWebsocket(JSON.stringify({
                 "type": "talk",
                 "houseId": this.$store.state.houseId,
