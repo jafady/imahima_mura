@@ -214,7 +214,7 @@
                     }
                     .title_area{
                         overflow: auto;
-                        font-size: 13px;
+                        font-size: 10px;
                         font-weight: bold;
                         height: 40px;
                     }
