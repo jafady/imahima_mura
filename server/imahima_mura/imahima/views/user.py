@@ -83,7 +83,7 @@ class UsersFuture(APIView):
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
                     'todayStartTime','todayEndTime','nowStatus'
                     )
-        info_with_ongame = setOngameAtUsers(users = infos)
+        info_with_ongame = setOngameAtUsers(users = infos,target_datetime=invited_datetime)
         
         for info in info_with_ongame:
             if info['nowStatus'] == 'ヒマ':
