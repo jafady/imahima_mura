@@ -320,7 +320,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_noticable_time(self,userId):
         # ヒマ/予定ではヒマの期間取得
-        user_base_info = User.objects.get_base_info()\
+        user_base_info = User.objects.get_base_info(target_day=datetime.datetime.now())\
                 .filter(id=userId)\
                 .values('id','username',
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
