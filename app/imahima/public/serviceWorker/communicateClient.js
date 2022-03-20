@@ -211,9 +211,11 @@ const checkCanNoticeOnlineMembers = async (data) => {
   const houseId = data.houseId;
   if(state.latestNoticeData[houseId] == undefined){
     // init
+    const initialDate = new Date();
+    initialDate.setMinutes( initialDate.getMinutes() - state.noticeIntervalMinOM - 1);
     state.latestNoticeData[data.houseId] = {
       houseId: houseId,
-      latestNoticeTimeOM: new Date(),
+      latestNoticeTimeOM: initialDate,
       latestNoticeHouseMatesNumOM: 0
     }
   }
