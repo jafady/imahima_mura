@@ -21,6 +21,7 @@ export interface State {
   houseId: string,
   houseMates: houseMates,
   websocket: WebSocket | null,
+  websocketOnMessage: (()=>any) | null,
 }
 
 export default createStore<State>({
@@ -33,6 +34,7 @@ export default createStore<State>({
     houseId: "",
     houseMates: {},
     websocket: null,
+    websocketOnMessage: null,
   },
   mutations: {
     clear(state) {
@@ -85,6 +87,7 @@ export default createStore<State>({
     },
     setWebsocket(state, websocket){
       state.websocket = websocket;
+      state.websocketOnMessage = websocket.onmessage;
     },
     
   },
@@ -162,24 +165,32 @@ export default createStore<State>({
     setWebsocket(context, websocket){
       context.commit('setWebsocket', websocket);
     },
-    async connectWebsocket(context){
+    async connectWebsocket(context, reconnectFlg){
+      // トークンがなければ接続しない(ログアウトでは再接続を試みない)
+      const token = localStorage.getItem("token");
+      if(!token){
+        return;
+      }
       const { checkNoticePermission } = utils();
       const permission = await checkNoticePermission();
       if(permission){
         navigator.serviceWorker.ready.then( registration => {
           registration.active?.postMessage({
             type: "connectWebsocket",
-            token: localStorage.getItem("token"),
-            userId: context.state.userId
+            token: token,
+            userId: context.state.userId,
+            reconnectFlg: reconnectFlg,
           });
         });
       }
       
-
+      if(reconnectFlg){
+        // 再接続するのでwebsocketインスタンスを消す
+        context.commit('disconnectWebsocket');
+      }
       if(context.state.websocket != null) {
         return;
       }
-      const token = localStorage.getItem("token");
       const socket = new WebSocket(
           process.env.VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL
           +"://"
@@ -188,12 +199,11 @@ export default createStore<State>({
           + "?token="
           + token
       );
-      socket.onmessage = (e)=>{
-          const data = JSON.parse(e.data);
+      if(context.state.websocketOnMessage){
+        socket.onmessage = context.state.websocketOnMessage;
       }
       socket.onclose = (e) => {
-          console.error("Chat socket closed unexpectedly");
-          context.dispatch("connectWebSocket");
+          setTimeout(()=>{context.dispatch("connectWebsocket",true)},1000);
       }
 
       context.commit('setWebsocket', socket);

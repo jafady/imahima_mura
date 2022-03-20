@@ -76,7 +76,7 @@ router.beforeEach((to, from, next) => {
           userToken: localStorage.getItem('token')
         });
         // websocket疎通確認&接続
-        Store.dispatch("connectWebsocket");
+        Store.dispatch("connectWebsocket",false);
         next();
       }).catch(()=>{
         Store.dispatch("clear");
@@ -89,7 +89,7 @@ router.beforeEach((to, from, next) => {
   } else {
     // websocket疎通確認&接続
     if(localStorage.getItem("token")){
-      Store.dispatch("connectWebsocket");
+      Store.dispatch("connectWebsocket",false);
     }
     next();
   }

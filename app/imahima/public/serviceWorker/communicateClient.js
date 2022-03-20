@@ -31,6 +31,7 @@ self.addEventListener('message', event => {
   }
   if(event.data.type == "disconnectWebsocket" ){
     state.websocket.close();
+    state.websocket = null;
   }
 });
 
@@ -88,10 +89,14 @@ const waitWSConnection = (callback, interval) => {
   if (ws.readyState === 1) {
     callback();
   } else {
-      // optional: implement backoff for interval here
-      setTimeout(function () {
-        waitWSConnection(callback, interval);
-      }, interval);
+    if(ws.readyState === 3){
+      // closed(再接続する)
+      connectWebsocket({reconnectFlg:true});
+    }
+    // connectingとclosingは動作の完了を待ってリトライ
+    setTimeout(function () {
+      waitWSConnection(callback, interval);
+    }, interval);
   }
 }
 
@@ -105,10 +110,17 @@ const sendWebsocket = (message) => {
 
 // websocket接続
 const connectWebsocket = (data) => {
-  if(data.token == null || state.websocket != null) {
+  if(state.userToken == null){
     return;
   }
-  const token = data.token;
+  if(data.reconnectFlg){
+    // 再接続するのでwebsocketインスタンスを消す
+    state.websocket = null;
+  }
+  if(state.websocket != null) {
+    return;
+  }
+  const token = state.userToken;
   const socket = new WebSocket(
       VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL
       + "://"
@@ -130,8 +142,7 @@ const connectWebsocket = (data) => {
       }
   }
   socket.onclose = (e) => {
-      console.error("Chat socket closed unexpectedly");
-      connectWebsocket();
+      setTimeout(()=>{ connectWebsocket({reconnectFlg:true}) },1000);
   }
   state.websocket = socket;
 }
@@ -211,9 +222,11 @@ const checkCanNoticeOnlineMembers = async (data) => {
   const houseId = data.houseId;
   if(state.latestNoticeData[houseId] == undefined){
     // init
+    const initialDate = new Date();
+    initialDate.setMinutes( initialDate.getMinutes() - state.noticeIntervalMinOM - 1);
     state.latestNoticeData[data.houseId] = {
       houseId: houseId,
-      latestNoticeTimeOM: new Date(),
+      latestNoticeTimeOM: initialDate,
       latestNoticeHouseMatesNumOM: 0
     }
   }

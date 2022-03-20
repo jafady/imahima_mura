@@ -83,7 +83,7 @@ class UsersFuture(APIView):
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
                     'todayStartTime','todayEndTime','nowStatus'
                     )
-        info_with_ongame = setOngameAtUsers(users = infos)
+        info_with_ongame = setOngameAtUsers(users = infos,target_datetime=invited_datetime)
         
         for info in info_with_ongame:
             if info['nowStatus'] == 'ヒマ':
@@ -100,7 +100,7 @@ class UserBaseInfo(APIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, userId):
-        info = User.objects.get_base_info()\
+        info = User.objects.get_base_info(target_day=datetime.datetime.now())\
                 .filter(id=userId)\
                 .values('id','username',
                     'userSetting__icon',
@@ -108,7 +108,7 @@ class UserBaseInfo(APIView):
                     'todayStartTime','todayEndTime','nowStatus'
                     )
 
-        info_with_ongame = setOngameAtUsers(users = info)
+        info_with_ongame = setOngameAtUsers(users = info,target_datetime = datetime.datetime.now())
         
         res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
@@ -145,7 +145,7 @@ class UserList(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     def get(self, request, houseId):
         # 返す値：userid,username,icon,ステータス,今日のヒマ時間        
-        info = User.objects.get_base_info()\
+        info = User.objects.get_base_info(target_day=datetime.datetime.now())\
                 .filter(housemate__houseId=houseId,housemate__isApproved=True)\
                 .values('id','username',
                     'userSetting__icon',
@@ -154,7 +154,7 @@ class UserList(APIView):
                     )
         
         
-        info_with_ongame = setOngameAtUsers(users = info)
+        info_with_ongame = setOngameAtUsers(users = info,target_datetime = datetime.datetime.now())
                 
         res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")

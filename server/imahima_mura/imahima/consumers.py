@@ -203,12 +203,16 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         print('event_create')
         # 自分には送らない
         if self.user.id == event['userId']:
+            print('event_create 自分なので送らない ' + self.user.id)
             return
         # ターゲットユーザに含まれていないならはじく
+        print(event['targetUserIds'])
         if self.user.id not in event['targetUserIds']:
+            print('event_create ターゲットユーザに含まれていないので送らない ' + self.user.id)
             return
         # カテゴリが通知許可されていないならはじく
         if not await self.check_category(userId=self.user.id, categoryId=event['categoryId']):
+            print('event_create カテゴリ許可されていないので送らない ' + self.user.id)
             return
         
         # 時間がそろっているうちに何秒待つかもここで計算する
@@ -216,6 +220,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         print('noticable_time')
         print(noticable_time)
         if noticable_time is None:
+            print('event_create noticable_time is Noneので送らない ' + self.user.id)
             return
         # 通知秒
         notice_second = 0
@@ -241,9 +246,11 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         print(self.user.id)
         # 自分には送らない
         if self.user.id == event['userId']:
+            print('event_manual_notice 自分なので送らない ' + self.user.id)
             return
         # ターゲットユーザに含まれていないならはじく
         if self.user.id not in event['targetUserIds']:
+            print('event_manual_notice ターゲットユーザに含まれていないので送らない ' + self.user.id)
             return
         
         # 時間がそろっているうちに何秒待つかもここで計算する
@@ -260,6 +267,8 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             diff_time = noticable_time - datetime.datetime.now()
             notice_second = diff_time.seconds
         print(notice_second)
+
+        # notice_second=0
         
         await self.send(text_data=json.dumps({
             'type': 'receiveManualMessage',
@@ -311,7 +320,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_noticable_time(self,userId):
         # ヒマ/予定ではヒマの期間取得
-        user_base_info = User.objects.get_base_info()\
+        user_base_info = User.objects.get_base_info(target_day=datetime.datetime.now())\
                 .filter(id=userId)\
                 .values('id','username',
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
@@ -327,26 +336,34 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     )
         print('データ取得')
 
-        userSetting__statusValidDateTime_str = [str(data['userSetting__statusValidDateTime']) for data in user_base_info][0]
+        userSetting__statusValidDateTime = [data['userSetting__statusValidDateTime'] for data in user_base_info][0]
         userSetting__statusId__statusName = [str(data['userSetting__statusId__statusName']) for data in user_base_info][0]
-        todayStartTime_str = [str(data['todayStartTime']) for data in user_base_info][0]
-        todayEndTime_str = [str(data['todayEndTime']) for data in user_base_info][0]
+        todayStartTime = [data['todayStartTime'] for data in user_base_info][0]
+        todayEndTime = [data['todayEndTime'] for data in user_base_info][0]
 
-        nextDayStartTime_str = [str(data['todayStartTime']) for data in user_base_info_next_day][0]
+        nextDayStartTime = [data['todayStartTime'] for data in user_base_info_next_day][0]
 
         now = datetime.datetime.now()
-        
-        userSetting__statusValidDateTime = datetime.datetime.strptime(userSetting__statusValidDateTime_str, '%Y-%m-%d %H:%M:%S%z')
+        print(userSetting__statusValidDateTime)
+        print(type(userSetting__statusValidDateTime))
+        # userSetting__statusValidDateTime = userSetting__statusValidDateTime_str
+        # userSetting__statusValidDateTime = datetime.datetime.strptime(userSetting__statusValidDateTime_str, '%Y-%m-%d %H:%M:%S.%f%z')
         userSetting__statusValidDateTime = datetime.datetime.today().replace(year=userSetting__statusValidDateTime.year, month=userSetting__statusValidDateTime.month, day=userSetting__statusValidDateTime.day,
                                                                             hour=userSetting__statusValidDateTime.hour, minute=userSetting__statusValidDateTime.minute, second=userSetting__statusValidDateTime.second)
-        
-        todayStartTime = datetime.datetime.strptime(todayStartTime_str, '%H:%M:%S')
+        print(todayStartTime)
+        # todayStartTime = datetime.datetime.strptime(todayStartTime_str, '%H:%M:%S')
         todayStartTime = datetime.datetime.today().replace(hour=todayStartTime.hour, minute=todayStartTime.minute, second=todayStartTime.second)
 
-        todayEndTime = datetime.datetime.strptime(todayEndTime_str, '%H:%M:%S')
+        print(todayEndTime)
+        print(type(todayEndTime))
+        # todayEndTime = todayEndTime_str
+        # todayEndTime = datetime.datetime.strptime(todayEndTime_str, '%H:%M:%S')
         todayEndTime = datetime.datetime.today().replace(hour=todayEndTime.hour, minute=todayEndTime.minute, second=todayEndTime.second)
 
-        nextDayStartTime = datetime.datetime.strptime(nextDayStartTime_str, '%H:%M:%S')
+        print(nextDayStartTime)
+        print(type(nextDayStartTime))
+        # nextDayStartTime = nextDayStartTime_str
+        # nextDayStartTime = datetime.datetime.strptime(nextDayStartTime_str, '%H:%M:%S')
         nextDayStartTime = datetime.datetime.today().replace(hour=nextDayStartTime.hour, minute=nextDayStartTime.minute, second=nextDayStartTime.second) + datetime.timedelta(days = 1)
 
         noticeTime = datetime.datetime.strptime('20:00', '%H:%M')

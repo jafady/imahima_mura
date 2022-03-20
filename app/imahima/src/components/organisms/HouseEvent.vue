@@ -214,7 +214,7 @@
                     }
                     .title_area{
                         overflow: auto;
-                        font-size: 13px;
+                        font-size: 10px;
                         font-weight: bold;
                         height: 40px;
                     }
@@ -431,12 +431,13 @@ export default defineComponent({
             if(targetDay.getFullYear() == today.getFullYear() 
                 && targetDay.getMonth() == today.getMonth() 
                 && targetDay.getDate() == today.getDate()){
-                    res = "";
+                    res = "今日";
                     return res;
             }
-            // 過去でも出さない
+            // 過去でも出さない(そもそもデータ取得はしていないが一応。。)
             if(today.getTime() > targetDay.getTime()){
-                res = "";
+                // 過去は曜日付き
+                res = (targetDay.getMonth() +1) + "/" + targetDay.getDate() + "(" + week + ")";
                 return res;
             }
 

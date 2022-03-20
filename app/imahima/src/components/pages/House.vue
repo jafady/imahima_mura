@@ -374,6 +374,7 @@ export default defineComponent({
             e.stopPropagation();
             if(this.$store.state.userStatus == "hima" || this.$store.state.userStatus == "ongame"){
                 this.houseMode = "friend";
+                this.talkScrollEnd();
             }else{
                 this.houseMode = "event";
                 this.refs.statusSettingModal.openModal(true);
