@@ -77,11 +77,15 @@ export default function utils():Record<string, any> {
     if (!ws) return;
     if (ws.readyState === 1) {
       callback();
-    } else {
-        // optional: implement backoff for interval here
-        setTimeout(function () {
-          waitWSConnection(callback, interval);
-        }, interval);
+    } else{
+      if(ws.readyState === 3){
+        // closed(再接続する)
+        Store.dispatch("connectWebsocket",true);
+      }
+      // connectingとclosingは動作の完了を待ってリトライ
+      setTimeout(function () {
+        waitWSConnection(callback, interval);
+      }, interval);
     }
   }
 

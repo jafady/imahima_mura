@@ -3,7 +3,7 @@
 import { register } from 'register-service-worker'
 
 // サービスワーカーを更新させるための無意味な式(変更した場合はバージョンを繰り上げること)
-const version = 0;
+const version = 1;
 
 if (process.env.NODE_ENV === 'production') {
   register(`${process.env.BASE_URL}service-worker.js`, {
