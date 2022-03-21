@@ -27,6 +27,8 @@
 
 <style lang="scss">
 .mypage_icon{
+    -webkit-appearance: none!important;
+    appearance: none!important;
     font-family: var(--font-family);
     height: 100px;
     width: 100px;
