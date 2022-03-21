@@ -120,6 +120,7 @@
 
 <style lang="scss">
 .CHEM_modal{
+    font-family: var(--font-family);
     max-height: 90%!important;
     border: none!important;
     background-color: revert!important;
@@ -260,7 +261,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                     padding: 7px;
                 }
             }
@@ -274,7 +275,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                 }
             }
             .category_area{
@@ -310,7 +311,7 @@
                 .housemate{
                     width: 80px;
                     margin-right: 10px;
-                    font-size: 13px;
+                    font-size: 10px;
                     font-weight: bold;
                     .icon_area{
                         height:60px;

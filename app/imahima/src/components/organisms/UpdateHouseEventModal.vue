@@ -89,7 +89,7 @@
                                             <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
                                                 <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
-                                                    <div>{{value.name}}</div>
+                                                    <div class="mt-2">{{value.name}}</div>
                                                     <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
                                                 </div>
                                             </div>
@@ -102,7 +102,7 @@
                                             <div v-for="(value) in houseMateListBusy" v-bind:key="value.id">
                                                 <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
-                                                    <div>{{value.name}}</div>
+                                                    <div class="mt-2">{{value.name}}</div>
                                                     <div v-if="isDisplayTime(value.noticableStartTime,value.noticableEndTime)">
                                                         {{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}
                                                     </div>
@@ -157,6 +157,7 @@
 
 <style lang="scss">
 .UHEM_modal{
+    font-family: var(--font-family);
     max-height: 90%!important;
     border: none!important;
     background-color: revert!important;
@@ -307,7 +308,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                     padding: 7px;
                 }
             }
@@ -321,7 +322,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                 }
             }
             .category_area{
@@ -377,7 +378,7 @@
                 .housemate{
                     width: 80px;
                     margin-right: 10px;
-                    font-size: 13px;
+                    font-size: 10px;
                     font-weight: bold;
                     border-radius: 4px;
                     padding-top: 5px;

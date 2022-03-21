@@ -42,6 +42,7 @@
     margin: unset!important;
 }
 .SMM_modal{
+    font-family: var(--font-family);
     max-height: 90%!important;
     width: 200px!important;
     border: none!important;

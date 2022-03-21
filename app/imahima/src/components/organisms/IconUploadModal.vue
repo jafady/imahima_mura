@@ -27,6 +27,7 @@
 
 <style lang="scss">
 .mypage_icon{
+    font-family: var(--font-family);
     height: 100px;
     width: 100px;
     border-radius: 50%;

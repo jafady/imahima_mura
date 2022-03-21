@@ -62,6 +62,7 @@
     overflow: unset!important;
 }
 .SSM_body{
+    font-family: var(--font-family);
     padding-bottom: 0!important;
     background-color: var(--content-bg-color);
     overflow: unset!important;
@@ -106,7 +107,7 @@
                 height: 40px;
                 border: none;
                 border-radius: 8px;
-                font-family: "游ゴシック";
+                font-family: var(--font-family);
                 text-align: center;
             }
 
@@ -116,7 +117,7 @@
                 border: none;
                 border-radius: 8px;
                 margin-left: 20px;
-                font-family: "游ゴシック";
+                font-family: var(--font-family);
                 text-align: center;
             }
             
