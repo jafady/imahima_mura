@@ -335,9 +335,7 @@
                     border-radius: 8px;
                     border: none;
                     background-color: white;
-                    background-position-x: 99%;
-                    padding: 7px;
-                    appearance: none;
+                    padding-left: 7px;
                 }
                 .category_select:disabled{
                     opacity: 0.5;
