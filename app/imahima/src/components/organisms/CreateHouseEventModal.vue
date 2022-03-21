@@ -325,7 +325,7 @@
         .create_event{
             width: 90%;
             margin: 0 auto;
-            text-align-last: center;
+            text-align: center;
             .btn_create_event{
                 width: 80%;
                 height: 55px;

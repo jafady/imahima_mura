@@ -264,7 +264,7 @@
                     }
                 }
                 .my_talk{
-                    justify-content: right;
+                    justify-content: flex-end;
                     .icon_area{
                         margin-left: 10px;
                     }

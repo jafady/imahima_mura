@@ -414,7 +414,7 @@
             .send_notice{
                 width: 90%;
                 margin: 0 auto;
-                text-align-last: center;
+                text-align: center;
                 .btn_send_notice{
                     width: 70%;
                     height: 55px;
@@ -442,7 +442,7 @@
         .join_event{
             width: 90%;
             margin: 0 auto;
-            text-align-last: center;
+            text-align: center;
             .btn_join_event{
                 width: 80%;
                 height: 55px;
@@ -471,7 +471,7 @@
         .leave_event{
             width: 90%;
             margin: 0 auto;
-            text-align-last: center;
+            text-align: center;
             .btn_leave_event{
                 width: 80%;
                 height: 55px;
