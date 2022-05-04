@@ -116,9 +116,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             )
         
         if msg_type == 'createEvent':
-            await self.channel_layer.group_send(
-                room_group_name,
-                {
+            await self.send_event_create_notice({
                     'type': 'event.create',
                     'houseId': data_json['houseId'],
                     'userId': self.user.id,
@@ -127,8 +125,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'eventName': data_json['eventName'],
                     'categoryId': data_json['categoryId'],
                     'targetUserIds': data_json['targetUserIds'],
-                }
-            )
+                })
         
         if msg_type == 'sendManualNotice':
             await self.send_manual_notice({
@@ -195,50 +192,51 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             'houseId': event['houseId'],
         }))
     
-    # イベント作成に伴う通知
-    async def event_create(self, event):
-        print('event_create')
-        # 自分には送らない
-        if self.user.id == event['userId']:
-            print('event_create 自分なので送らない ' + self.user.id)
-            return
-        # ターゲットユーザに含まれていないならはじく
-        print(event['targetUserIds'])
-        if self.user.id not in event['targetUserIds']:
-            print('event_create ターゲットユーザに含まれていないので送らない ' + self.user.id)
-            return
-        # カテゴリが通知許可されていないならはじく
-        if not await self.check_category(userId=self.user.id, categoryId=event['categoryId']):
-            print('event_create カテゴリ許可されていないので送らない ' + self.user.id)
-            return
-        
-        # 時間がそろっているうちに何秒待つかもここで計算する
-        noticable_time = await self.get_noticable_time(userId=self.user.id)
-        print('noticable_time')
-        print(noticable_time)
-        if noticable_time is None:
-            print('event_create noticable_time is Noneので送らない ' + self.user.id)
-            return
-        # 通知秒
-        notice_second = 0
-        if noticable_time == 0:
-            notice_second = 0
-        else:
-            diff_time = noticable_time - datetime.datetime.now()
-            notice_second = diff_time.seconds
-
-
-        await self.send(text_data=json.dumps({
-            'type': 'receiveCreateEvent',
-            'houseId': event['houseId'],
-            'eventId': event['eventId'],
-            'eventName': event['eventName'],
-            'userId': self.user.id,
-            'noticeSecond': notice_second,
-        }))
     
     # 通知処理
     # websocketの送信側で処理を行う
+
+    # イベント作成に伴う通知
+    async def send_event_create_notice(self, event):
+        print('イベント作成通知送信')
+
+        for targetUserId in event['targetUserIds']:
+            # 自分には送らない
+            if targetUserId == self.user.id:
+                print('event_create 自分なので送らない ' + targetUserId)
+                continue
+                
+            # カテゴリが通知許可されていないならはじく
+            if not await self.check_category(userId=targetUserId, categoryId=event['categoryId']):
+                print('event_create カテゴリ許可されていないので送らない ' + targetUserId)
+                continue
+        
+            # 時間がそろっているうちに何秒待つかもここで計算する
+            noticable_time = await self.get_noticable_time(userId=targetUserId)
+            print('noticable_time')
+            print(noticable_time)
+            if noticable_time is None:
+                print('event_create noticable_time is Noneので送らない ' + targetUserId)
+                continue
+            # 通知秒
+            notice_second = 0
+            if noticable_time == 0:
+                notice_second = 0
+            else:
+                diff_time = noticable_time - datetime.datetime.now()
+                notice_second = diff_time.seconds
+            
+            await self.send_WebPushDevice(targetUserId,
+                json.dumps({
+                    'type': 'receiveCreateEvent',
+                    'houseId': event['houseId'],
+                    'eventId': event['eventId'],
+                    'eventName': event['eventName'],
+                    'userId': targetUserId,
+                    'noticeSecond': notice_second,
+                })
+            )
+            print('イベント作成通知送った '+targetUserId)
 
     # 手動メッセージを送信する
     async def send_manual_notice(self, event):
@@ -251,7 +249,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             print('noticable_time')
             print(noticable_time)
             if noticable_time is None:
-                return
+                continue
             # 通知秒
             notice_second = 0
             if noticable_time == 0:

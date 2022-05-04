@@ -710,7 +710,7 @@ export default defineComponent({
                 "houseId": this.$store.state.houseId
             }));
 
-            // 時間ごとの人表示の実装までは固定で。
+            // ヒマ予定の人をターゲットとして通知する
             if(this.houseMateListMaybe.length < 1){
                 return;
             }
