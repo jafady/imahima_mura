@@ -9,6 +9,7 @@ import pytz
 from channels.db import database_sync_to_async
 
 from .models import House,HouseMate,User,UserSetting,UserSelectCategory
+from push_notifications.models import WebPushDevice
 # websocketのリクエスト受信
 class ImahimaConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -130,10 +131,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             )
         
         if msg_type == 'sendManualNotice':
-            await self.channel_layer.group_send(
-                room_group_name,
-                {
-                    'type': 'event.manual.notice',
+            await self.send_manual_notice({
                     'houseId': data_json['houseId'],
                     'userId': self.user.id,
                     'userName': self.user.username,
@@ -141,8 +139,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'eventName': data_json['eventName'],
                     'targetUserIds': data_json['targetUserIds'],
                     'msg': data_json['msg'],
-                }
-            )
+                })
         
     # Receive message from room group
     # 誰かが家に参加した
@@ -240,48 +237,48 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             'noticeSecond': notice_second,
         }))
     
-    # イベントに紐づく手動メッセージを受領する
-    async def event_manual_notice(self, event):
-        print('手動メッセージ受領')
-        print(self.user.id)
-        # 自分には送らない
-        if self.user.id == event['userId']:
-            print('event_manual_notice 自分なので送らない ' + self.user.id)
-            return
-        # ターゲットユーザに含まれていないならはじく
-        if self.user.id not in event['targetUserIds']:
-            print('event_manual_notice ターゲットユーザに含まれていないので送らない ' + self.user.id)
-            return
-        
-        # 時間がそろっているうちに何秒待つかもここで計算する
-        noticable_time = await self.get_noticable_time(userId=self.user.id)
-        print('noticable_time')
-        print(noticable_time)
-        if noticable_time is None:
-            return
-        # 通知秒
-        notice_second = 0
-        if noticable_time == 0:
-            notice_second = 0
-        else:
-            diff_time = noticable_time - datetime.datetime.now()
-            notice_second = diff_time.seconds
-        print(notice_second)
+    # 通知処理
+    # websocketの送信側で処理を行う
 
-        # notice_second=0
-        
-        await self.send(text_data=json.dumps({
-            'type': 'receiveManualMessage',
-            'houseId': event['houseId'],
-            'eventId': event['eventId'],
-            'eventName': event['eventName'],
-            'userName': event['userName'],
-            'noticeSecond': notice_second,
-            'msg': event['msg'],
-        }))
+    # 手動メッセージを送信する
+    async def send_manual_notice(self, event):
+        print('手動メッセージ送信')
+
+        # ターゲットユーザ分だけ通知処理を行う。待機時間の計算はそれぞれなので個別
+        for targetUserId in event['targetUserIds']:
+            # 時間がそろっているうちに何秒待つかもここで計算する
+            noticable_time = await self.get_noticable_time(userId=targetUserId)
+            print('noticable_time')
+            print(noticable_time)
+            if noticable_time is None:
+                return
+            # 通知秒
+            notice_second = 0
+            if noticable_time == 0:
+                notice_second = 0
+            else:
+                diff_time = noticable_time - datetime.datetime.now()
+                notice_second = diff_time.seconds
+            print(notice_second)
+
+            # notice_second=0
+            await self.send_WebPushDevice(targetUserId,
+                json.dumps({
+                    'type': 'receiveManualMessage',
+                    'houseId': event['houseId'],
+                    'eventId': event['eventId'],
+                    'eventName': event['eventName'],
+                    'userName': event['userName'],
+                    'noticeSecond': notice_second,
+                    'msg': event['msg'],
+                })
+            )
+            print('手動メッセージ送った '+targetUserId)
     
 
     # 共通処理
+
+    # websocketの部屋名取得
     def get_room_group_name(self,houseId):
         return 'socket_%s' % houseId
 
@@ -334,7 +331,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'userSetting__statusValidDateTime','userSetting__statusId__statusName',
                     'todayStartTime','todayEndTime','nowStatus'
                     )
-        print('データ取得')
+        # print('データ取得')
 
         userSetting__statusValidDateTime = [data['userSetting__statusValidDateTime'] for data in user_base_info][0]
         userSetting__statusId__statusName = [str(data['userSetting__statusId__statusName']) for data in user_base_info][0]
@@ -344,24 +341,24 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         nextDayStartTime = [data['todayStartTime'] for data in user_base_info_next_day][0]
 
         now = datetime.datetime.now()
-        print(userSetting__statusValidDateTime)
-        print(type(userSetting__statusValidDateTime))
+        # print(userSetting__statusValidDateTime)
+        # print(type(userSetting__statusValidDateTime))
         # userSetting__statusValidDateTime = userSetting__statusValidDateTime_str
         # userSetting__statusValidDateTime = datetime.datetime.strptime(userSetting__statusValidDateTime_str, '%Y-%m-%d %H:%M:%S.%f%z')
         userSetting__statusValidDateTime = datetime.datetime.today().replace(year=userSetting__statusValidDateTime.year, month=userSetting__statusValidDateTime.month, day=userSetting__statusValidDateTime.day,
                                                                             hour=userSetting__statusValidDateTime.hour, minute=userSetting__statusValidDateTime.minute, second=userSetting__statusValidDateTime.second)
-        print(todayStartTime)
+        # print(todayStartTime)
         # todayStartTime = datetime.datetime.strptime(todayStartTime_str, '%H:%M:%S')
         todayStartTime = datetime.datetime.today().replace(hour=todayStartTime.hour, minute=todayStartTime.minute, second=todayStartTime.second)
 
-        print(todayEndTime)
-        print(type(todayEndTime))
+        # print(todayEndTime)
+        # print(type(todayEndTime))
         # todayEndTime = todayEndTime_str
         # todayEndTime = datetime.datetime.strptime(todayEndTime_str, '%H:%M:%S')
         todayEndTime = datetime.datetime.today().replace(hour=todayEndTime.hour, minute=todayEndTime.minute, second=todayEndTime.second)
 
-        print(nextDayStartTime)
-        print(type(nextDayStartTime))
+        # print(nextDayStartTime)
+        # print(type(nextDayStartTime))
         # nextDayStartTime = nextDayStartTime_str
         # nextDayStartTime = datetime.datetime.strptime(nextDayStartTime_str, '%H:%M:%S')
         nextDayStartTime = datetime.datetime.today().replace(hour=nextDayStartTime.hour, minute=nextDayStartTime.minute, second=nextDayStartTime.second) + datetime.timedelta(days = 1)
@@ -369,13 +366,13 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         noticeTime = datetime.datetime.strptime('20:00', '%H:%M')
         noticeTime = datetime.datetime.today().replace(hour=noticeTime.hour, minute=noticeTime.minute, second=0)
         noticeTime_nextDay = datetime.datetime.today().replace(hour=noticeTime.hour, minute=noticeTime.minute, second=0) + datetime.timedelta(days = 1)
-        print(noticeTime)
+        # print(noticeTime)
 
-        print('データ取得完了')
-        print('now')
-        print(now)
-        print('todayStartTime')
-        print(todayStartTime)
+        # print('データ取得完了')
+        # print('now')
+        # print(now)
+        # print('todayStartTime')
+        # print(todayStartTime)
         # 期間内とは
         # userSetting__statusValidDateTimeがヒマであれば、今送って大丈夫。
         # userSetting__statusValidDateTimeの範囲内で、ヒマじゃないというなら通知なしでは
@@ -417,8 +414,16 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 else:
                     print('now < 20:00 < todayStartTime')
                     return noticeTime
-
-
-        # 期間内外か
-        # 期間内⇒今送る
-        # 期間外⇒スタートか20:00の早い方
+    
+    
+    # # Webpushの情報を取得しつつ送信
+    @database_sync_to_async
+    def send_WebPushDevice(self,targetUserId,data):
+        device = WebPushDevice.objects.filter(user_id=targetUserId)
+        try:
+            device.send_message(data)
+        except:
+            print('不正な宛先があるので最新の一つだけ送る')
+            device = WebPushDevice.objects.filter(user_id=targetUserId).order_by('-id').first()
+            device.send_message(data)
+        return True

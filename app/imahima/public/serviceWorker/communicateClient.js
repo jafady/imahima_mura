@@ -17,6 +17,9 @@ const STATUS = {
   ongame: "ゲーム中"
 }
 
+// websocketを使わないことによるコメントアウト
+// 完全に消すのは全ての通知機能の移管が終わってから。
+
 // クライアントからのアクセスの制御
 self.addEventListener('message', event => {
   // event は ExtendableMessageEvent オブジェクトです
@@ -24,15 +27,15 @@ self.addEventListener('message', event => {
   if(event.data.type == "connectWebsocket" ){
     state.userToken = event.data.token || state.userToken;
     state.userId = event.data.userId || state.userId;
-    connectWebsocket(event.data);
+    // connectWebsocket(event.data);
   }
-  if(event.data.type == "addConnect" ){
-    addConnect(event.data.houseId);
-  }
-  if(event.data.type == "disconnectWebsocket" ){
-    state.websocket.close();
-    state.websocket = null;
-  }
+  // if(event.data.type == "addConnect" ){
+  //   addConnect(event.data.houseId);
+  // }
+  // if(event.data.type == "disconnectWebsocket" ){
+  //   state.websocket.close();
+  //   state.websocket = null;
+  // }
 });
 
 
@@ -83,76 +86,91 @@ async function fetchPostData(url = "", data = {}) {
   return response.json(); // JSON のレスポンスをネイティブの JavaScript オブジェクトに解釈
 }
 
-const waitWSConnection = (callback, interval) => {
-  const ws = state.websocket;
-  if (!ws) return;
-  if (ws.readyState === 1) {
-    callback();
-  } else {
-    if(ws.readyState === 3){
-      // closed(再接続する)
-      connectWebsocket({reconnectFlg:true});
-    }
-    // connectingとclosingは動作の完了を待ってリトライ
-    setTimeout(function () {
-      waitWSConnection(callback, interval);
-    }, interval);
-  }
-}
+// const waitWSConnection = (callback, interval) => {
+//   const ws = state.websocket;
+//   if (!ws) return;
+//   if (ws.readyState === 1) {
+//     callback();
+//   } else {
+//     if(ws.readyState === 3){
+//       // closed(再接続する)
+//       connectWebsocket({reconnectFlg:true});
+//     }
+//     // connectingとclosingは動作の完了を待ってリトライ
+//     setTimeout(function () {
+//       waitWSConnection(callback, interval);
+//     }, interval);
+//   }
+// }
 
-const sendWebsocket = (message) => {
-  waitWSConnection(()=>{
-    state.websocket?.send(message);
-  }, 1000);
-}
+// const sendWebsocket = (message) => {
+//   waitWSConnection(()=>{
+//     state.websocket?.send(message);
+//   }, 1000);
+// }
 
 
 
-// websocket接続
-const connectWebsocket = (data) => {
-  if(state.userToken == null){
-    return;
-  }
-  if(data.reconnectFlg){
-    // 再接続するのでwebsocketインスタンスを消す
-    state.websocket = null;
-  }
-  if(state.websocket != null) {
-    return;
-  }
-  const token = state.userToken;
-  const socket = new WebSocket(
-      VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL
-      + "://"
-      + VUE_APP_API_ENDPOINT_HOST
-      + "/ws/imahima/"
-      + "?token="
-      + token
-  );
-  socket.onmessage = (e)=>{
-      const data = JSON.parse(e.data);
-      if(data.type == "someOneChangeStatus"){
-        someOneChangeStatus(data);
-      }
-      if(data.type == "receiveCreateEvent"){
-        receiveCreateEvent(data);
-      }
-      if(data.type == "receiveManualMessage"){
-        receiveManualMessage(data);
-      }
-  }
-  socket.onclose = (e) => {
-      setTimeout(()=>{ connectWebsocket({reconnectFlg:true}) },1000);
-  }
-  state.websocket = socket;
-}
+// // websocket接続
+// const connectWebsocket = (data) => {
+//   if(state.userToken == null){
+//     return;
+//   }
+//   if(data.reconnectFlg){
+//     // 再接続するのでwebsocketインスタンスを消す
+//     state.websocket = null;
+//   }
+//   if(state.websocket != null) {
+//     return;
+//   }
+//   const token = state.userToken;
+//   const socket = new WebSocket(
+//       VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL
+//       + "://"
+//       + VUE_APP_API_ENDPOINT_HOST
+//       + "/ws/imahima/"
+//       + "?token="
+//       + token
+//   );
+//   socket.onmessage = (e)=>{
+//       const data = JSON.parse(e.data);
+//       // if(data.type == "someOneChangeStatus"){
+//       //   someOneChangeStatus(data);
+//       // }
+//       // if(data.type == "receiveCreateEvent"){
+//       //   receiveCreateEvent(data);
+//       // }
+//       // if(data.type == "receiveManualMessage"){
+//       //   receiveManualMessage(data);
+//       // }
+//   }
+//   socket.onclose = (e) => {
+//       setTimeout(()=>{ connectWebsocket({reconnectFlg:true}) },1000);
+//   }
+//   state.websocket = socket;
+// }
 
-const addConnect = (houseId) =>{
-  sendWebsocket(JSON.stringify({
-    "type": "addConnect",
-    "houseId": houseId,
-  }));
-}
+// const addConnect = (houseId) =>{
+//   sendWebsocket(JSON.stringify({
+//     "type": "addConnect",
+//     "houseId": houseId,
+//   }));
+// }
+
+// 通知メッセージの受信
+self.addEventListener('push', function(event) {  
+  const response_json = event.data.json();
+  if(response_json.type == "someOneChangeStatus"){
+    someOneChangeStatus(response_json);
+  }
+  if(response_json.type == "receiveCreateEvent"){
+    receiveCreateEvent(response_json);
+  }
+  if(response_json.type == "receiveManualMessage"){
+    receiveManualMessage(response_json);
+  }
+
+});
 
 
 // 通知チェック
