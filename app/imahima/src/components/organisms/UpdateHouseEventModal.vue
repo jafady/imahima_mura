@@ -83,7 +83,7 @@
                             <div class="mb-3" v-if="mode=='in'">
                                 <div class="content_title">開催する時の状況</div>
                                 <div class="UHEM_content">
-                                    <div class="m-1">
+                                    <div class="m-1" v-if="houseMatesFuture.length > 0">
                                         <div class="content_subtitle">予定ではヒマ</div>
                                         <div class="housemate_area">
                                             <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
@@ -96,7 +96,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="m-1 mt-3">
+                                    <div class="m-1 mt-3" v-if="houseMatesFuture.length > 0">
                                         <div class="content_subtitle">ヒマじゃない</div>
                                         <div class="housemate_area">
                                             <div v-for="(value) in houseMateListBusy" v-bind:key="value.id">
@@ -107,6 +107,18 @@
                                                         {{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}
                                                     </div>
                                                     <div v-else>ヒマなし</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="m-1" v-if="houseMatesFuture.length < 1">
+                                        <div class="content_subtitle">友達リスト</div>
+                                        <div class="housemate_area">
+                                            <div v-for="(value) in houseMates" v-bind:key="value.id">
+                                                <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
+                                                    <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
+                                                    <div class="mt-2">{{value.name}}</div>
                                                 </div>
                                             </div>
                                         </div>
