@@ -4,7 +4,9 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.auth import login
 import datetime
+import asyncio
 import pytz
+from django.db.models import Q
 
 from channels.db import database_sync_to_async
 
@@ -95,6 +97,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             )
         
         if msg_type == 'noticeChangeStatus':
+            # ステータス変更の画面側通知
             await self.channel_layer.group_send(
                 room_group_name,
                 {
@@ -104,6 +107,13 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'status': data_json['status'],
                 }
             )
+
+            # ステータス変更の通知
+            await self.send_inclease_members_notice({
+                    'houseId': data_json['houseId'],
+                    'userId': self.user.id,
+                    'status': data_json['status'],
+                })
         
         if msg_type == 'noticeChangeEvent':
             await self.channel_layer.group_send(
@@ -117,7 +127,6 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         
         if msg_type == 'createEvent':
             await self.send_event_create_notice({
-                    'type': 'event.create',
                     'houseId': data_json['houseId'],
                     'userId': self.user.id,
                     'userName': self.user.username,
@@ -195,6 +204,82 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     
     # 通知処理
     # websocketの送信側で処理を行う
+
+    # ステータス変更に伴うヒマ人数増加の通知
+    async def send_inclease_members_notice(self, event):
+        print('ヒマ人数増加通知送信')
+        noticeIntervalMin = 60
+        sendNoticeCount = 0
+
+        # 増えたときだけ通知
+        if event['status'] != 'hima':
+            print('増えてないから終了')
+            return
+        
+        # 通知対象の取得
+        # 同じ家かつ、現時点のステータスが予定ではヒマとヒマが対象
+        targetUsers = await self.get_member_notice_target(event['houseId'])
+
+        # ヒマ人数のカウント(2人以下なら誰にも送らないので終了)
+        himaUsers = [user for user in targetUsers if user['nowStatus'] == 'ヒマ']
+        himaCount = len(himaUsers)
+        if himaCount < 2:
+            print('2人以下なので終了')
+            return
+
+        for targetUser in targetUsers:
+            # 自分には送らない
+            if targetUser['id'] == self.user.id:
+                print('event_create 自分なので送らない ' + targetUser['id'])
+                continue
+            
+            # 時間と人数チェック
+            # 前回記録時から日付が変わっていたら人数カウントリセット
+            lastMemberNoticeNumber = targetUser['housemate__lastMemberNoticeNumber']
+            if targetUser['housemate__lastMemberNoticeTime'].day != datetime.datetime.now().day:
+                print('日付変わった userid:' + targetUser['id'] + ' houseId:'+ event['houseId'])
+                lastMemberNoticeNumber = 0
+            
+            sendFlg = False
+            # 最後送信時の人数から増えていたら送ってOK(かつ2人以上)
+            if lastMemberNoticeNumber < himaCount:
+                sendFlg = True
+            
+            # 前回の通知から規定時間以上経っていたら送ってOK
+            lastMemberNoticeTime = targetUser['housemate__lastMemberNoticeTime'] + datetime.timedelta(minutes = noticeIntervalMin)
+            lastMemberNoticeTime = datetime.datetime.today().replace(year=lastMemberNoticeTime.year, month=lastMemberNoticeTime.month, day=lastMemberNoticeTime.day,
+                                                                            hour=lastMemberNoticeTime.hour, minute=lastMemberNoticeTime.minute, second=lastMemberNoticeTime.second)
+            print('lastMemberNoticeTime ' + lastMemberNoticeTime.strftime('%Y/%m/%d %H:%M:%S'))
+            print('now ' + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'))
+            if lastMemberNoticeTime < datetime.datetime.now():
+                sendFlg = True
+
+            # 通知送信
+            if sendFlg:
+                # 通知送信
+                print('通知送る')
+                await self.send_WebPushDevice(targetUser['id'],
+                    json.dumps({
+                        'type': 'incleaseMembersNotice',
+                        'houseId': event['houseId'],
+                        'count': himaCount,
+                    })
+                )
+                print('通知送った')
+                # 最終送信日時と人数を記録する
+                await self.update_member_notice(event['houseId'],targetUser['id'],himaCount)
+                sendNoticeCount += 1
+
+        
+        # 規定時間経過後にもう一回発火する(誰かひとりにでも送ったら次を仕込む)
+        if sendNoticeCount < 1:
+            print('送ってないのでここで終わり houseId:'+ event['houseId'])
+            return
+        print('一定時間後に試す')
+        await asyncio.sleep(noticeIntervalMin*60)
+        print('次の通知確認')
+        self.send_inclease_members_notice(event)
+
 
     # イベント作成に伴う通知
     async def send_event_create_notice(self, event):
@@ -287,6 +372,29 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         result = House.objects.prefetch_related('HouseMate').filter(housemate__userId=self.scope["user"].id,housemate__isApproved=True).values('id', 'houseName')
         houseId = [str(data['id']) for data in result]
         return houseId
+    
+    # ヒマ人数増加通知の対象取得
+    @database_sync_to_async
+    def get_member_notice_target(self, houseId):
+        print('取得開始' + houseId)
+        user_base_info = User.objects.get_base_info(target_day=datetime.datetime.now())\
+                .prefetch_related('HouseMate')\
+                .filter(housemate__houseId=houseId,housemate__isApproved=True)\
+                .filter(Q(nowStatus='ヒマ')|Q(nowStatus='予定ではヒマ'))\
+                .values('id','username','nowStatus','housemate__lastMemberNoticeTime','housemate__lastMemberNoticeNumber')
+        users = [data for data in user_base_info]
+        return users
+    
+    # ヒマ人数増加通知の記録
+    @database_sync_to_async
+    def update_member_notice(self, houseId,userId,count):
+        print('記録' + houseId)
+        targetHousemate = HouseMate.objects.get(houseId=houseId, userId=userId, isApproved=True)
+        targetHousemate.lastMemberNoticeTime = datetime.datetime.now()
+        targetHousemate.lastMemberNoticeNumber = count
+
+        targetHousemate.save()
+        return True
 
     # カテゴリの通知許可を確認
     @database_sync_to_async
@@ -339,38 +447,17 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
         nextDayStartTime = [data['todayStartTime'] for data in user_base_info_next_day][0]
 
         now = datetime.datetime.now()
-        # print(userSetting__statusValidDateTime)
-        # print(type(userSetting__statusValidDateTime))
-        # userSetting__statusValidDateTime = userSetting__statusValidDateTime_str
-        # userSetting__statusValidDateTime = datetime.datetime.strptime(userSetting__statusValidDateTime_str, '%Y-%m-%d %H:%M:%S.%f%z')
         userSetting__statusValidDateTime = datetime.datetime.today().replace(year=userSetting__statusValidDateTime.year, month=userSetting__statusValidDateTime.month, day=userSetting__statusValidDateTime.day,
                                                                             hour=userSetting__statusValidDateTime.hour, minute=userSetting__statusValidDateTime.minute, second=userSetting__statusValidDateTime.second)
-        # print(todayStartTime)
-        # todayStartTime = datetime.datetime.strptime(todayStartTime_str, '%H:%M:%S')
         todayStartTime = datetime.datetime.today().replace(hour=todayStartTime.hour, minute=todayStartTime.minute, second=todayStartTime.second)
-
-        # print(todayEndTime)
-        # print(type(todayEndTime))
-        # todayEndTime = todayEndTime_str
-        # todayEndTime = datetime.datetime.strptime(todayEndTime_str, '%H:%M:%S')
         todayEndTime = datetime.datetime.today().replace(hour=todayEndTime.hour, minute=todayEndTime.minute, second=todayEndTime.second)
-
-        # print(nextDayStartTime)
-        # print(type(nextDayStartTime))
-        # nextDayStartTime = nextDayStartTime_str
-        # nextDayStartTime = datetime.datetime.strptime(nextDayStartTime_str, '%H:%M:%S')
         nextDayStartTime = datetime.datetime.today().replace(hour=nextDayStartTime.hour, minute=nextDayStartTime.minute, second=nextDayStartTime.second) + datetime.timedelta(days = 1)
 
         noticeTime = datetime.datetime.strptime('20:00', '%H:%M')
         noticeTime = datetime.datetime.today().replace(hour=noticeTime.hour, minute=noticeTime.minute, second=0)
         noticeTime_nextDay = datetime.datetime.today().replace(hour=noticeTime.hour, minute=noticeTime.minute, second=0) + datetime.timedelta(days = 1)
-        # print(noticeTime)
 
         # print('データ取得完了')
-        # print('now')
-        # print(now)
-        # print('todayStartTime')
-        # print(todayStartTime)
         # 期間内とは
         # userSetting__statusValidDateTimeがヒマであれば、今送って大丈夫。
         # userSetting__statusValidDateTimeの範囲内で、ヒマじゃないというなら通知なしでは
@@ -414,7 +501,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     return noticeTime
     
     
-    # # Webpushの情報を取得しつつ送信
+    # Webpushの情報を取得しつつ送信
     @database_sync_to_async
     def send_WebPushDevice(self,targetUserId,data):
         device = WebPushDevice.objects.filter(user_id=targetUserId)

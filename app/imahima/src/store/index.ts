@@ -171,18 +171,9 @@ export default createStore<State>({
       if(!token){
         return;
       }
+      // 通知確認をここで行う
       const { checkNoticePermission } = utils();
-      const permission = await checkNoticePermission();
-      if(permission){
-        navigator.serviceWorker.ready.then( registration => {
-          registration.active?.postMessage({
-            type: "connectWebsocket",
-            token: token,
-            userId: context.state.userId,
-            reconnectFlg: reconnectFlg,
-          });
-        });
-      }
+      await checkNoticePermission();
       
       if(reconnectFlg){
         // 再接続するのでwebsocketインスタンスを消す
@@ -209,11 +200,6 @@ export default createStore<State>({
       context.commit('setWebsocket', socket);
     },
     disconnectWebsocket(context){
-      navigator.serviceWorker.ready.then( registration => {
-        registration.active?.postMessage({
-          type: "disconnectWebsocket",
-        });
-      });
       if(context.state.websocket == null) {
         return;
       }

@@ -1,6 +1,7 @@
 from django.db import models
 from .mixin import MyBaseModel
 import datetime
+from django.utils import timezone
 
 class HouseManager(models.Manager):
     def create_house(self, user, houseName, **extra_fields):
@@ -65,6 +66,8 @@ class HouseMate(MyBaseModel):
     houseId = models.ForeignKey('House', to_field='id', on_delete=models.CASCADE, null=False)
     userId = models.ForeignKey('User', to_field='id', on_delete=models.CASCADE, null=False)
     isApproved = models.BooleanField(default=False)
+    lastMemberNoticeTime = models.DateTimeField(blank=True, default=timezone.now)
+    lastMemberNoticeNumber = models.IntegerField(blank=True, default=0)
 
     objects = HouseMateManager()
 
