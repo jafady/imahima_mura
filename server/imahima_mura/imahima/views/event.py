@@ -82,7 +82,7 @@ class EventJoin(generics.CreateAPIView):
     """ イベント 参加 """
     queryset = EventMembers.objects.all()
     serializer_class = EventMembersSerializer
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.AllowAny, )
 
 class EventLeave(APIView):
     """ イベント 退出 """

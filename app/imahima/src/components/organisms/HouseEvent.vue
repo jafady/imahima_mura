@@ -123,7 +123,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                     margin-right: 15px;
                     text-align: center;
                 }
@@ -133,7 +133,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                     text-align: center;
                 }
 

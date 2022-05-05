@@ -15,6 +15,7 @@ services:
       - VUE_APP_API_ENDPOINT_PROTOCOL=http
       - VUE_APP_API_ENDPOINT_HOST=localhost:8000
       - VUE_APP_WEBSOCKET_ENDPOINT_PROTOCOL=ws
+      - VUE_APP_WEBPUSH_APPSERVERKEY=BCPIrrpY_e97Hg_m88SEc1wKgqQmUmIZrNfK0FqAsjF93AqoGv9NT0WE7MQgI0U1fc6hMMpdB-L5t9lYqyyyJaI
 
   django:
     container_name: imahima_server_dev

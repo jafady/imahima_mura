@@ -232,7 +232,7 @@
                 height: 40px;
                 border: none;
                 border-radius: 8px;
-                font-family: "游ゴシック";
+                font-family: var(--font-family);
                 margin-right: 20px;
                 text-align: center;
             }
@@ -242,7 +242,7 @@
                 height: 40px;
                 border: none;
                 border-radius: 8px;
-                font-family: "游ゴシック";
+                font-family: var(--font-family);
                 text-align: center;
             }
             
@@ -333,7 +333,7 @@
                         height: 40px;
                         border: none;
                         border-radius: 8px;
-                        font-family: "游ゴシック";
+                        font-family: var(--font-family);
                         text-align: left;
                     }
                     .hyphen{
@@ -373,6 +373,7 @@ export type DataType = {
     statusBusy: boolean,
     statusValidDateTime: Date | null,
     refreshStatusTime: number,
+    firstTimeFlg: boolean,
 
     isAllCategorySelected: boolean,
     categorys:category[],
@@ -415,6 +416,7 @@ export default defineComponent({
             statusBusy: false,
             statusValidDateTime: null,
             refreshStatusTime: 1,
+            firstTimeFlg: true,
             
             isAllCategorySelected: true,
             categorys:[
@@ -660,13 +662,6 @@ export default defineComponent({
                 "type": "joinHouse",
                 "houseId": houseId,
             }));
-
-            navigator.serviceWorker.ready.then( registration => {
-                registration.active?.postMessage({
-                    type: "addConnect",
-                    "houseId": houseId,
-                });
-            });
         },
 
         changeUserName():void{
@@ -708,6 +703,10 @@ export default defineComponent({
             this.noticeChangeStatus();
         },
         changeStatusValidTime():void{
+            if(this.firstTimeFlg){
+                this.firstTimeFlg = false
+                return
+            }
             const saveData = {
                 statusValidDateTime: this.statusValidDateTime
             };

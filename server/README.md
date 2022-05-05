@@ -49,6 +49,15 @@ execコマンド
 docker exec -it imahima_server_dev bash
 ```
 
+### 実機デバッグ
+1. webデバッグを許可した実機とPCをUSB接続する
+2. ブラウザで下記にアクセス
+'''
+chrome://inspect/#devices
+'''
+3. 実機でブラウザを表示してリロードすると、ページ一覧が出る
+4. 対象画面のinspectをクリックすると、開発者モードが出る
+
 ### ローカルpostgres
 ```
 docker-compose exec postgres psql --username=django_db_user --dbname=django_db

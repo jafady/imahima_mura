@@ -84,6 +84,7 @@
 
 <style lang="scss">
 .HSM_modal{
+    font-family: var(--font-family);
     max-height: 90%!important;
     border: none!important;
     background-color: revert!important;

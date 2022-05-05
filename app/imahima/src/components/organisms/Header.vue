@@ -18,7 +18,7 @@
 
     justify-content: space-around;
     align-items: center;
-    background: linear-gradient(rgba(255,255,255,1),rgb(200 200 200));
+    background: linear-gradient(rgba(255,255,255,1),rgb(237 237 237));
 
     .header_info{
         height: 50px;

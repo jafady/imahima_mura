@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     
     'channels',
+    'push_notifications',
 
     # # Allauth用
     # 'django.contrib.sites', 
@@ -124,6 +125,12 @@ CHANNEL_LAYERS = {
             "hosts": [os.environ.get('REDIS_URL')]
         },
     },
+}
+
+# webpush
+PUSH_NOTIFICATIONS_SETTINGS  = {
+    "WP_PRIVATE_KEY": "private_key.pem",
+    "WP_CLAIMS": {"sub": "mailto:sho.k52.1009@gmail.com"}
 }
 
 # カスタムユーザ

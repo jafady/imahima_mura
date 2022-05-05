@@ -1,6 +1,6 @@
 from django.urls import path
+from push_notifications.api.rest_framework import WebPushDeviceViewSet
 
-from . import views
 from .views import *
 
 urlpatterns = [
@@ -43,4 +43,6 @@ urlpatterns = [
     path('statuses/', StatusMasterList.as_view()),
     path('create_category/', CategoryMasterCreate.as_view()),
     path('categorys/', CategoryMasterList.as_view()),
+
+    path('regist_webpush/', WebPushDeviceViewSet.as_view({'post': 'create'}))
 ]

@@ -83,30 +83,42 @@
                             <div class="mb-3" v-if="mode=='in'">
                                 <div class="content_title">開催する時の状況</div>
                                 <div class="UHEM_content">
-                                    <div class="m-1">
+                                    <div class="m-1" v-if="houseMatesFuture.length > 0">
                                         <div class="content_subtitle">予定ではヒマ</div>
                                         <div class="housemate_area">
                                             <div v-for="(value) in houseMateListMaybe" v-bind:key="value.id">
                                                 <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
-                                                    <div>{{value.name}}</div>
+                                                    <div class="mt-2">{{value.name}}</div>
                                                     <div>{{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="m-1 mt-3">
+                                    <div class="m-1 mt-3" v-if="houseMatesFuture.length > 0">
                                         <div class="content_subtitle">ヒマじゃない</div>
                                         <div class="housemate_area">
                                             <div v-for="(value) in houseMateListBusy" v-bind:key="value.id">
                                                 <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
                                                     <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
-                                                    <div>{{value.name}}</div>
+                                                    <div class="mt-2">{{value.name}}</div>
                                                     <div v-if="isDisplayTime(value.noticableStartTime,value.noticableEndTime)">
                                                         {{cutSeconds(value.noticableStartTime)}}~{{cutSeconds(value.noticableEndTime)}}
                                                     </div>
                                                     <div v-else>ヒマなし</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="m-1" v-if="houseMatesFuture.length < 1">
+                                        <div class="content_subtitle">友達リスト</div>
+                                        <div class="housemate_area">
+                                            <div v-for="(value) in houseMates" v-bind:key="value.id">
+                                                <div class="housemate btn_imahima" :class="selectedHousemateCss(value.id)" @click="changeSelectedHousemate(value.id)">
+                                                    <div class="icon_area"><Icon :userId="value.id" :hideStatus="true"/></div>
+                                                    <div class="mt-2">{{value.name}}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -157,6 +169,7 @@
 
 <style lang="scss">
 .UHEM_modal{
+    font-family: var(--font-family);
     max-height: 90%!important;
     border: none!important;
     background-color: revert!important;
@@ -307,7 +320,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                     padding: 7px;
                 }
             }
@@ -321,7 +334,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                 }
             }
             .category_area{
@@ -334,9 +347,7 @@
                     border-radius: 8px;
                     border: none;
                     background-color: white;
-                    background-position-x: 99%;
-                    padding: 7px;
-                    appearance: none;
+                    padding-left: 7px;
                 }
                 .category_select:disabled{
                     opacity: 0.5;
@@ -377,7 +388,7 @@
                 .housemate{
                     width: 80px;
                     margin-right: 10px;
-                    font-size: 13px;
+                    font-size: 10px;
                     font-weight: bold;
                     border-radius: 4px;
                     padding-top: 5px;
@@ -413,7 +424,7 @@
             .send_notice{
                 width: 90%;
                 margin: 0 auto;
-                text-align-last: center;
+                text-align: center;
                 .btn_send_notice{
                     width: 70%;
                     height: 55px;
@@ -441,7 +452,7 @@
         .join_event{
             width: 90%;
             margin: 0 auto;
-            text-align-last: center;
+            text-align: center;
             .btn_join_event{
                 width: 80%;
                 height: 55px;
@@ -470,7 +481,7 @@
         .leave_event{
             width: 90%;
             margin: 0 auto;
-            text-align-last: center;
+            text-align: center;
             .btn_leave_event{
                 width: 80%;
                 height: 55px;

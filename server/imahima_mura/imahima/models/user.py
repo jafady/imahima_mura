@@ -20,7 +20,8 @@ class UserManager(BaseUserManager):
         id = str(uuid.uuid4())[:8]
         user = self.model(
             id = id,
-            username=username
+            username=username,
+            is_superuser= True
         )
 
         user.set_password(password)
@@ -33,7 +34,8 @@ class UserManager(BaseUserManager):
         """
         user = self.create_user(
             username=username,
-            password=password
+            password=password,
+            is_superuser= True
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -100,12 +102,11 @@ class UserManager(BaseUserManager):
     
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     id = models.TextField(primary_key=True, unique=True, blank=True)
     username = models.TextField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
 
     email = models.EmailField(
         verbose_name='email address',

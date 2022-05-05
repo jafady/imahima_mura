@@ -120,6 +120,7 @@
 
 <style lang="scss">
 .CHEM_modal{
+    font-family: var(--font-family);
     max-height: 90%!important;
     border: none!important;
     background-color: revert!important;
@@ -260,7 +261,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                     padding: 7px;
                 }
             }
@@ -274,7 +275,7 @@
                     height: 40px;
                     border: none;
                     border-radius: 8px;
-                    font-family: "游ゴシック";
+                    font-family: var(--font-family);
                 }
             }
             .category_area{
@@ -287,9 +288,7 @@
                     border-radius: 8px;
                     border: none;
                     background-color: white;
-                    background-position-x: 99%;
-                    padding: 7px;
-                    appearance: none;
+                    padding-left: 7px;
                 }
             }
 
@@ -310,7 +309,7 @@
                 .housemate{
                     width: 80px;
                     margin-right: 10px;
-                    font-size: 13px;
+                    font-size: 10px;
                     font-weight: bold;
                     .icon_area{
                         height:60px;
@@ -324,7 +323,7 @@
         .create_event{
             width: 90%;
             margin: 0 auto;
-            text-align-last: center;
+            text-align: center;
             .btn_create_event{
                 width: 80%;
                 height: 55px;
@@ -711,7 +710,7 @@ export default defineComponent({
                 "houseId": this.$store.state.houseId
             }));
 
-            // 時間ごとの人表示の実装までは固定で。
+            // ヒマ予定の人をターゲットとして通知する
             if(this.houseMateListMaybe.length < 1){
                 return;
             }
