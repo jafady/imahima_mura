@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from ..models import User,UserSetting,UserSelectCategory,HouseMate,Event,EventMembers
-from ..serializers import UserSerializer,UserNameSerializer,UserSettingSerializer,UserSelectCategorySerializer
+from ..serializers import UserSerializer,UserNameSerializer,UserSettingSerializer,UserSelectCategorySerializer,UserPasswordSerializer
 from rest_framework import generics, permissions, status
 from .mixin import MultipleFieldLookupMixin
 
@@ -113,6 +113,11 @@ class UserBaseInfo(APIView):
         res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
         
+class UserPasswordRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    """ ユーザパスワード更新用 """
+    queryset = User.objects.all()
+    serializer_class = UserPasswordSerializer
+    permission_classes = (permissions.IsAuthenticated, )
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """

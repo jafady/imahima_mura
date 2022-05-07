@@ -17,6 +17,7 @@ urlpatterns = [
     path('user_setting/<userId>/', UserSettingRetrieveUpdate.as_view()),
     path('user_select_category/', UserSelectCategoryCreate.as_view()),
     path('user_select_category/delete/<userId>/<categoryId>/', UserSelectCategoryDelete.as_view()),
+    path('user_password_update/<pk>/', UserPasswordRetrieveUpdate.as_view()),
 
 
     path('create_house/', HouseCreate.as_view()),

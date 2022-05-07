@@ -49,6 +49,15 @@ class UserManager(BaseUserManager):
         instance.save(using=self._db)
         return instance
     
+    def update_password(self, user, instance, **extra_fields):
+        """
+        ユーザ情報更新(パスワード含む)
+        """
+        [setattr(instance, k, v) for k, v in extra_fields.items()]
+        instance.set_password(extra_fields['password'])
+        instance.save(using=self._db)
+        return instance
+    
     def get_base_info(self, target_day=datetime.datetime.now()):
         """
         ユーザ基本情報取得
