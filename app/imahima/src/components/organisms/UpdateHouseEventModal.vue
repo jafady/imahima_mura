@@ -51,6 +51,29 @@
                                         <div class="middle">～</div>
                                         <VueTimepicker input-class="time" format="HH:mm" v-model="endTime" :key="refreshEndTime" :minute-interval="10" @change="changeTime('end')" :disabled="disabled"></VueTimepicker>
                                     </div>
+                                    <div v-if="needTyousei" class="m-1 mt-3 UHEM_inline tyousei_area">
+                                        <div class="UHEM_icon tyousei_icon"></div>
+                                        <div class="content_subtitle">日程調整</div>
+                                            <div v-if="tyouseiUrl" class="tyousei_btn_area">
+                                                <button type="button" class="btn btn_primary_normal btn_make_tyousei content_center_inline" @click="enterTyouseiLink">
+                                                    <div class="write_tyousei_icon_dummy"></div>
+                                                    <div>予定を書き込む</div>
+                                                    <div class="write_tyousei_icon"></div>
+                                                </button>
+                                            </div>
+                                            <div v-else class="tyousei_btn_area">
+                                                <button type="button" class="btn btn_primary_normal btn_make_tyousei content_center_inline" @click="enterTyouseiLink">
+                                                    <div class="make_tyousei_icon_dummy"></div>
+                                                    <div>調整さんを作る</div>
+                                                    <div class="make_tyousei_icon"></div>
+                                                </button>
+                                            </div>
+                                    </div>
+                                    <div v-if="needTyousei" class="m-1 mt-3 UHEM_inline tyousei_area">
+                                        <div class="tyousei_area_weight"></div>
+                                        <div class="content_subtitle"></div>
+                                        <input type="text" v-model="tyouseiUrl" class="text_input" placeholder="https://chouseisan.com/" @change="changeTyouseiUrl" :disabled="disabled">
+                                    </div>
                                     <div class="m-1 mt-3 UHEM_inline category_area">
                                         <div class="UHEM_icon category_icon"></div>
                                         <div class="content_subtitle">カテゴリ</div>
@@ -338,6 +361,65 @@
                     font-family: var(--font-family);
                 }
             }
+            .tyousei_area{
+                .tyousei_icon{
+                    background-image: url("../../assets/img/house/event/hourglass.svg");
+                }
+                .tyousei_url_icon{
+                    width: 26px;
+                    height: 30px;
+                    margin-left: 10px;
+                    background-image: url("../../assets/img/house/event/enter_url.svg");
+                }
+                .tyousei_btn_area{
+                    display:contents;
+                    .btn_make_tyousei{
+                        width: 65%;
+                        height: 35px;
+                        font-size: 15px;
+                        font-weight: bold;                    
+
+                        .write_tyousei_icon{
+                            position: relative;
+                            right: 3%;
+                            width: 30px;
+                            height: 30px;
+                            background-image: url("../../assets/img/house/event/write_tyousei.svg");
+                            background-repeat: no-repeat;
+                            background-position-y: center;
+                            background-size: contain;
+                        }
+                        .write_tyousei_icon_dummy{
+                            width: 30px;
+                            height: 30px;
+                        }
+
+                        .make_tyousei_icon{
+                            position: relative;
+                            right: 3%;
+                            width: 30px;
+                            height: 30px;
+                            background-image: url("../../assets/img/house/event/make_tyousei.svg");
+                            background-repeat: no-repeat;
+                            background-position-y: center;
+                            background-size: contain;
+                        }
+                        .make_tyousei_icon_dummy{
+                            width: 30px;
+                            height: 30px;
+                        }
+                    }
+                }
+
+
+                .tyousei_area_weight{
+                    width: 16px;
+                    margin-right: 10px;
+                }
+                .text_input{
+                    width: 65%;
+                }
+            }
             .category_area{
                 .category_icon{
                     background-image: url("../../assets/img/house/event/books.svg");
@@ -540,6 +622,8 @@ export type DataType = {
     endTime: string | null,
     refreshStartTime: number,
     refreshEndTime: number,
+    makeTyouseiUrl: string,
+    tyouseiUrl: string,
     selectedCategoryId: string,
     categoryList: category[],
 
@@ -590,6 +674,8 @@ export default defineComponent({
             endTime: null,
             refreshStartTime: 1,
             refreshEndTime: 1,
+            makeTyouseiUrl: "https://chouseisan.com/",
+            tyouseiUrl: "",
             selectedCategoryId: "",
             categoryList:[],
 
@@ -628,6 +714,16 @@ export default defineComponent({
             }
             return false;
         },
+        needTyousei():boolean{
+            if(this.mode == "out"){
+                return false;
+            }
+            if(!this.startDate || !this.startTime || !this.endTime){
+                return true;
+            }
+            return false;
+        },
+
 
         houseMates():houseMates {
             return this.$store.state.houseMates;
@@ -719,6 +815,7 @@ export default defineComponent({
             this.startDate = targetData.startDate? new Date(targetData.startDate):null;
             this.startTime = targetData.startTime;
             this.endTime = targetData.endTime;
+            this.tyouseiUrl = targetData.tyouseiUrl;
             this.selectedCategoryId = targetData.categoryId;
             this.detail = targetData.detail;
             this.userIds = targetData.userIds;
@@ -843,6 +940,11 @@ export default defineComponent({
             this.saveUpdateEvent(saveData);
             this.getHouseMateFuture();
         },
+        changeTyouseiUrl():void{
+            const saveData:Record<string, unknown> = {};
+            saveData["tyouseiUrl"] = this.tyouseiUrl;
+            this.saveUpdateEvent(saveData);
+        },
         changeSelectedCategoryId():void{
             const saveData:Record<string, unknown> = {};
             saveData["categoryId"] = this.selectedCategoryId;
@@ -933,6 +1035,13 @@ export default defineComponent({
                 return;
             }
             window.open(this.locationUrl, '_blank');
+        },
+        enterTyouseiLink():void{
+            if(!this.tyouseiUrl){
+                window.open(this.makeTyouseiUrl, '_blank');
+            }else{
+                window.open(this.tyouseiUrl, '_blank');
+            }
         },
         confirmDelete():void{
             this.refs.confirmModal.openModal("本当に消しますか？");

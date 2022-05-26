@@ -177,7 +177,7 @@ def getEvent(target_datetime = datetime.datetime.now()):
                 ))\
                 .order_by('startDate', 'startTime', 'endTime')\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'locationUrl', 'startDateAtJp', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl', 'startDateAtJp', 'startTime', 'endTime', 'tyouseiUrl', 'categoryId', 'detail'
                     )
 
     for info in infos:
