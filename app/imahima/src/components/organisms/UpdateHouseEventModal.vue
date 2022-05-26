@@ -227,6 +227,7 @@
     .UHEM_body{
         padding-bottom: 0!important;
         background-color: var(--content-bg-color);
+        overflow-x: hidden;
 
         .content_title{
             text-align: left;
