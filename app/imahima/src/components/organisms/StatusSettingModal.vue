@@ -41,7 +41,7 @@
                             
                         </div>
                         <div class="SSM_footer">
-                            <button type="button" class="btn btn_primary_normal IUM_btn" data-bs-dismiss="modal" @click="saveStatus">確定</button>
+                            <button type="button" class="btn btn_primary_normal SSM_btn" data-bs-dismiss="modal" @click="saveStatus">確定</button>
                         </div>
                     </div>
                 </div>
@@ -131,6 +131,12 @@
     align-items: center;
     height: 60px;
     background-color: var(--content-bg-color);
+
+    .SSM_btn{
+        width: 70px;
+        height: 40px;
+    }
+
 }
 
 .vue__time-picker{

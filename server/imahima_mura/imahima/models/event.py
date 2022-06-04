@@ -40,6 +40,8 @@ class Event(MyBaseModel):
     startTime = models.TimeField(null=True, default='00:00')
     endTime = models.TimeField(null=True, default='00:00')
 
+    tyouseiUrl = models.TextField(blank=True)
+
     categoryId = models.ForeignKey('CategoryMaster', to_field='id', on_delete=models.CASCADE, null=False, blank=True)
     detail = models.TextField(blank=True)
 

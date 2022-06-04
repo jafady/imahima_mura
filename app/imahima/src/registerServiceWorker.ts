@@ -14,7 +14,7 @@ Axios.interceptors.request.use((config: AxiosRequestConfig) => {
 
 // サービスワーカーを更新させるための無意味な式(変更した場合はバージョンを繰り上げること)
 const version = 3;
-const dev_version = 1;
+const dev_version = 2;
 
 // Utils functions:
 
@@ -97,7 +97,8 @@ function loadVersionBrowser () {
   };
 }
 
-const applicationServerKey = process.env.VUE_APP_WEBPUSH_APPSERVERKEY
+// const applicationServerKey = process.env.VUE_APP_WEBPUSH_APPSERVERKEY
+const applicationServerKey = "BCPIrrpY_e97Hg_m88SEc1wKgqQmUmIZrNfK0FqAsjF93AqoGv9NT0WE7MQgI0U1fc6hMMpdB-L5t9lYqyyyJaI"
 // Utils functionsおわり
 
 
@@ -130,6 +131,7 @@ if (process.env.NODE_ENV === 'production') {
     }
   })
   navigator.serviceWorker.ready.then((registration) => {
+//     registration.unregister();
     registration.update();
 //     registration.pushManager.getSubscription().then(function(subscription) {
 //         subscription?.unsubscribe().then(function(successful) {

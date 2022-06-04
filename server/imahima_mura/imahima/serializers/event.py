@@ -18,7 +18,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                'location', 'locationUrl','startDate', 'startTime', 'endTime', 'categoryId', 'detail')
+                'location', 'locationUrl','startDate', 'startTime', 'endTime', 'tyouseiUrl', 'categoryId', 'detail')
     
     def create(self, validated_data):
         event = Event.objects.create_event(self.context["request"].user, **validated_data)

@@ -1,11 +1,11 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 
 //component
-import Login from '@/components/pages/Login.vue'
-import FirstVisitor from '@/components/pages/FirstVisitor.vue'
+// import Login from '@/components/pages/Login.vue'
+// import FirstVisitor from '@/components/pages/FirstVisitor.vue'
 
 import House from '@/components/pages/House.vue'
-import Mypage from '@/components/pages/Mypage.vue'
+// import Mypage from '@/components/pages/Mypage.vue'
 
 // store
 import Store from '@/store/index'
@@ -36,13 +36,15 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'Login',
-    component: Login,
+    // component: Login,
+    component: () => import('@/components/pages/Login.vue'),
     meta: { beforeAuth: true, title:'イマヒマ村 ログイン' }
   },
   {
     path: '/FirstVisitor',
     name: 'FirstVisitor',
-    component: FirstVisitor,
+    // component: FirstVisitor,
+    component: () => import('@/components/pages/FirstVisitor.vue'),
     meta: { beforeAuth: true, title:'イマヒマ村へようこそ' }
   },
   {
@@ -54,7 +56,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/MyPage',
     name: 'MyPage',
-    component: Mypage,
+    // component: Mypage,
+    component: () => import('@/components/pages/Mypage.vue'),
     meta: { title:'イマヒマ村 マイページ' }
   },
 ]

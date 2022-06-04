@@ -263,7 +263,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                         'type': 'incleaseMembersNotice',
                         'houseId': event['houseId'],
                         'count': himaCount,
-                    })
+                    }, ensure_ascii=False)
                 )
                 print('通知送った')
                 # 最終送信日時と人数を記録する
@@ -319,7 +319,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'eventName': event['eventName'],
                     'userId': targetUserId,
                     'noticeSecond': notice_second,
-                })
+                }, ensure_ascii=False)
             )
             print('イベント作成通知送った '+targetUserId)
 
@@ -354,7 +354,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'userName': event['userName'],
                     'noticeSecond': notice_second,
                     'msg': event['msg'],
-                })
+                }, ensure_ascii=False)
             )
             print('手動メッセージ送った '+targetUserId)
     
@@ -504,11 +504,19 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     # Webpushの情報を取得しつつ送信
     @database_sync_to_async
     def send_WebPushDevice(self,targetUserId,data):
-        device = WebPushDevice.objects.filter(user_id=targetUserId)
-        try:
-            device.send_message(data)
-        except:
-            print('不正な宛先があるので最新の一つだけ送る')
-            device = WebPushDevice.objects.filter(user_id=targetUserId).order_by('-id').first()
-            device.send_message(data)
+        devices = WebPushDevice.objects.filter(user_id=targetUserId)
+
+        for device in devices:
+            try:
+                device.send_message(data)
+                print('送った。',device,'id:',device.id,'browser:',device.browser)
+                print('送信内容',data)
+            except Exception as e:
+                print(e)
+                print(device)
+                print('id:',device.id)
+                print('browser:', device.browser)
+                # 送れなかったので消す
+                # 消すとデバッグに困るのでいったん残しで。
+                # device.delete()
         return True

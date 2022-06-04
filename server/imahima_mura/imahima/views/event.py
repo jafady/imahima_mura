@@ -33,7 +33,7 @@ class EventList(APIView):
                 .filter(Q(houseId=houseId), (Q(startDate__gte=target_day) | Q(startDate__isnull=True)))\
                 .order_by('startDate', 'startTime', 'endTime')\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'locationUrl', 'startDate', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl', 'startDate', 'startTime', 'endTime', 'tyouseiUrl', 'categoryId', 'detail'
                     )
 
         for info in infos:
@@ -54,7 +54,7 @@ class EventInfo(APIView):
                 .select_related('EventMembers')\
                 .filter(id=eventId)\
                 .values('id', 'houseId', 'eventName', 'recruitmentNumbersLower', 'recruitmentNumbersUpper',
-                    'location', 'locationUrl', 'startDate', 'startTime', 'endTime', 'categoryId', 'detail'
+                    'location', 'locationUrl', 'startDate', 'startTime', 'endTime', 'tyouseiUrl', 'categoryId', 'detail'
                     )
 
         for info in infos:

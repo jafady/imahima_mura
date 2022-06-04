@@ -51,6 +51,38 @@
                                         <div class="middle">～</div>
                                         <VueTimepicker input-class="time" format="HH:mm" v-model="endTime" :key="refreshEndTime" :minute-interval="10" @change="changeTime('end')" :disabled="disabled"></VueTimepicker>
                                     </div>
+                                    <div v-if="needTyousei" class="m-1 mt-3 UHEM_inline tyousei_area">
+                                        <div class="UHEM_icon tyousei_icon"></div>
+                                        <div class="content_subtitle">日程調整</div>
+                                            <div v-if="tyouseiUrl" class="tyousei_btn_area">
+                                                <button type="button" class="btn btn_primary_normal btn_make_tyousei content_center_inline" @click="enterTyouseiLink">
+                                                    <div class="write_tyousei_icon_dummy"></div>
+                                                    <div>予定を書き込む</div>
+                                                    <div class="write_tyousei_icon"></div>
+                                                </button>
+                                            </div>
+                                            <div v-else class="tyousei_btn_area">
+                                                <button type="button" class="btn btn_primary_normal btn_make_tyousei content_center_inline" @click="enterTyouseiLink">
+                                                    <div class="make_tyousei_icon_dummy"></div>
+                                                    <div>調整さんを作る</div>
+                                                    <div class="make_tyousei_icon"></div>
+                                                </button>
+                                            </div>
+                                    </div>
+                                    <div v-if="needTyousei" class="m-1 mt-3 UHEM_inline tyousei_area">
+                                        <div class="tyousei_area_weight"></div>
+                                        <div class="content_subtitle"></div>
+                                        <input type="text" v-model="tyouseiUrl" class="text_input" placeholder="https://chouseisan.com/" @change="changeTyouseiUrl" :disabled="disabled">
+                                    </div>
+                                    <div v-if="canRegistCalendar" class="m-1 mt-3 UHEM_inline regist_calendar_area">
+                                        <div class="UHEM_icon regist_calendar_icon"></div>
+                                        <div class="content_subtitle">予定</div>
+                                        <button type="button" class="btn btn_primary_normal btn_regist_calendar content_center_inline" @click="registCalendar" :disabled="disabled">
+                                            <div class="regist_calendar_btn_icon"></div>
+                                            <div>自分のカレンダーに登録</div>
+                                            <div class="regist_calendar_btn_icon_dummy"></div>
+                                        </button>
+                                    </div>
                                     <div class="m-1 mt-3 UHEM_inline category_area">
                                         <div class="UHEM_icon category_icon"></div>
                                         <div class="content_subtitle">カテゴリ</div>
@@ -337,6 +369,100 @@
                     font-family: var(--font-family);
                 }
             }
+            .tyousei_area{
+                .tyousei_icon{
+                    background-image: url("../../assets/img/house/event/calendar.svg");
+                    width: 20px;
+                }
+                .content_subtitle{
+                    margin-right: 14px;
+                }
+                .tyousei_url_icon{
+                    width: 26px;
+                    height: 30px;
+                    margin-left: 10px;
+                    background-image: url("../../assets/img/house/event/enter_url.svg");
+                }
+                .tyousei_btn_area{
+                    display:contents;
+                    .btn_make_tyousei{
+                        width: 65%;
+                        height: 35px;
+                        font-size: 15px;
+                        font-weight: bold;                    
+
+                        .write_tyousei_icon{
+                            position: relative;
+                            right: 3%;
+                            width: 30px;
+                            height: 30px;
+                            background-image: url("../../assets/img/house/event/write_tyousei.svg");
+                            background-repeat: no-repeat;
+                            background-position-y: center;
+                            background-size: contain;
+                        }
+                        .write_tyousei_icon_dummy{
+                            width: 30px;
+                            height: 30px;
+                        }
+
+                        .make_tyousei_icon{
+                            position: relative;
+                            right: 3%;
+                            width: 30px;
+                            height: 30px;
+                            background-image: url("../../assets/img/house/event/make_tyousei.svg");
+                            background-repeat: no-repeat;
+                            background-position-y: center;
+                            background-size: contain;
+                        }
+                        .make_tyousei_icon_dummy{
+                            width: 30px;
+                            height: 30px;
+                        }
+                    }
+                }
+
+
+                .tyousei_area_weight{
+                    width: 16px;
+                    margin-right: 10px;
+                }
+                .text_input{
+                    width: 65%;
+                }
+            }
+            .regist_calendar_area{
+                .regist_calendar_icon{
+                    background-image: url("../../assets/img/house/event/calendar.svg");
+                    width: 20px;
+                }
+                .content_subtitle{
+                    margin-right: 16px;
+                }
+                
+                .btn_regist_calendar{
+                    width: 65%;
+                    height: 35px;
+                    font-size: 13px;
+                    font-weight: bold;                    
+
+                    .regist_calendar_btn_icon{
+                        position: relative;
+                        left: 3%;
+                        width: 20px;
+                        height: 15px;
+                        background-image: url("../../assets/img/house/event/regist_calendar.svg");
+                        background-repeat: no-repeat;
+                        background-position-y: center;
+                        background-size: contain;
+                    }
+                    .regist_calendar_btn_icon_dummy{
+                        width: 5px;
+                        height: 15px;
+                    }
+                }
+            }
             .category_area{
                 .category_icon{
                     background-image: url("../../assets/img/house/event/books.svg");
@@ -539,6 +665,8 @@ export type DataType = {
     endTime: string | null,
     refreshStartTime: number,
     refreshEndTime: number,
+    makeTyouseiUrl: string,
+    tyouseiUrl: string,
     selectedCategoryId: string,
     categoryList: category[],
 
@@ -589,6 +717,8 @@ export default defineComponent({
             endTime: null,
             refreshStartTime: 1,
             refreshEndTime: 1,
+            makeTyouseiUrl: "https://chouseisan.com/",
+            tyouseiUrl: "",
             selectedCategoryId: "",
             categoryList:[],
 
@@ -627,6 +757,25 @@ export default defineComponent({
             }
             return false;
         },
+        needTyousei():boolean{
+            if(this.mode == "out"){
+                return false;
+            }
+            if(!this.startDate || !this.startTime || !this.endTime){
+                return true;
+            }
+            return false;
+        },
+        canRegistCalendar():boolean{
+            if(this.mode == "out"){
+                return false;
+            }
+            if(!this.startDate || !this.startTime || !this.endTime){
+                return false;
+            }
+            return true;
+        },
+
 
         houseMates():houseMates {
             return this.$store.state.houseMates;
@@ -718,6 +867,7 @@ export default defineComponent({
             this.startDate = targetData.startDate? new Date(targetData.startDate):null;
             this.startTime = targetData.startTime;
             this.endTime = targetData.endTime;
+            this.tyouseiUrl = targetData.tyouseiUrl;
             this.selectedCategoryId = targetData.categoryId;
             this.detail = targetData.detail;
             this.userIds = targetData.userIds;
@@ -842,6 +992,11 @@ export default defineComponent({
             this.saveUpdateEvent(saveData);
             this.getHouseMateFuture();
         },
+        changeTyouseiUrl():void{
+            const saveData:Record<string, unknown> = {};
+            saveData["tyouseiUrl"] = this.tyouseiUrl;
+            this.saveUpdateEvent(saveData);
+        },
         changeSelectedCategoryId():void{
             const saveData:Record<string, unknown> = {};
             saveData["categoryId"] = this.selectedCategoryId;
@@ -932,6 +1087,44 @@ export default defineComponent({
                 return;
             }
             window.open(this.locationUrl, '_blank');
+        },
+        enterTyouseiLink():void{
+            if(!this.tyouseiUrl){
+                window.open(this.makeTyouseiUrl, '_blank');
+            }else{
+                window.open(this.tyouseiUrl, '_blank');
+            }
+        },
+        registCalendar():void{
+            // カレンダー登録のため、ical形式で予定出力する
+            if(!this.startDate || !this.startTime || !this.endTime){
+                return;
+            }
+            const startDate = ""+this.startDate.getFullYear()+("00"+(this.startDate.getMonth()+1)).slice(-2)+("00"+this.startDate.getDate()).slice(-2);
+            const startTime = this.startTime.replace(":","")+"00";
+            const endTime = this.endTime.replace(":","")+"00";
+            const outputDetail = this.detail.split("\n").join("\\n");
+
+            let contents = ["BEGIN:VCALENDAR"
+                            ,"VERSION:2.0"
+                            ,"PRODID:-//jafady//imahima//JP"
+                            ,"BEGIN:VEVENT"
+                            ,"DTSTART;TZID=Asia/Tokyo:"+startDate+"T"+startTime
+                            ,"DTEND;TZID=Asia/Tokyo:"+startDate+"T"+endTime
+                            ,"SUMMARY:" + this.eventName || " "
+                            ,"LOCATION:" + this.location || " "
+                            ,"URL:" + this.locationUrl || " "
+                            ,"DESCRIPTION:" + outputDetail || " "
+                            ,"END:VEVENT"
+                            ,"END:VCALENDAR"
+                            ]
+            
+            const content = contents.join("\r\n")
+            const blob = new Blob([content],{type:"text/calendar"});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'imahimaSchedule.ics';
+            link.click();
         },
         confirmDelete():void{
             this.refs.confirmModal.openModal("本当に消しますか？");

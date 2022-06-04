@@ -14,6 +14,17 @@ class UserSerializer(serializers.ModelSerializer):
         UserSetting.objects.create_usersetting(self.context["request"].user, userId=user)
         return user
 
+class UserPasswordSerializer(serializers.ModelSerializer):
+    """ A serializer class for the User model """
+    class Meta:
+        model = User
+        fields = ('id', 'password',
+                  'is_admin', 'is_active', 'is_superuser')
+    
+    def update(self, instance, validated_data):
+        user = User.objects.update_password(self.context["request"].user,instance,**validated_data)
+        return user
+
 class UserNameSerializer(serializers.ModelSerializer):
     """ A serializer class for the User model """
     class Meta:
