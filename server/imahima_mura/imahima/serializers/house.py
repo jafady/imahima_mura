@@ -7,7 +7,7 @@ class HouseSerializer(serializers.ModelSerializer):
     """ A serializer class for the House model """
     class Meta:
         model = House
-        fields = ('id', 'houseName', 'discordUrl')
+        fields = ('id', 'houseName', 'discordUrl', 'discordNoticeUrl')
     
     def create(self, validated_data):
         return House.objects.create_house(self.context["request"].user, **validated_data)

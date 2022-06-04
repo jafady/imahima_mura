@@ -711,9 +711,6 @@ export default defineComponent({
             }));
 
             // ヒマ予定の人をターゲットとして通知する
-            if(this.houseMateListMaybe.length < 1){
-                return;
-            }
             const targetUserIds = this.houseMateListMaybe.map((housemate:any)=>{
                 return housemate.id
             })
@@ -726,6 +723,7 @@ export default defineComponent({
                 "eventName": data.eventName,
                 "categoryId": data.categoryId,
                 "targetUserIds": targetUserIds,
+                "detail": data.detail
             }));
         }
     }

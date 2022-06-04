@@ -24,6 +24,10 @@
                                         <div class="content_subtitle d-flex">discordサーバURL</div>
                                         <input type="text" v-model="discordUrl" class="text_input" placeholder="https://discord.gg/" @change="changeDiscordUrl">
                                     </div>
+                                    <div class="m-1 mt-3">
+                                        <div class="content_subtitle d-flex">discord通知Webhook</div>
+                                        <input type="text" v-model="discordNoticeUrl" class="text_input" placeholder="https://discordapp.com/api/webhooks/" @change="changeDiscordNoticeUrl">
+                                    </div>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -226,6 +230,7 @@ import Alert from '@/components/molecules/Alert.vue'
 export type DataType = {
     houseName: string,
     discordUrl: string,
+    discordNoticeUrl: string,
     inviteUrl: string,
     friendId: string,
     friendName: string,
@@ -247,6 +252,7 @@ export default defineComponent({
         return{
             houseName: "",
             discordUrl: "",
+            discordNoticeUrl: "",
             inviteUrl: "",
             friendId: "",
             friendName: "",
@@ -286,6 +292,7 @@ export default defineComponent({
         initData():void{
             this.houseName = "";
             this.discordUrl = "";
+            this.discordNoticeUrl = "";
             this.friendId = "";
             this.friendName = "";
             this.alreadyRegistered = false;
@@ -294,6 +301,7 @@ export default defineComponent({
             const houseInfo = await this.$http.get("/api/house_info/"+ this.houseId +"/");
             this.houseName = houseInfo.data.houseName;
             this.discordUrl = houseInfo.data.discordUrl;
+            this.discordNoticeUrl = houseInfo.data.discordNoticeUrl;
         },
         changeHouseName():void{
             const saveData = {
@@ -304,6 +312,12 @@ export default defineComponent({
         changeDiscordUrl():void{
             const saveData = {
                 discordUrl: this.discordUrl
+            };
+            this.saveHouseInfo(saveData);
+        },
+        changeDiscordNoticeUrl():void{
+            const saveData = {
+                discordNoticeUrl: this.discordNoticeUrl
             };
             this.saveHouseInfo(saveData);
         },

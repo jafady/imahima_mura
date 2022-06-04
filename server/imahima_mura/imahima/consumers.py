@@ -1,4 +1,4 @@
-import json
+import json, requests
 from asgiref.sync import async_to_sync
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -134,6 +134,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'eventName': data_json['eventName'],
                     'categoryId': data_json['categoryId'],
                     'targetUserIds': data_json['targetUserIds'],
+                    'detail': data_json['detail'],
                 })
         
         if msg_type == 'sendManualNotice':
@@ -227,6 +228,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             print('2人以下なので終了')
             return
 
+        discordNoticeUserId = []
         for targetUser in targetUsers:
             # 自分には送らない
             if targetUser['id'] == self.user.id:
@@ -270,6 +272,14 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 await self.update_member_notice(event['houseId'],targetUser['id'],himaCount)
                 sendNoticeCount += 1
 
+                discordNoticeUserId.append(targetUser['id'])
+        
+        # discordに通知を送る
+        msg = str(himaCount) + '人ヒマな人がいます。'\
+            + '\r\n\r\n' + '↓↓  入る  ↓↓'\
+            + '\r\n' + 'https://imahima-mura.herokuapp.com' + "/?#/House?houseId=" + event['houseId']
+        await self.send_discordPush(event['houseId'], discordNoticeUserId, msg)
+
         
         # 規定時間経過後にもう一回発火する(誰かひとりにでも送ったら次を仕込む)
         if sendNoticeCount < 1:
@@ -284,7 +294,8 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     # イベント作成に伴う通知
     async def send_event_create_notice(self, event):
         print('イベント作成通知送信')
-
+        
+        discordNoticeUserId = []
         for targetUserId in event['targetUserIds']:
             # 自分には送らない
             if targetUserId == self.user.id:
@@ -322,11 +333,22 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 }, ensure_ascii=False)
             )
             print('イベント作成通知送った '+targetUserId)
+            discordNoticeUserId.append(targetUserId)
+
+        # discordに通知を送る
+        msg = '新しいお誘いです！'\
+            + '\r\n\r\n' + event['eventName']\
+            + '\r\n' + event['detail']\
+            + '\r\n\r\n' + '↓↓   イベントを確認して参加する   ↓↓'\
+            + '\r\n' + 'https://imahima-mura.herokuapp.com' + "/?#/House?houseId=" + event['houseId'] + "&eventId=" + event['eventId']
+        await self.send_discordPush(event['houseId'], discordNoticeUserId, msg)
 
     # 手動メッセージを送信する
     async def send_manual_notice(self, event):
         print('手動メッセージ送信')
-
+        # discordに通知を送る
+        await self.send_discordPush(event['houseId'],event['targetUserIds'],event['msg'])
+        
         # ターゲットユーザ分だけ通知処理を行う。待機時間の計算はそれぞれなので個別
         for targetUserId in event['targetUserIds']:
             # 時間がそろっているうちに何秒待つかもここで計算する
@@ -520,3 +542,36 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 # 消すとデバッグに困るのでいったん残しで。
                 # device.delete()
         return True
+    
+    # discordに通知を送る
+    @database_sync_to_async
+    def send_discordPush(self,targetHouseId,targetUserIds,msg):
+        # 家ごとに設定されたdiscordの通知用webhookの取得
+        targetHouse = House.objects.get(id=targetHouseId)
+        discordNoticeUrl = targetHouse.discordNoticeUrl
+        if not discordNoticeUrl:
+            print('宛先が未登録なのでDiscord通知なし')
+            return
+
+        # 通知先のユーザIDを取得(\@ユーザ名で取得できる)
+        # nullならメンション無し。hereとeveryoneは無い想定。
+        mention = ''
+        if len(targetUserIds) > 0:
+            targetUsers = User.objects.select_related('UserSetting')\
+                    .filter(id__in=targetUserIds)\
+                    .values('id','username','userSetting__discordId')
+            print(targetUsers)
+            discordIds = ['<@' + data['userSetting__discordId'] +'>' for data in targetUsers if data['userSetting__discordId'] is not None]
+            mention = ' '.join(discordIds)
+
+        # 通知内容を設定
+        main_content = {
+            'content': '\r\n'.join([mention,msg]),
+            'allowed_mentions': {
+                'parse': ['users']
+            }
+        }
+        headers = {'Content-Type': 'application/json'}
+
+        response = requests.post(discordNoticeUrl, json.dumps(main_content), headers=headers)
+        return

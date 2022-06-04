@@ -30,6 +30,7 @@ class HouseManager(models.Manager):
 class House(MyBaseModel):
     houseName = models.TextField(blank=True)
     discordUrl = models.TextField(blank=True)
+    discordNoticeUrl = models.TextField(blank=True)
 
     objects = HouseManager()
 

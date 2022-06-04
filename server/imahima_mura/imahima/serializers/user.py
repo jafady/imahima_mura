@@ -37,7 +37,7 @@ class UserSettingSerializer(serializers.ModelSerializer):
     userId = serializers.CharField(required = False)
     class Meta:
         model = UserSetting
-        fields = ('id', 'userId', 'icon', 
+        fields = ('id', 'userId', 'icon', 'discordId',
                   'statusId', 'statusValidDateTime','isAllCategorySelected', 
                   'noticableMonTimeStart','noticableMonTimeEnd','noticableTueTimeStart','noticableTueTimeEnd',
                   'noticableWedTimeStart','noticableWedTimeEnd','noticableThuTimeStart','noticableThuTimeEnd',

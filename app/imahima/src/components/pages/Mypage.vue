@@ -81,6 +81,21 @@
         </div>
 
         <div class="m-3">
+            <div class="mypage_title">DiscordのユーザID</div>
+            <div class="mypage_content">
+                <div class="mt-2">
+                    <div class="mypage_discord_induction mt-1">
+                        <div>Discordでメンション先となるユーザのIDを教えてください</div>
+                        <div>\@ユーザ名 をDiscord上で入力すると手に入る数字です</div>
+                    </div>
+                    <div class="mypage_discord_area mt-1">
+                        <input type="text" v-model="discordId" class="text_input" placeholder="\@ユーザ名" @change="changeDiscordId">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-3">
             <div class="mypage_title">ヒマ予定時間</div>
             <div class="mypage_content">
                 <div class="mt-2">
@@ -247,6 +262,7 @@
             }
             
         }
+        
         .mypage_category_area{
             display: flex;
             overflow-x: auto;
@@ -287,6 +303,21 @@
                         box-shadow:none;
                     }
                 }
+            }
+        }
+
+        .mypage_discord_induction{
+            text-align: left;
+        }
+        .mypage_discord_area{
+            display: flex;
+            .text_input{
+                border: none;
+                border-radius: 8px;
+                padding-left: 10px;
+                width: 100%;
+                height: 40px;
+                font-size: 18px;
             }
         }
 
@@ -378,6 +409,8 @@ export type DataType = {
     isAllCategorySelected: boolean,
     categorys:category[],
 
+    discordId: string,
+
     refresh: number,
     week:weekContent[],
 
@@ -417,11 +450,13 @@ export default defineComponent({
             statusValidDateTime: null,
             refreshStatusTime: 1,
             firstTimeFlg: true,
-            
+
             isAllCategorySelected: true,
             categorys:[
                 {id:"", name:"ボードゲーム",selected:true},
             ],
+
+            discordId: "",
             
             refresh:1,
             week:[
@@ -542,6 +577,7 @@ export default defineComponent({
             // categorys
             this.isAllCategorySelected = firstData.userSetting__isAllCategorySelected;
             this.setCategorys(categoryRes.data,userInfoRes.data);
+            this.discordId = firstData.userSetting__discordId;
 
             // week
             this.setNoticeData(firstData);
@@ -734,6 +770,12 @@ export default defineComponent({
                 this.$http.delete("/api/user_select_category/delete/"+ this.$store.state.userId +"/"+ val.id +"/" );
             }
 
+        },
+        changeDiscordId():void{
+            const saveData = {
+                discordId: this.discordId
+            };
+            this.saveUserSetting(saveData);
         },
         changeWeekTime(val:weekContent):void{
             // 保存対象かどうかの確認

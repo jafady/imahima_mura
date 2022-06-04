@@ -55,7 +55,7 @@ class UserInfo(APIView):
                 .select_related('UserSetting').select_related('UserSetting__statusId__StatusMaster')\
                 .prefetch_related('UserSelectCategory').select_related('UserSelectCategory__categoryId__CategoryMaster')\
                 .filter(id=userId)\
-                .values('id','username',
+                .values('id','username', 'userSetting__discordId',
                     'userSetting__icon','userSetting__isAllCategorySelected',
                     'userSetting__noticableMonTimeStart','userSetting__noticableMonTimeEnd','userSetting__noticableTueTimeStart','userSetting__noticableTueTimeEnd',
                     'userSetting__noticableWedTimeStart','userSetting__noticableWedTimeEnd','userSetting__noticableThuTimeStart','userSetting__noticableThuTimeEnd',

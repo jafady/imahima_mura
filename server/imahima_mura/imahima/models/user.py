@@ -172,6 +172,7 @@ class UserSettingManager(models.Manager):
 class UserSetting(MyBaseModel):
     userId = models.ForeignKey('User', to_field='id', related_name='userSetting', on_delete=models.CASCADE, null=False, unique=True)
     icon = models.TextField(null=True,editable=True)
+    discordId = models.TextField(null=True,editable=True,blank=True)
     statusId = models.ForeignKey('StatusMaster', to_field='id', on_delete=models.PROTECT, default=StatusMaster.objects.get(statusName = 'ヒマ').id ,null=False)
     statusValidDateTime = models.DateTimeField(null=True, default=timezone.now)
     isAllCategorySelected = models.BooleanField(default=True)
