@@ -286,8 +286,10 @@ export default defineComponent({
         initialDisplay():void{
             if(this.$store.state.userStatus == "hima" || this.$store.state.userStatus == "ongame"){
                 this.houseMode = "friend";
+                this.refs.houseFriend?.initial();
             }else{
                 this.houseMode = "event";
+                this.refs.houseEvent?.initial();
             }
         },
         openHouseSetting():void{
@@ -428,6 +430,10 @@ export default defineComponent({
             if(data.type == "someOneChangeEvent"){
                 // 画面更新
                 this.refs.houseEvent?.getEventList();
+            }
+            if(data.type == "someOneChangeFeeling"){
+                // 画面更新
+                this.refs.houseFriend?.getFeelings();
             }
             if(data.type == "someOneJoinHouse"){
                 // 画面更新

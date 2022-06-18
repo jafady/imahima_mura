@@ -21,6 +21,7 @@
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vue-session": "^1.0.0",
+    "vue-slider-component": "^4.0.0-beta.4",
     "vue3-datepicker": "^0.3.1",
     "vue3-timepicker": "^1.0.0-beta.2",
     "vuex": "^4.0.0-0"

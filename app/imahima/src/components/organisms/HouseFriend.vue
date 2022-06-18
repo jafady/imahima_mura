@@ -48,6 +48,62 @@
                 </div>
             </div>
         </div>
+        <!-- 今の気分 -->
+        <div class="mt-4 feeling">
+            <div class="feeling_header" @click="changeFeelingDisplay">
+                <div class="feeling_icon"></div>
+                <div class="feeling_word">今の気分</div>
+            </div>
+            <div v-if="feelingDisplay" class="feeling_content pt-3 pb-3">
+                <div v-for="(value) in feelings" v-bind:key="value.gameId">
+                    <div class="game mb-3">
+                        <div class="gameName_area">{{value.gameName}}</div>
+                        <div class="user_area">
+                            <div v-for="(val) in value.userIds" v-bind:key="val.id">
+                                <div class="icon_area"><Icon :userId="val" :hideStatus="true"/></div>
+                            </div>
+                        </div>
+                        <Switch v-model:value="value.choice" :switchId="value.gameId" @change="changeGameChoice(value)"/>
+                    </div>
+                    <div class="detail m-3 pb-3" v-if="value.detailTypes.length > 0">
+                        <div class="detail_arrow"></div>
+                        <div v-for="(val) in value.detailTypes" v-bind:key="val.gameId">
+                            <div class="detail_content mb-2">
+                                <div class="left">{{val.leftName}}</div>
+                                <div class="center"><vue-slider v-model="val.choice" :min="0" :max="2" :interval="1" :adsorb="true" :process="false" :tooltip="'none'" @change="changeGameDetailChoice" @mousedown="changeStartGameDetailChoice(val)" @drag-start="changeStartGameDetailChoice(val)"></vue-slider></div>
+                                <div class="right">{{val.rightName}}</div>
+                            </div>
+                            <div class="detail_content mb-4">
+                                <div class="detail_user">
+                                    <div v-for="(userChoice) in val.userIds" v-bind:key="userChoice.userId">
+                                        <div v-if="userChoice.choice == 0" class="icon_area">
+                                            <Icon :userId="userChoice.userId" :hideStatus="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail_user">
+                                    <div v-for="(userChoice) in val.userIds" v-bind:key="userChoice.userId">
+                                        <div v-if="userChoice.choice == 1" class="icon_area">
+                                            <Icon :userId="userChoice.userId" :hideStatus="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="detail_user">
+                                    <div v-for="(userChoice) in val.userIds" v-bind:key="userChoice.userId">
+                                        <div v-if="userChoice.choice == 2" class="icon_area">
+                                            <Icon :userId="userChoice.userId" :hideStatus="true"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="feeling_content_close" @click="changeFeelingDisplay">
+                <div class= "handle"></div>
+            </div>
+        </div>
         <!-- 雑談 -->
         <div class="mt-4 talk">
             <div class="talk_header">
@@ -191,6 +247,140 @@
             }   
         }
     }
+    .feeling{
+        width: 90%;
+        margin: 0 auto;
+        .feeling_header{
+            height: 40px;
+            background-color: var(--main-bg-color);
+            clip-path: polygon(0% 100%, 0% 90%, 20% 90%, 35% 0%, 65% 0%, 
+80% 90%,100% 90%,100% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .feeling_word{
+                color: var(--text-color-white);
+                font-size: 18px;
+                font-weight: bold;
+            }
+            .feeling_icon{
+                position: absolute;
+                background-position-y: center;
+                left: calc(45% - 50px);
+                width: 30px;
+                height: 30px;
+                background-image: url("../../assets/img/house/friend/feeling.svg");
+                background-repeat: no-repeat;
+                background-size: contain;
+            }
+            
+        }
+        .feeling_content{
+            background-color: var(--content-bg-color);
+            border-radius: 0px 0px 8px 8px;
+            top: -1px;
+            position: relative;
+            .game{
+                display: flex;
+                justify-content: space-evenly;
+                align-items: center;
+                align-content: center;
+                font-size: 15px;
+                font-weight: bold;
+
+                .gameName_area{
+                    width: 120px;
+                    text-align: left;
+                }
+
+                .user_area{
+                    display: flex;
+                    align-items: center;
+                    height: 35px;
+                    width: 30%;
+                    background: white;
+                    border-radius: var(--content-border-radius);
+                    padding-left: 10px;
+                    padding-right: 10px;
+                    overflow: auto;
+                    
+                    .icon_area{
+                        width: 25px;
+                        height: 25px;
+                        margin: 2px;
+                    }
+                }
+            }
+
+            .detail{
+                background: rgba(246,246,246,1);
+                border-radius: var(--content-border-radius);
+                .detail_arrow{
+                    background: rgba(246,246,246,1);
+                    width: 50px;
+                    height: 15px;
+                    position: relative;
+                    top: -14px;
+                    left: 10px;
+                    clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+                }
+                .detail_content{
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-content: center;
+                    font-size: 13px;
+                    font-weight: bold;
+                    .left{
+                        text-align: right;
+                        width: 30%;
+                        margin-right: 15px;
+                    }
+                    .right{
+                        text-align: left;
+                        width: 30%;
+                        margin-left: 15px;
+                    }
+                    .center{
+                        width: 30%;
+                    }
+                    .vue-slider-dot-handle{
+                        background: var(--main-bg-color);
+                    }
+                    .detail_user{
+                        display: flex;
+                        min-height: 35px;
+                        width: 30%;
+                        background: white;
+                        border-radius: var(--content-border-radius);
+                        flex-wrap: wrap;
+                        .icon_area{
+                            width: 25px;
+                            height: 25px;
+                            margin: 2px;
+                        }
+                    }
+                }
+            }
+        }
+        .feeling_content_close{
+            background-color: var(--main-bg-color);
+            border-radius: 0px 0px 8px 8px;
+            top: -1px;
+            position: relative;
+            height: 10px;
+            display: flex;
+            align-items: center;
+            .handle{
+                background-color: var(--content-bg-color);
+                width: 25px;
+                height: 3px;
+                border-radius: 3px;
+                margin: 0 auto;
+            }
+        }
+
+    }
 
 
     .talk{
@@ -223,9 +413,11 @@
             height: 260px;
             background-color: var(--content-bg-color);
             border-radius: 0px 0px 8px 8px;
+            top: -1px;
+            position: relative;
             .talk_field{
                 width: 100%;
-                height: calc(100% - 30px);
+                height: calc(100% - 50px);
                 overflow-y: auto;
                 .date_field{
                     background-color: var(--main-bg-color);
@@ -273,7 +465,7 @@
             }
             .talk_input{
                 width: 100%;
-                height: 30px;
+                height: 50px;
                 border: none;
                 padding-left: 10px;
                 border-radius: 0 0 8px 8px;
@@ -288,11 +480,17 @@
 import { defineComponent, PropType } from 'vue'
 import utils from '@/mixins/utils'
 import Icon from '@/components/molecules/Icon.vue'
+import Switch from '@/components/molecules/Switch.vue'
 import {houseMates, houseMate, talk} from '@/mixins/interface'
 
-
+interface userChoices {userId:string, choice:number }
+interface detailType {gameDetailTypeId:string, gameDetailTypeName:string, gameId:string, leftName:string, rightName:string, choice:number, userIds: userChoices[] }
+interface feeling {gameId:string, gameName:string, choice:boolean, userIds: string[], detailTypes:detailType[]}
 export type DataType = {
     friendMode: string,
+    feelingDisplay: boolean,
+    feelings: feeling[],
+    changingDetail: detailType | null,
     inputText: string,
 }
 
@@ -300,6 +498,7 @@ export default defineComponent({
     name: "HouseFriend",
     components: {
         Icon,
+        Switch,
     },
     setup(): Record<string, any>{
         const { sortTime,cutSeconds, sendWebsocket } = utils()
@@ -315,6 +514,9 @@ export default defineComponent({
     data(): DataType {
         return {
             friendMode: "hima",
+            feelingDisplay: false,
+            feelings: [],
+            changingDetail:null,
             inputText: "",
         }
     },
@@ -340,7 +542,13 @@ export default defineComponent({
 
 
     },
+    mounted: function():void{
+        this.getFeelings();
+    },
     methods: {
+        initial(){
+            this.getFeelings();
+        },
         isHouseMateDisplay(nowStatus:string):boolean {
             if(nowStatus == "hima"){
                 return this.isHimaMode;
@@ -375,6 +583,119 @@ export default defineComponent({
                 return true;
             }
             return false;
+        },
+        changeFeelingDisplay(){
+            this.feelingDisplay = !this.feelingDisplay;
+        },
+        async getFeelings():Promise<void> {
+            if(!this.$store.state.houseId){
+                return
+            }
+            const feelings = await this.$http.get("/api/feelings/" + this.$store.state.houseId + "/");
+            const receiveData = feelings.data
+            const data:feeling[] = [];
+            for (const key in receiveData) {
+                const gameVal = receiveData[key];
+                const detailTypes:detailType[] = [];
+                for (const detailKey in gameVal.gameDetails) {
+                    const detailVal = gameVal.gameDetails[detailKey];
+                    const myDetail = detailVal.gameDetailUsers.find((user:userChoices) => user.userId == this.$store.state.userId);
+                    let myDetailChoice = 1;
+                    if(myDetail){
+                        myDetailChoice = myDetail.choice;
+                    }
+                    detailTypes.push({
+                        gameDetailTypeId: detailVal.id,
+                        gameDetailTypeName: detailVal.gameDetailTypeName,
+                        gameId: gameVal.id,
+                        leftName: detailVal.leftName,
+                        rightName: detailVal.rightName,
+                        choice: myDetailChoice,
+                        userIds: detailVal.gameDetailUsers
+                    });
+                }
+                const choice = gameVal.gameUsers.findIndex((user:string) => user == this.$store.state.userId) > -1;
+                data.push({
+                    gameId: gameVal.id,
+                    gameName: gameVal.gameName,
+                    choice: choice,
+                    userIds: gameVal.gameUsers,
+                    detailTypes: detailTypes
+                });
+            }
+            this.feelings = data;
+        },
+        changeGameChoice(val:feeling){
+            if(val.choice){
+                // ONにしたとき
+                const saveData:Record<string, unknown> = {
+                    "houseId": this.$store.state.houseId,
+                    "userId": this.$store.state.userId,
+                    "gameId": val.gameId,
+                    "gameDetailTypeId": null,
+                    "choice": 1,
+                };
+                this.saveFeeling(saveData);
+
+                // 詳細をdefault値で登録
+                for(const key in val.detailTypes){
+                    const saveData:Record<string, unknown> = {
+                        "houseId": this.$store.state.houseId,
+                        "userId": this.$store.state.userId,
+                        "gameId": val.gameId,
+                        "gameDetailTypeId": val.detailTypes[key].gameDetailTypeId,
+                        "choice": 1,
+                    };
+                    this.saveFeeling(saveData);
+                }
+            }else{
+                // OFFにしたとき
+                // 詳細含めて削除
+                this.deleteFeeling(val.gameId);
+            }
+        },
+        changeStartGameDetailChoice(val:detailType){
+            // changeイベントが値変更前になってしまうので、変更対象のデータを保持する
+            this.changingDetail = val;
+        },
+        changeGameDetailChoice(val:number,sliderIndex:number){
+            if(!this.changingDetail){
+                return
+            }
+            const saveData:Record<string, unknown> = {
+                "houseId": this.$store.state.houseId,
+                "userId": this.$store.state.userId,
+                "gameId": this.changingDetail.gameId,
+                "gameDetailTypeId": this.changingDetail.gameDetailTypeId,
+                "choice": val,
+            };
+            this.saveFeeling(saveData);
+        },
+        saveFeeling(data:any):void{
+            this.$http.post("/api/upsert_feelings/", data)
+            .then((response)=>{
+                // イベント変更の共有
+                this.sendChangeFeeling();
+            });
+        },
+        deleteFeeling(gameId:string):void{
+            if(!gameId){
+                return
+            }
+            this.$http.delete("/api/delete_feelings/" + this.$store.state.houseId + "/" + this.$store.state.userId + "/"
+                + gameId + "/")
+            .then((response)=>{
+                // イベント変更の共有
+                this.sendChangeFeeling();
+            });
+        },
+        sendChangeFeeling():void{
+            // 画面更新
+            this.sendWebsocket(JSON.stringify({
+                "type": "noticeChangeFeeling",
+                "houseId": this.$store.state.houseId
+            }));
+            this.getFeelings();
         },
         talkScrollEnd():void{
             const target = document.getElementById("talk_field");

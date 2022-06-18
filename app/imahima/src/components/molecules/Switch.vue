@@ -11,7 +11,7 @@
 .switchArea {
     position       : relative;              /* 親要素が基点       */
     width          : 90px;                  /* ボタンの横幅       */
-    background     : var(--inactive-bg-color);   /*  デフォルト背景色   */
+    background     : var(--inactive-bg-color3);   /*  デフォルト背景色   */
     border-radius  : 23px;
 }
 

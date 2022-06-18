@@ -39,11 +39,24 @@ urlpatterns = [
     path('leave_event/<eventId>/<userId>/', EventLeave.as_view()),
     path('events/<houseId>/', EventList.as_view()),
 
+    path('feelings/<houseId>/', HouseMateFeelingList.as_view()),
+    path('upsert_feelings/', HouseMateFeelingCreate.as_view()),
+    path('delete_feelings/<houseId>/<userId>/<gameId>/', HouseMateFeelingDestroy.as_view()),
 
     path('create_status/', StatusMasterCreate.as_view()),
     path('statuses/', StatusMasterList.as_view()),
     path('create_category/', CategoryMasterCreate.as_view()),
     path('categorys/', CategoryMasterList.as_view()),
+
+    path('games/', GameList.as_view()),
+    path('create_game/', GameCreate.as_view()),
+    path('update_game/<pk>/', GameRetrieveUpdate.as_view()),
+    path('delete_game/<pk>/', GameDestroy.as_view()),
+
+    path('game_details/', GameDetailTypeList.as_view()),
+    path('create_game_detail/', GameDetailTypeCreate.as_view()),
+    path('update_game_detail/<pk>/', GameDetailTypeRetrieveUpdate.as_view()),
+    path('delete_game_detail/<pk>/', GameDetailTypeDestroy.as_view()),
 
     path('regist_webpush/', WebPushDeviceViewSet.as_view({'post': 'create'}))
 ]

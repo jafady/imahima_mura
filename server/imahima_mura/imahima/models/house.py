@@ -108,3 +108,89 @@ class InviteHouseToken(MyBaseModel):
 
     def __str__(self):
         return id
+
+
+class GameManager(models.Manager):
+    def create_game(self, user, houseId, **extra_fields):
+        """
+        Creates and saves a Game
+        """
+        Game = self.model(
+            houseId = houseId,
+            create_user = user.username,
+            update_user = user.username
+        )
+        [setattr(Game, k, v) for k, v in extra_fields.items()]
+
+        Game.save(using=self._db)
+        return Game
+
+
+class Game(MyBaseModel):
+    houseId = models.ForeignKey('House', to_field='id', on_delete=models.CASCADE, null=False)
+    gameName = models.TextField(blank=True)
+    sortNo = models.IntegerField(blank=True, default=0)
+    
+    objects = GameManager()
+
+    def __str__(self):
+        return id
+
+class GameDetailTypeManager(models.Manager):
+    def create_gameDetailType(self, user, houseId, **extra_fields):
+        """
+        Creates and saves a GameDetailType
+        """
+        GameDetailType = self.model(
+            houseId = houseId,
+            create_user = user.username,
+            update_user = user.username
+        )
+        [setattr(GameDetailType, k, v) for k, v in extra_fields.items()]
+
+        GameDetailType.save(using=self._db)
+        return GameDetailType
+
+
+class GameDetailType(MyBaseModel):
+    houseId = models.ForeignKey('House', to_field='id', on_delete=models.CASCADE, null=False)
+    gameId = models.ForeignKey('Game', to_field='id', on_delete=models.CASCADE, null=False)
+    gameDetailTypeName = models.TextField(blank=True)
+    leftName = models.TextField(blank=True)
+    rightName = models.TextField(blank=True)
+    sortNo = models.IntegerField(blank=True, default=0)
+    
+    objects = GameDetailTypeManager()
+
+    def __str__(self):
+        return id
+
+class HouseMateFeelingManager(models.Manager):
+    def create_housemateFeeling(self, user, houseId, userId, **extra_fields):
+        """
+        Creates and saves a HouseMateFeeling
+        """
+        housemateFeeling = self.model(
+            houseId = houseId,
+            userId = userId,
+            create_user = user.username,
+            update_user = user.username
+        )
+        [setattr(housemateFeeling, k, v) for k, v in extra_fields.items()]
+
+        housemateFeeling.save(using=self._db)
+        return housemateFeeling
+
+
+class HouseMateFeeling(MyBaseModel):
+    houseId = models.ForeignKey('House', to_field='id', on_delete=models.CASCADE, null=False)
+    userId = models.ForeignKey('User', to_field='id', on_delete=models.CASCADE, null=False)
+    gameId = models.ForeignKey('Game', to_field='id', on_delete=models.CASCADE, null=False)
+    gameDetailTypeId = models.ForeignKey('GameDetailType', to_field='id', on_delete=models.CASCADE, null=True)
+    choice = models.IntegerField(default=0)
+    
+
+    objects = HouseMateFeelingManager()
+
+    def __str__(self):
+        return id

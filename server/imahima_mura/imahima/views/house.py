@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,9 +7,10 @@ import json, datetime
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core import serializers
 from django.http import HttpResponse
+from django.db.models import F
 
-from ..models import House,HouseMate,InviteHouseToken,User
-from ..serializers import HouseSerializer,HouseMateSerializer,InviteHouseTokenSerializer
+from ..models import House,HouseMate,InviteHouseToken,User,Game,GameDetailType,HouseMateFeeling
+from ..serializers import HouseSerializer,HouseMateSerializer,InviteHouseTokenSerializer,GameSerializer,GameDetailTypeSerializer,HouseMateFeelingSerializer
 
 # 家全体の設定
 class HouseCreate(generics.CreateAPIView):
@@ -112,3 +113,112 @@ class InviteHouseTokenUse(APIView):
         res_invitaiton = HouseMate.objects.filter(id=invitation.id).values('id','houseId','userId')
         res_json = json.dumps(list(res_invitaiton)[0], cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
+
+
+# ゲームマスタ操作
+class GameList(generics.ListAPIView):
+    """ View to list all Game"""
+    queryset = Game.objects.all().order_by('id')
+    serializer_class = GameSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class GameCreate(generics.CreateAPIView):
+    """ View to create a new Game. Only accepts POST requests """
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+
+class GameRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    """ Retrieve a Game or update Game information.
+    Accepts GET and PUT requests and the record id must be provided in the request """
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+class GameDestroy(generics.DestroyAPIView):
+    """ Destroy a GameDetailType information. """
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+# ゲーム詳細マスタ操作
+class GameDetailTypeList(generics.ListAPIView):
+    """ View to list all GameDetailType"""
+    queryset = GameDetailType.objects.all().order_by('id')
+    serializer_class = GameDetailTypeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class GameDetailTypeCreate(generics.CreateAPIView):
+    """ View to create a new GameDetailType. Only accepts POST requests """
+    queryset = GameDetailType.objects.all()
+    serializer_class = GameDetailTypeSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+
+class GameDetailTypeRetrieveUpdate(generics.RetrieveUpdateAPIView):
+    """ Retrieve a GameDetailType or update GameDetailType information.
+    Accepts GET and PUT requests and the record id must be provided in the request """
+    queryset = GameDetailType.objects.all()
+    serializer_class = GameDetailTypeSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+class GameDetailTypeDestroy(generics.DestroyAPIView):
+    """ Destroy a GameDetailType information. """
+    queryset = GameDetailType.objects.all()
+    serializer_class = GameDetailTypeSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+# 今の気分
+class HouseMateFeelingList(APIView):
+    """ 今の気分のリスト返却 """
+    serializer_class = HouseMateFeelingSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+    def get(self, request, houseId):
+        games = Game.objects.filter(houseId = houseId).order_by('sortNo')\
+                .values('id','gameName')
+        
+        for game in games:
+            gameUsers = User.objects.get_base_info(target_day=datetime.datetime.now())\
+                .prefetch_related('HouseMateFeeling')\
+                .filter(housematefeeling__houseId = houseId,housematefeeling__gameId = game['id'],housematefeeling__gameDetailTypeId__isnull=True, housematefeeling__choice=1)\
+                .filter(nowStatus='ヒマ')\
+                .values('id')
+            game['gameUsers'] = [data['id'] for data in gameUsers]
+
+            gameDetails = GameDetailType.objects.filter(houseId = houseId,gameId = game['id']).order_by('sortNo')\
+                .values('id','gameDetailTypeName','leftName','rightName')
+            for gameDetail in gameDetails:
+                gameDetailUsers = User.objects.get_base_info(target_day=datetime.datetime.now())\
+                            .prefetch_related('HouseMateFeeling')\
+                            .filter(housematefeeling__houseId = houseId,housematefeeling__gameId = game['id'],\
+                                housematefeeling__gameDetailTypeId = gameDetail['id'])\
+                            .filter(nowStatus='ヒマ')\
+                            .annotate(userId=F('id'))\
+                            .annotate(choice=F('housematefeeling__choice'))\
+                            .values('userId','choice')
+                gameDetail['gameDetailUsers'] = [data for data in gameDetailUsers]
+
+            game['gameDetails'] = [data for data in gameDetails]
+
+
+        res_json = json.dumps(list(games), cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
+
+class HouseMateFeelingCreate(generics.CreateAPIView):
+    """ View to create a new HouseMateFeeling. Only accepts POST requests """
+    queryset = HouseMateFeeling.objects.all()
+    serializer_class = HouseMateFeelingSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+class HouseMateFeelingDestroy(APIView):
+    """ Destroy a HouseMateFeeling information. """
+    serializer_class = HouseMateFeelingSerializer
+    lookup_fields = ('houseId','userId','gameId')
+    permission_classes = (permissions.IsAuthenticated, )
+    def delete(self, request, houseId, userId, gameId):
+        feelings = HouseMateFeeling.objects.filter(houseId = houseId, userId = userId, gameId = gameId)
+        feelings.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

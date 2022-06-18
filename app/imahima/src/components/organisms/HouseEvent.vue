@@ -372,7 +372,13 @@ export default defineComponent({
         this.getEventList();
     },
     methods: {
+        initial(){
+            this.getEventList();
+        },
         async getEventList():Promise<void>{
+            if(!this.$store.state.houseId){
+                return
+            }
             const eventsRes = await this.$http.get("/api/events/" + this.$store.state.houseId + "/");
             this.setEventList(eventsRes.data);
         },

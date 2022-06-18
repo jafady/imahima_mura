@@ -15,6 +15,8 @@ import Datepicker from 'vue3-datepicker';
 import 'vue3-datepicker/dist/vue3-datepicker.css'
 import Cropper from "cropperjs";
 import 'cropperjs/dist/cropper.min.css'
+import VueSlider from 'vue-slider-component';
+import 'vue-slider-component/theme/default.css'
 
 import './registerServiceWorker'
 
@@ -32,4 +34,5 @@ app.config.globalProperties.$push = Push;
 app.component('VueTimepicker', VueTimepicker);
 app.component('Datepicker', Datepicker);
 app.component('Cropper', Cropper);
+app.component('VueSlider', VueSlider);
 app.mount('#app');

@@ -125,6 +125,16 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                 }
             )
         
+        if msg_type == 'noticeChangeFeeling':
+            await self.channel_layer.group_send(
+                room_group_name,
+                {
+                    'type': 'feeling.notice',
+                    'houseId': data_json['houseId'],
+                    'userId': self.user.id,
+                }
+            )
+        
         if msg_type == 'createEvent':
             await self.send_event_create_notice({
                     'houseId': data_json['houseId'],
@@ -201,6 +211,14 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             'type': 'someOneChangeEvent',
             'houseId': event['houseId'],
         }))
+    
+    # 今の気分の変更を受領する
+    async def feeling_notice(self, event):
+        if self.user.id != event['userId']:
+            await self.send(text_data=json.dumps({
+                'type': 'someOneChangeFeeling',
+                'houseId': event['houseId'],
+            }))
     
     
     # 通知処理
