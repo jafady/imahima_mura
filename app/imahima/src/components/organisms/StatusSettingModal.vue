@@ -12,7 +12,7 @@
                             </div>
                             <div v-else>
                                 <div>ヒマな人のための画面を出そうとしています。</div>
-                                <div>いつまでヒマですか？</div>
+                                <div>今、ヒマですか？</div>
                             </div>
                             <div class="SSM_content">
                                 <div class="d-inline-flex mt-2 SSM_inline">
@@ -29,16 +29,22 @@
                                     </div>
                                     <Switch v-model:value="statusBusy" :switchId="'switch2'" @change="changeStatus(STATUS.busy, statusBusy)"/>
                                 </div>
+                            </div>
+                            <div class="mt-3">
+                                <div v-if="statusHima" class="SSM_content_title d-flex">どれくらいヒマですか?</div>
+                                <div v-else class="SSM_content_title d-flex">どれくらい忙しいですか?</div>
+                            </div>
+                            <div class="SSM_content">
+                                <div class="SSM_time_span mb-2">
+                                    <vue-slider v-model="timeSpan" :min="10" :max="180" :interval="10" :adsorb="true" :process="true" :tooltip="'always'" :tooltip-formatter="formatter" :marks="marks" @change="changeTimeSpan"></vue-slider>
+                                </div>
 
-                                <div class="mt-2">
-                                    <div class="SSM_content_title d-flex">いつまでのステータスか</div>
-                                    <div class="d-inline-flex SSM_inline_statusValidDateTime">
-                                        <datepicker class="vue-datepicker-box" v-model="statusValidDate" />
-                                        <VueTimepicker input-class="time" format="HH:mm" v-model="statusValidTime" :key="refreshStatusTime" :minute-interval="10" hide-clear-button></VueTimepicker>
-                                    </div>
+                                <div class="d-inline-flex SSM_inline_statusValidDateTime">
+                                    <datepicker class="vue-datepicker-box" v-model="statusValidDate" />
+                                    <VueTimepicker input-class="time" format="HH:mm" v-model="statusValidTime" :key="refreshStatusTime" :minute-interval="10" hide-clear-button></VueTimepicker>
+                                    <div class="word">まで</div>
                                 </div>
                             </div>
-                            
                         </div>
                         <div class="SSM_footer">
                             <button type="button" class="btn btn_primary_normal SSM_btn" data-bs-dismiss="modal" @click="saveStatus">確定</button>
@@ -99,8 +105,28 @@
                 }
             }
         }
+        .SSM_time_span{
+            width: 85%;
+            height: 50px;
+            margin: 0 auto;
+            margin-top: 35px;
+            .vue-slider-process{
+                background: var(--main-bg-color);
+            }
+            .vue-slider-dot-handle{
+                background: var(--main-bg-color);
+            }
+            .vue-slider-dot-tooltip-inner{
+                background: var(--main-bg-color);
+                border-color: var(--main-bg-color);
+            }
+            .vue-slider-dot-tooltip-text{
+                background: var(--main-bg-color);
+            }
+        }
         .SSM_inline_statusValidDateTime{
             align-items: center;
+            justify-content: center;
             width: 100%;
             .vue-datepicker-box{
                 width: 120px;
@@ -116,11 +142,14 @@
                 height: 40px;
                 border: none;
                 border-radius: 8px;
-                margin-left: 20px;
+                margin-left: 15px;
                 font-family: var(--font-family);
                 text-align: center;
             }
             
+            .word{
+                margin-left: 20px;
+            }
         }
     }
 }
@@ -154,6 +183,11 @@ import { Modal } from 'bootstrap'
 export type DataType = {
     statusHima: boolean,
     statusBusy: boolean,
+
+    timeSpan: number,
+    marks: Record<string, unknown>,
+    formatter: string,
+
     statusValidDateTime: Date | null,
     refreshStatusTime: number,
 
@@ -178,6 +212,14 @@ export default defineComponent({
             statusValidDateTime: null,
             refreshStatusTime: 1,
 
+            timeSpan: 10,
+            marks:{
+                "10": "見るだけ",
+                "60": "ちょっと",
+                "180": "だいぶ",
+            },
+            formatter: '{value}分',
+
             isToHimaView: false,
         }
     },
@@ -191,6 +233,7 @@ export default defineComponent({
                 val.setHours(0);
                 val.setMinutes(0);
                 val.setSeconds(0);
+                val.setMilliseconds(0);
                 return val;
             },
             set: function (newVal:Date):void {
@@ -202,8 +245,12 @@ export default defineComponent({
                     mm = parseInt(this.statusValidTime.substring(3,5)) || 0;
                     val.setHours(HH);
                     val.setMinutes(mm);
+                    val.setMilliseconds(0);
                 }
                 this.statusValidDateTime = val;
+
+                 // 今との差分をtimeSpanに設定する
+                 this.calcTimeSpan();
             },
         },
         statusValidTime:{
@@ -220,7 +267,11 @@ export default defineComponent({
                     const mm:number = parseInt(newVal.substring(3,5)) || 0;
                     val.setHours(HH);
                     val.setMinutes(mm);
+                    val.setMilliseconds(0);
                     this.statusValidDateTime = val;
+
+                    // 今との差分をtimeSpanに設定する
+                    this.calcTimeSpan();
                 }
             },
         },
@@ -232,17 +283,12 @@ export default defineComponent({
             const userData = this.$store.state.houseMates[this.$store.state.userId];
             // 予定ではヒマなときに出すので基本ヒマで
             this.setStatusFlg(userData.nowStatus);
-            // 今日 + noticableEndTimeの日時で。
-            let val:Date = new Date();
-            const noticableEndTime: string = userData.noticableEndTime;
-            val.setHours(parseInt(noticableEndTime.substring(0,2)) || 0);
-            val.setMinutes(parseInt(noticableEndTime.substring(3,5)) || 0);
 
-            // noticableEndTimeが今の時間よりも前であれば今の時間を入れる
-            if(val < new Date()){
-                val = new Date();
-            }
+            // 今からの時間で設定する
+            const val:Date = new Date();
+            val.setMinutes(val.getMinutes() + this.timeSpan);
             val.setSeconds(0);
+            val.setMilliseconds(0);
             this.statusValidDateTime = val;
             this.refreshStatusTime *= -1;
 
@@ -278,6 +324,32 @@ export default defineComponent({
                 this.statusHima = true;
             }
             
+        },
+        changeTimeSpan(val:number){
+            const now:Date = new Date();
+            now.setMinutes(now.getMinutes() + val);
+            now.setSeconds(0);
+            now.setMilliseconds(0);
+            this.statusValidDateTime = now;
+            this.refreshStatusTime *= -1;
+        },
+        calcTimeSpan(){
+            if(!this.statusValidDateTime){
+                this.timeSpan = 10;
+            }else{
+                const now:Date = new Date();
+                now.setSeconds(0);
+                now.setMilliseconds(0);
+                const diffMillSec:number = this.statusValidDateTime.getTime() - now.getTime();
+                const diffMinutes:number = diffMillSec /1000/60;
+                if(diffMinutes < 10){
+                    this.timeSpan = 10;
+                }else if(diffMinutes > 180){
+                    this.timeSpan = 180;
+                }else{
+                    this.timeSpan = diffMinutes;
+                }
+            }
         },
         async saveStatus():Promise<void>{
             const statusRes = await this.$http.get("/api/statuses/")
