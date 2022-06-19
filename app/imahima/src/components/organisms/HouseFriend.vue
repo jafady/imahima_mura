@@ -658,7 +658,7 @@ export default defineComponent({
             // changeイベントが値変更前になってしまうので、変更対象のデータを保持する
             this.changingDetail = val;
         },
-        changeGameDetailChoice(val:number,sliderIndex:number){
+        changeGameDetailChoice(val:number){
             if(!this.changingDetail){
                 return
             }
