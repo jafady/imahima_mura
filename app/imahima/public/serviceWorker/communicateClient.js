@@ -57,6 +57,9 @@ self.addEventListener('push', function(event) {
   if(response_json.type == "receiveManualMessage"){
     receiveManualMessage(response_json);
   }
+  if(response_json.type == "receiveNewTalk"){
+    receiveNewTalk(response_json);
+  }
 
 });
 
@@ -154,6 +157,28 @@ const receiveManualMessage = async (data) => {
   
   // 通知時間まで待つ
   setTimeout(() =>{registration.showNotification(title, options)}, data.noticeSecond * 1000);
+}
+
+const receiveNewTalk = async (data) => {
+  // 通知許可チェック
+  const permission = await checkNoticePermission();
+  if(!permission) return;
+
+  const img = "../img/serviceWorker/app_icon.png";
+  const title = data.userName;
+  const options = {
+      tag: "noticeNewTalk",
+      icon: img,
+      body: data.msg,
+      actions: [
+          {action: 'enterRoom', title: "入る"}
+      ],
+      data: {
+          baseUrl: self.location.origin,
+          url: "/?#/House?houseId=" + data.houseId,
+      }
+  }
+  registration.showNotification(title, options);
 }
 
 

@@ -13,8 +13,8 @@ Axios.interceptors.request.use((config: AxiosRequestConfig) => {
 
 
 // サービスワーカーを更新させるための無意味な式(変更した場合はバージョンを繰り上げること)
-const version = 3;
-const dev_version = 2;
+const version = 4;
+const dev_version = 0;
 
 // Utils functions:
 

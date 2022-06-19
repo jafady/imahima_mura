@@ -28,6 +28,10 @@
                                         <div class="content_subtitle d-flex">discord通知Webhook</div>
                                         <input type="text" v-model="discordNoticeUrl" class="text_input" placeholder="https://discordapp.com/api/webhooks/" @change="changeDiscordNoticeUrl">
                                     </div>
+                                    <div class="m-1 mt-3">
+                                        <div class="content_subtitle d-flex">discord雑談Webhook</div>
+                                        <input type="text" v-model="discordTalkUrl" class="text_input" placeholder="https://discordapp.com/api/webhooks/" @change="changeDiscordTalkUrl">
+                                    </div>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -113,8 +117,8 @@
                 position: absolute;
                 background-position-y: center;
                 left: calc(45% - 55px);
-                width: 35px;
-                height: 35px;
+                width: 30px;
+                height: 30px;
                 background-image: url("../../assets/img/house/wrench.svg");
                 background-repeat: no-repeat;
                 background-size: contain;
@@ -231,6 +235,7 @@ export type DataType = {
     houseName: string,
     discordUrl: string,
     discordNoticeUrl: string,
+    discordTalkUrl: string,
     inviteUrl: string,
     friendId: string,
     friendName: string,
@@ -253,6 +258,7 @@ export default defineComponent({
             houseName: "",
             discordUrl: "",
             discordNoticeUrl: "",
+            discordTalkUrl: "",
             inviteUrl: "",
             friendId: "",
             friendName: "",
@@ -293,6 +299,7 @@ export default defineComponent({
             this.houseName = "";
             this.discordUrl = "";
             this.discordNoticeUrl = "";
+            this.discordTalkUrl = "";
             this.friendId = "";
             this.friendName = "";
             this.alreadyRegistered = false;
@@ -302,6 +309,7 @@ export default defineComponent({
             this.houseName = houseInfo.data.houseName;
             this.discordUrl = houseInfo.data.discordUrl;
             this.discordNoticeUrl = houseInfo.data.discordNoticeUrl;
+            this.discordTalkUrl = houseInfo.data.discordTalkUrl;
         },
         changeHouseName():void{
             const saveData = {
@@ -318,6 +326,12 @@ export default defineComponent({
         changeDiscordNoticeUrl():void{
             const saveData = {
                 discordNoticeUrl: this.discordNoticeUrl
+            };
+            this.saveHouseInfo(saveData);
+        },
+        changeDiscordTalkUrl():void{
+            const saveData = {
+                discordTalkUrl: this.discordTalkUrl
             };
             this.saveHouseInfo(saveData);
         },

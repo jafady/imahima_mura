@@ -417,7 +417,7 @@
             position: relative;
             .talk_field{
                 width: 100%;
-                height: calc(100% - 50px);
+                height: calc(100% - 40px);
                 overflow-y: auto;
                 .date_field{
                     background-color: var(--main-bg-color);
@@ -465,7 +465,7 @@
             }
             .talk_input{
                 width: 100%;
-                height: 50px;
+                height: 40px;
                 border: none;
                 padding-left: 10px;
                 border-radius: 0 0 8px 8px;

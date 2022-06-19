@@ -75,6 +75,17 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
                     'time': datetime.datetime.now(pytz.timezone('Asia/Tokyo')).strftime("%H:%M"),
                 }
             )
+            await self.send_talk_notice({
+                    'houseId': data_json['houseId'],
+                    'message': message,
+                    'userId': self.user.id,
+                    'userName': self.user.username,
+                    'date': datetime.datetime.now(pytz.timezone('Asia/Tokyo')).strftime("%Y/%m/%d"),
+                    'time': datetime.datetime.now(pytz.timezone('Asia/Tokyo')).strftime("%H:%M"),
+                })
+
+
+
         if msg_type == 'requestTalks':
             await self.channel_layer.group_send(
                 room_group_name,
@@ -221,8 +232,34 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
             }))
     
     
+
     # 通知処理
     # websocketの送信側で処理を行う
+
+    # 雑談をdiscord上に通知送信
+    async def send_talk_notice(self, event):
+        # 通知対象の取得
+        # 同じ家かつ、現時点のステータスが予定ではヒマとヒマが対象
+        targetUsers = await self.get_member_notice_target(event['houseId'])
+        for targetUser in targetUsers:
+            # 自分には送らない
+            if targetUser['id'] == self.user.id:
+                print('event_create 自分なので送らない ' + targetUser['id'])
+                continue
+            
+            await self.send_WebPushDevice(targetUser['id'],
+                    json.dumps({
+                        'type': 'receiveNewTalk',
+                        'houseId': event['houseId'],
+                        'userName': event['userName'],
+                        'msg': event['message']
+                    }, ensure_ascii=False)
+                )
+
+        # discordに通知を送る
+        msg = event['message']
+        discordNoticeUserId = []
+        await self.send_discordPush(event['houseId'], discordNoticeUserId, msg, True)
 
     # ステータス変更に伴うヒマ人数増加の通知
     async def send_inclease_members_notice(self, event):
@@ -563,10 +600,12 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
     
     # discordに通知を送る
     @database_sync_to_async
-    def send_discordPush(self,targetHouseId,targetUserIds,msg):
+    def send_discordPush(self,targetHouseId,targetUserIds,msg,talkFlg=False):
         # 家ごとに設定されたdiscordの通知用webhookの取得
         targetHouse = House.objects.get(id=targetHouseId)
         discordNoticeUrl = targetHouse.discordNoticeUrl
+        if talkFlg:
+            discordNoticeUrl = targetHouse.discordTalkUrl
         if not discordNoticeUrl:
             print('宛先が未登録なのでDiscord通知なし')
             return
@@ -584,6 +623,7 @@ class ImahimaConsumer(AsyncWebsocketConsumer):
 
         # 通知内容を設定
         main_content = {
+            'username': self.user.username,
             'content': '\r\n'.join([mention,msg]),
             'allowed_mentions': {
                 'parse': ['users']
