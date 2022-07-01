@@ -24,6 +24,7 @@ module.exports = {
         description: "直近の予定をぱっと埋められるアプリ"
       }
     },
+    productionSourceMap: process.env.NODE_ENV === 'production' ? false : true,
     configureWebpack: {
       plugins: [
         new DumpVueEnvVarsWebpackPlugin({ filename: 'env-vars-dump.js' })
