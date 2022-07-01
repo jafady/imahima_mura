@@ -1,11 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 
-//component
-// import Login from '@/components/pages/Login.vue'
-// import FirstVisitor from '@/components/pages/FirstVisitor.vue'
 
-import House from '@/components/pages/House.vue'
-// import Mypage from '@/components/pages/Mypage.vue'
 
 // store
 import Store from '@/store/index'
@@ -30,7 +25,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: '',
-    component: House,
+    // component: House,
+    component: () => import('@/components/pages/House.vue'),
     meta: { title:'イマヒマ村 ホーム' }
   },
   {
@@ -50,7 +46,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/House',
     name: 'House',
-    component: House,
+    // component: House,
+    component: () => import('@/components/pages/House.vue'),
     meta: { title:'イマヒマ村 ホーム' }
   },
   {

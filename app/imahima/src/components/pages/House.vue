@@ -198,14 +198,9 @@
 </style>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, defineAsyncComponent } from 'vue'
 import utils from '@/mixins/utils'
 import Header from '@/components/organisms/Header.vue'
-import HouseFriend from '@/components/organisms/HouseFriend.vue'
-import HouseEvent from '@/components/organisms/HouseEvent.vue'
-import StatusSettingModal from '@/components/organisms/StatusSettingModal.vue'
-import HouseSettingModal from '@/components/organisms/HouseSettingModal.vue'
-import CreateHouseEventModal from '@/components/organisms/CreateHouseEventModal.vue'
 
 import {houseList, houseMate, talk} from '@/mixins/interface'
 
@@ -225,11 +220,11 @@ export default defineComponent({
     name: "House",
     components: {
         Header,
-        HouseFriend,
-        HouseEvent,
-        StatusSettingModal,
-        HouseSettingModal,
-        CreateHouseEventModal,
+        HouseFriend: defineAsyncComponent(() => import("@/components/organisms/HouseFriend.vue")),
+        HouseEvent: defineAsyncComponent(() => import("@/components/organisms/HouseEvent.vue")),
+        StatusSettingModal: defineAsyncComponent(() => import("@/components/organisms/StatusSettingModal.vue")),
+        HouseSettingModal: defineAsyncComponent(() => import("@/components/organisms/HouseSettingModal.vue")),
+        CreateHouseEventModal: defineAsyncComponent(() => import("@/components/organisms/CreateHouseEventModal.vue")),
     },
     setup(): Record<string, any>{
         const { sendWebsocket, queryToString, sleep } = utils()

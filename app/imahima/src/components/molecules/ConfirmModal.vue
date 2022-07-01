@@ -67,7 +67,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import utils from '@/mixins/utils'
 import { Modal } from 'bootstrap'
 
 export type DataType = {
@@ -79,15 +78,6 @@ export default defineComponent({
     components: {
         
     },
-    // setup(): Record<string, any>{
-    //     const { sortTime,cutSeconds, sendWebsocket,getDisplayTime } = utils()
-    //     return{
-    //         sortTime,
-    //         cutSeconds,
-    //         sendWebsocket,
-    //         getDisplayTime
-    //     }
-    // },
     data(): DataType {
         return{
             msg: ""
