@@ -2,7 +2,10 @@
 FROM node:lts-alpine as build-stage
 WORKDIR /app
 COPY package*.json ./
+RUN apk add --no-cache python3 make g++
+RUN npm install -g npm@9.2.0
 RUN npm install
+RUN npx browserslist@latest --update-db
 COPY . .
 ARG VUE_APP_API_ENDPOINT_PROTOCOL
 ARG VUE_APP_API_ENDPOINT_HOST

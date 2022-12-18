@@ -2,7 +2,10 @@
 FROM node:lts-alpine
 WORKDIR /usr/src/app
 COPY package*.json ./
+RUN apk add --no-cache python3 make g++
+RUN npm install -g npm@9.2.0
 RUN npm install
+RUN npx browserslist@latest --update-db
 COPY . .
 ENV VUE_APP_API_ENDPOINT_PROTOCOL=$VUE_APP_API_ENDPOINT_PROTOCOL
 ENV VUE_APP_API_ENDPOINT_HOST=$VUE_APP_API_ENDPOINT_HOST
