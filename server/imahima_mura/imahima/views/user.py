@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 from django.db.models import F, Q, Case, When, Value, CharField, DateTimeField, ExpressionWrapper
 import datetime
-import calendar
+import random, string
 import pytz 
 local_tz = jst = pytz.timezone('Asia/Tokyo')#TODO取り扱い
 
@@ -113,11 +113,23 @@ class UserBaseInfo(APIView):
         res_json = json.dumps(list(info_with_ongame), cls=DjangoJSONEncoder)
         return HttpResponse(res_json, content_type="application/json")
         
-class UserPasswordRetrieveUpdate(generics.RetrieveUpdateAPIView):
+class UserPasswordRetrieveUpdate(APIView):
     """ ユーザパスワード更新用 """
-    queryset = User.objects.all()
-    serializer_class = UserPasswordSerializer
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.AllowAny, )
+    def put(self, request, userId):
+        # パスワード生成
+        n = 8
+        randlst = [random.choice(string.ascii_letters + string.digits) for i in range(n)]
+        password = ''.join(randlst)
+        print("パスワードリセット")
+
+        # パスワード更新
+        user = User.objects.get(id=userId)
+        user.set_password(password)
+        user.save()
+
+        res_json = json.dumps(password, cls=DjangoJSONEncoder)
+        return HttpResponse(res_json, content_type="application/json")
 
 class UserRetrieveUpdate(generics.RetrieveUpdateAPIView):
     """ ユーザ設定更新用 """

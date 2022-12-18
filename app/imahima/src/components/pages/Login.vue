@@ -8,27 +8,39 @@
                     <div class="mb-3 text-start">
                         <input class="form-control" placeholder="ID" id="username" v-model="credentials.username">
                     </div>
-                    <div class="mb-3 text-start">
-                        <input type="password" class="form-control" placeholder="パスワード" id="password" v-model="credentials.password">
+                    <div class="mb-2 text-start">
+                        <input type="password" class="mb-3 form-control" placeholder="パスワード" id="password" v-model="credentials.password">
+                        
                     </div>
                     <button type="button" class="btn btn_primary btn_login" @click="login">ログイン</button>
                 </form>
-                <span class="d-flex mb-3">
+                <span class="d-flex mb-2">
                     <div class="login_dash_box login_dash_box_left"></div>
                     <div class="login_dash_box_or">OR</div>
                     <div class="login_dash_box login_dash_box_right"></div>
                 </span>
-                <span class="d-flex mb-1 login_firstvisiter">
+                <div class="mb-1 login_firstvisiter">
                     <div class="login_firstvisiter_text">
                         はじめましての方は
                     </div>
                     <button type="button" class="btn btn_primary btn_firstvisitor" @click="firstvisitor">こちらへ</button>
+                </div>
+                <span class="d-flex mt-2 mb-2">
+                    <div class="login_dash_box login_dash_box_left"></div>
+                    <div class="login_dash_box_or">OR</div>
+                    <div class="login_dash_box login_dash_box_right"></div>
                 </span>
+                <div class="mb-1 login_firstvisiter">
+                    <div class="login_firstvisiter_text">
+                        パスワードを覚えていない方は
+                    </div>
+                    <button type="button" class="btn btn_primary_normal btn_reset" @click="resetPassword">パスワードリセット</button>
+                </div>
             </div>
         </div>
-        <div class="alert alert-warning alert-dismissible fade" v-bind:class="{show: isError}" role="alert">
+        <div class="alert alert-warning alert-fixed alert-dismissible fade" v-bind:class="{show: isError}" role="alert">
             ユーザー名かパスワードが間違っています
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" @click="closeAlert"></button>
         </div>
     </div>
 </template>
@@ -50,7 +62,7 @@
         background-position: center;
         width: 90%;
         max-width: 600px;
-        height: 43%;
+        height: 30%;
         margin: 0 auto;
     }
     .login_card_base{
@@ -96,6 +108,22 @@
             background-size: 10px;
             margin-left: 5%;
         }
+
+        .btn_reset {
+            width: 250px;
+            height: 22px;
+            font-size: 12px!important;
+            background-size: 10px;
+            margin-left: 5%;
+        }
+    }
+    .alert-fixed {
+        position:fixed; 
+        top: 0px; 
+        left: 0px; 
+        width: 100%;
+        z-index:9999; 
+        border-radius:0px
     }
 }
 </style>
@@ -144,6 +172,7 @@ export default defineComponent({
     methods: {
         login() {
             this.loading = true;
+            this.isError = false;
             const userId = this.credentials.username;
             this.$http.post("auth/", this.credentials).then(response => {
                 this.$store.dispatch("auth", {
@@ -165,6 +194,19 @@ export default defineComponent({
         firstvisitor() {
             const paramInviteToken = this.queryToString(this.$route.query.inviteToken);
             this.$router.push({path: "FirstVisitor",query:{"inviteToken":paramInviteToken}});
+        },
+        resetPassword() {
+            const dd = "";
+            const userId = this.credentials.username;
+            this.$http.put("api/user_password_reset/"+userId+"/").then(response => {
+                this.credentials.password = response.data;
+                this.login()
+            }).catch(e => {
+                this.isError = true;
+            });
+        },
+        closeAlert() {
+            this.isError = false;
         }
     }
 })
